@@ -68,9 +68,392 @@ static inline HANDLE _FileToWinHANDLE(FILE *file)
 }
 #endif // ARCH_OS_WINDOWS
 
-FILE* ArchOpenFile(char const* fileName, char const* mode)
+class ArchMemFixedStorage : public ArchMemStorage
 {
-    return fopen(fileName, mode);
+public:
+	ArchMemFixedStorage(size_t length, const uint8_t* data) : _length(length), _data(data) {}
+
+	virtual size_t GetLength() const override { return _length; }
+
+	virtual size_t Read(uint8_t* data, size_t count, size_t offset) override
+	{
+		size_t offsetEnd = offset + count;
+		if (offsetEnd > _length) offsetEnd = _length;
+
+		if (offsetEnd > offset)
+		{
+			const size_t copyCount = (offsetEnd - offset);
+			memcpy(data, _data + offset, copyCount);
+			return copyCount;
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	virtual size_t Write(const uint8_t* data, size_t count, size_t offset) override
+	{
+		return 0;
+	}
+
+	virtual const void* GetPtrForMapping() const override { return _data; }
+
+private:
+	size_t _length;
+	const uint8_t* _data;
+};
+
+
+class ArchMemGrowingStorage : public ArchMemStorage
+{
+public:
+	static const size_t ChunkSize = 256 * 1024; // 256 Kb (8 bits)
+
+	ArchMemGrowingStorage() : _length(0) {}
+
+	virtual size_t GetLength() const override { return _length; }
+
+	virtual size_t Read(uint8_t* data, size_t count, size_t offset) override
+	{
+		size_t offsetEnd = offset + count;
+		if (offsetEnd > _length) offsetEnd = _length;
+
+		if (offsetEnd > offset)
+		{
+			const size_t begChunkIdx = offset / ChunkSize;
+			const size_t endChunkIdx = (offsetEnd + ChunkSize - 1) / ChunkSize;
+
+			_CopyData(data, begChunkIdx, endChunkIdx, offset, offsetEnd, [](uint8_t* dst, const uint8_t* src, size_t size) { memcpy(dst, src, size); });
+
+			return (offsetEnd - offset);
+		}
+		else
+		{
+			return 0;
+		}
+	}
+
+	virtual size_t Write(const uint8_t* data, size_t count, size_t offset) override
+	{
+		if (count > 0)
+		{
+			const size_t offsetEnd = offset + count;
+			const size_t begChunkIdx = offset / ChunkSize;
+			const size_t endChunkIdx = (offsetEnd + ChunkSize - 1) / ChunkSize;
+
+			const size_t endChunkIdx0 = _chunks.size();
+			if (endChunkIdx > endChunkIdx0)
+			{
+				//allocate new chunks
+				_chunks.resize(endChunkIdx);
+				for (auto idx = endChunkIdx0; idx < endChunkIdx; ++idx)
+				{
+					_chunks[idx] = Chunk_t(new uint8_t[ChunkSize]);
+				}
+			}
+
+			_CopyData(data, begChunkIdx, endChunkIdx, offset, offsetEnd, [](const uint8_t* src, uint8_t* dst, size_t size) { memcpy(dst, src, size); });
+
+			if (_length < offsetEnd) _length = offsetEnd;
+		}
+		return count;
+	}
+
+	virtual const void* GetPtrForMapping() const override { return nullptr; }
+
+private:
+	size_t _length;
+
+	typedef std::unique_ptr<uint8_t[]> Chunk_t;
+	std::vector<Chunk_t> _chunks;
+
+	template <typename Ptr, typename Func>
+	Ptr _CopyData(Ptr data, size_t begChunkIdx, size_t endChunkIdx, size_t offsetBeg, size_t offsetEnd, Func copyFunc)
+	{
+		if (begChunkIdx == endChunkIdx - 1)
+		{
+			const size_t offsetInChunk = (offsetBeg - begChunkIdx * ChunkSize);
+			copyFunc(data, _chunks[begChunkIdx].get() + offsetInChunk, offsetEnd - offsetBeg);
+		}
+		else
+		{
+			{
+				const size_t offsetInChunk = (offsetBeg - begChunkIdx * ChunkSize);
+				const size_t copyCount = ChunkSize - offsetInChunk;
+				copyFunc(data, _chunks[begChunkIdx].get() + offsetInChunk, copyCount);
+				data += copyCount;
+			}
+			auto curChunkIdx = begChunkIdx;
+			for (; curChunkIdx < endChunkIdx - 1; ++curChunkIdx)
+			{
+				copyFunc(data, _chunks[curChunkIdx].get(), ChunkSize);
+				data += ChunkSize;
+			}
+			{
+				const size_t copyCount = (offsetEnd - curChunkIdx * ChunkSize);
+				copyFunc(data, _chunks[curChunkIdx].get(), copyCount);
+				data += copyCount;
+			}
+		}
+		return data;
+	}
+};
+
+
+namespace
+{
+	class ArchMemStorageRegistry
+	{
+		struct CompareStr
+		{
+			using is_transparent = void;
+
+			bool operator()(const std::string& str1, const std::string& str2) const
+			{
+				return str1 < str2;
+			}
+			bool operator()(const char* str1, const std::string& str2) const
+			{
+				return ::strcmp(str1, str2.c_str()) < 0;
+			}
+			bool operator()(const std::string& str1, const char* str2) const
+			{
+				return ::strcmp(str1.c_str(), str2) < 0;
+			}
+		};
+
+		std::map<std::string, std::weak_ptr<ArchMemStorage>, CompareStr> _map;
+
+		ArchMemStorageRegistry() {}
+
+	public:
+		static ArchMemStorageRegistry* GetInst()
+		{
+			static ArchMemStorageRegistry inst;
+			return &inst;
+		}
+
+		void Set(const std::string& path, const std::shared_ptr<ArchMemStorage>& ptr)
+		{
+			_map[path] = ptr;
+		}
+
+		std::shared_ptr<ArchMemStorage> Get(const char* path)
+		{
+			auto it = _map.find(path);
+			return it != _map.end() ? it->second.lock() : std::shared_ptr<ArchMemStorage>();
+		}
+	};
+}
+
+
+std::shared_ptr<ArchMemStorage> ArchCreateMemStorageRO(const std::string& path, const void* data, size_t size)
+{
+	auto result = std::shared_ptr<ArchMemStorage>(new ArchMemFixedStorage(size, static_cast<const uint8_t*>(data)));
+	ArchMemStorageRegistry::GetInst()->Set(path, result);
+	return result;
+}
+
+std::shared_ptr<ArchMemStorage> ArchCreateMemStorageRW(const std::string& path)
+{
+	auto result = std::shared_ptr<ArchMemStorage>(new ArchMemGrowingStorage());
+	ArchMemStorageRegistry::GetInst()->Set(path, result);
+	return result;
+}
+
+class ArchMappingMemImpl : public ArchMappingImpl
+{
+	std::shared_ptr<ArchMemStorage> _memStorage;
+
+	ArchMappingMemImpl(const std::shared_ptr<ArchMemStorage>& memStorage) : _memStorage(memStorage) {}
+
+public:
+	static ArchMappingMemImpl* Create(const std::shared_ptr<ArchMemStorage>& memStorage)
+	{
+		return (memStorage->GetPtrForMapping() != nullptr) ? new ArchMappingMemImpl(memStorage) : nullptr;
+	}
+
+	virtual ~ArchMappingMemImpl() override {}
+
+	virtual size_t GetLength() const override { return _memStorage->GetLength(); }
+	virtual void* GetPtr() const override { return const_cast<void*>(_memStorage->GetPtrForMapping()); }
+};
+
+class ArchMemFile : public ArchFile
+{
+	std::shared_ptr<ArchMemStorage> _memStorage;
+
+	ArchMemFile(const std::shared_ptr<ArchMemStorage>& memStorage) : _memStorage(memStorage) {}
+
+public:
+	static ArchMemFile* Open(const char* fileName)
+	{
+		auto memStorage = ArchMemStorageRegistry::GetInst()->Get(fileName);
+		return memStorage ? new ArchMemFile(memStorage) : nullptr;
+	}
+
+	virtual int64_t GetFileLength() override
+	{
+		return _memStorage->GetLength();
+	}
+
+	virtual ArchConstFileMapping MapFileReadOnly(std::string *errMsg) override
+	{
+		return ArchConstFileMapping(ArchMappingMemImpl::Create(_memStorage));
+	}
+	virtual ArchMutableFileMapping MapFileReadWrite(std::string *errMsg) override
+	{
+		return ArchMutableFileMapping();
+	}
+
+	virtual int64_t PRead(void *buffer, size_t count, int64_t offset) override
+	{
+		return _memStorage->Read(static_cast<uint8_t*>(buffer), count, offset);
+	}
+	virtual int64_t PWrite(void const *bytes, size_t count, int64_t offset) override
+	{
+		return _memStorage->Write(static_cast<const uint8_t*>(bytes), count, offset);
+	}
+
+	virtual void FileAdvise(int64_t offset, size_t count, ArchFileAdvice adv) override
+	{
+		//do nothing
+	}
+
+};
+
+
+class ArchMappingDiscImpl : public ArchMappingImpl
+{
+	void* _ptr;
+	size_t _length;
+
+	ArchMappingDiscImpl(void* ptr, size_t length) : _ptr(ptr), _length(length) {}
+
+public:
+	static ArchMappingDiscImpl* Create(FILE* file, std::string *errMsg, bool isConst)
+	{
+		auto length = ArchGetFileLength(file);
+		if (length < 0)
+			return nullptr;
+
+#if defined(ARCH_OS_WINDOWS)
+		uint64_t unsignedLength = length;
+		DWORD maxSizeHigh = static_cast<DWORD>(unsignedLength >> 32);
+		DWORD maxSizeLow = static_cast<DWORD>(unsignedLength);
+		HANDLE hFileMap = CreateFileMapping(
+			_FileToWinHANDLE(file), NULL,
+			PAGE_READONLY /* allow read-only or copy-on-write */,
+			maxSizeHigh, maxSizeLow, NULL);
+		if (hFileMap == NULL)
+			return nullptr;
+		void* ptr = MapViewOfFile(hFileMap, isConst ? FILE_MAP_READ : FILE_MAP_COPY,
+			/*offsetHigh=*/ 0, /*offsetLow=*/0, unsignedLength);
+		// Close the mapping handle, and return the view pointer.
+		CloseHandle(hFileMap);
+		return new ArchMappingDiscImpl(ptr, length);
+#else // Assume POSIX
+		auto m = mmap(nullptr, length,
+			isConst ? PROT_READ : PROT_READ | PROT_WRITE,
+			MAP_PRIVATE, fileno(file), 0);
+		if (m == MAP_FAILED) {
+			if (errMsg) {
+				int err = errno;
+				if (err == EINVAL) {
+					*errMsg = "bad arguments to mmap()";
+				}
+				else if (err == EMFILE || err == ENOMEM) {
+					*errMsg = "system limit on mapped regions exceeded, "
+						"or out of memory";
+				}
+				else {
+					*errMsg = ArchStrerror();
+				}
+			}
+			return nullptr;
+		}
+		return new ArchMappingDiscImpl(m, length);
+#endif
+	}
+
+	virtual ~ArchMappingDiscImpl() override
+	{
+		if (_ptr)
+		{
+#if defined(ARCH_OS_WINDOWS)
+			UnmapViewOfFile(_ptr);
+#else // assume POSIX
+			munmap(_ptr, _length);
+#endif
+		}
+	}
+
+	virtual size_t GetLength() const override { return _length; }
+	virtual void* GetPtr() const override { return _ptr; }
+};
+
+
+class ArchDiscFile : public ArchFile
+{
+	FILE* _file;
+
+	ArchDiscFile(FILE* file) : _file(file) {}
+
+public:
+	static ArchDiscFile* Open(char const* fileName, char const* mode)
+	{
+		FILE* file = fopen(fileName, mode);
+		return file ? new ArchDiscFile(file) : nullptr;
+	}
+
+	static ArchDiscFile* Open(int fd, char const* mode)
+	{
+		FILE* file = ArchFdOpen(fd, mode);
+		return file ? new ArchDiscFile(file) : nullptr;
+	}
+
+	virtual ~ArchDiscFile()
+	{
+		fclose(_file);
+	}
+
+	inline FILE* GetFilePtr() { return _file; }
+
+	virtual int64_t GetFileLength() override;
+
+	virtual ArchConstFileMapping MapFileReadOnly(std::string *errMsg) override
+	{
+		return ArchConstFileMapping(ArchMappingDiscImpl::Create(_file, errMsg, true));
+	}
+	virtual ArchMutableFileMapping MapFileReadWrite(std::string *errMsg) override
+	{
+		return ArchMutableFileMapping(ArchMappingDiscImpl::Create(_file, errMsg, false));
+	}
+
+	virtual int64_t PRead(void *buffer, size_t count, int64_t offset) override;
+	virtual int64_t PWrite(void const *bytes, size_t count, int64_t offset) override;
+
+	virtual void FileAdvise(int64_t offset, size_t count, ArchFileAdvice adv) override;
+};
+
+
+ArchFile* ArchOpenFile(char const* fileName, char const* mode)
+{
+	if (ArchIsMemoryPath(fileName))
+	{
+		return ArchMemFile::Open(fileName);
+	}
+	return ArchDiscFile::Open(fileName, mode);
+}
+
+ArchFile* ArchOpenFile(int fd, char const* mode)
+{
+	return ArchDiscFile::Open(fd, mode);
+}
+
+void ArchReleaseFile(ArchFile* file)
+{
+	if (file) delete file;
 }
 
 #if defined(ARCH_OS_WINDOWS)
@@ -190,20 +573,24 @@ _GetFileLength(HANDLE handle)
 
 #endif
 
-int64_t
-ArchGetFileLength(FILE *file)
+int64_t ArchGetFileLength(FILE* file)
 {
     if (!file)
         return -1;
 #if defined (ARCH_OS_LINUX) || defined (ARCH_OS_DARWIN)
     struct stat buf;
-    return fstat(fileno(file), &buf) < 0 ? -1 :
+    return fstat(fileno(_file), &buf) < 0 ? -1 :
         static_cast<int64_t>(buf.st_size);
 #elif defined (ARCH_OS_WINDOWS)
     return _GetFileLength(_FileToWinHANDLE(file));
 #else
 #error Unknown system architecture
 #endif
+}
+
+int64_t ArchDiscFile::GetFileLength()
+{
+	return ArchGetFileLength(_file);
 }
 
 int64_t
@@ -418,86 +805,6 @@ ArchGetTmpDir()
     return _TmpDir;
 }
 
-void
-Arch_Unmapper::operator()(char const *mapStart) const
-{
-    void *ptr = static_cast<void *>(const_cast<char *>(mapStart));
-    if (!ptr)
-        return;
-#if defined(ARCH_OS_WINDOWS)
-    UnmapViewOfFile(ptr);
-#else // assume POSIX
-    munmap(ptr, _length);
-#endif
-}
-
-void
-Arch_Unmapper::operator()(char *mapStart) const
-{
-    (*this)(static_cast<char const *>(mapStart));
-}
-
-template <class Mapping>
-static inline Mapping
-Arch_MapFileImpl(FILE *file, std::string *errMsg)
-{
-    using PtrType = typename Mapping::pointer;
-    constexpr bool isConst =
-        std::is_const<typename Mapping::element_type>::value;
-
-    auto length = ArchGetFileLength(file);
-    if (length < 0)
-        return Mapping();
-
-#if defined(ARCH_OS_WINDOWS)
-    uint64_t unsignedLength = length;
-    DWORD maxSizeHigh = static_cast<DWORD>(unsignedLength >> 32);
-    DWORD maxSizeLow = static_cast<DWORD>(unsignedLength);
-    HANDLE hFileMap = CreateFileMapping(
-        _FileToWinHANDLE(file), NULL,
-        PAGE_READONLY /* allow read-only or copy-on-write */,
-        maxSizeHigh, maxSizeLow, NULL);
-    if (hFileMap == NULL)
-        return Mapping();
-    auto ptr = static_cast<PtrType>(
-        MapViewOfFile(hFileMap, isConst ? FILE_MAP_READ : FILE_MAP_COPY,
-                      /*offsetHigh=*/ 0, /*offsetLow=*/0, unsignedLength));
-    // Close the mapping handle, and return the view pointer.
-    CloseHandle(hFileMap);
-    return Mapping(ptr, Arch_Unmapper(length));
-#else // Assume POSIX
-    auto m = mmap(nullptr, length,
-                  isConst ? PROT_READ : PROT_READ | PROT_WRITE,
-                  MAP_PRIVATE, fileno(file), 0);
-    Mapping ret(m == MAP_FAILED ? nullptr : static_cast<PtrType>(m),
-                Arch_Unmapper(length));
-    if (!ret && errMsg) {
-        int err = errno;
-        if (err == EINVAL) {
-            *errMsg = "bad arguments to mmap()";
-        } else if (err == EMFILE || err == ENOMEM) {
-            *errMsg = "system limit on mapped regions exceeded, "
-                "or out of memory";
-        } else {
-            *errMsg = ArchStrerror();
-        }
-    }
-    return ret;
-#endif
-}
-
-ArchConstFileMapping
-ArchMapFileReadOnly(FILE *file, std::string *errMsg)
-{
-    return Arch_MapFileImpl<ArchConstFileMapping>(file, errMsg);
-}
-
-ArchMutableFileMapping
-ArchMapFileReadWrite(FILE *file, std::string *errMsg)
-{
-    return Arch_MapFileImpl<ArchMutableFileMapping>(file, errMsg);
-}
-
 ARCH_API
 void ArchMemAdvise(void const *addr, size_t len, ArchMemAdvice adv)
 {
@@ -548,13 +855,13 @@ ArchQueryMappedMemoryResidency(
 }
 
 int64_t
-ArchPRead(FILE *file, void *buffer, size_t count, int64_t offset)
+ArchDiscFile::PRead(void *buffer, size_t count, int64_t offset)
 {
     if (count == 0)
         return 0;
 
 #if defined(ARCH_OS_WINDOWS)
-    HANDLE hFile = _FileToWinHANDLE(file);
+    HANDLE hFile = _FileToWinHANDLE(_file);
 
     OVERLAPPED overlapped;
     memset(&overlapped, 0, sizeof(overlapped));
@@ -571,7 +878,7 @@ ArchPRead(FILE *file, void *buffer, size_t count, int64_t offset)
     return -1;
 #else // assume POSIX
     // Read and check if all got read (most common case).
-    int fd = fileno(file);
+    int fd = fileno(_file);
     // Convert to signed so we can compare the result of pread with count
     // without the compiler complaining.  This conversion is implementation
     // defined if count is larger than what's representable by int64_t, and
@@ -603,13 +910,13 @@ ArchPRead(FILE *file, void *buffer, size_t count, int64_t offset)
 }
 
 int64_t
-ArchPWrite(FILE *file, void const *bytes, size_t count, int64_t offset)
+ArchDiscFile::PWrite(void const *bytes, size_t count, int64_t offset)
 {
     if (offset < 0)
         return -1;
 
 #if defined(ARCH_OS_WINDOWS)
-    HANDLE hFile = _FileToWinHANDLE(file);
+    HANDLE hFile = _FileToWinHANDLE(_file);
 
     OVERLAPPED overlapped;
     memset(&overlapped, 0, sizeof(overlapped));
@@ -630,7 +937,7 @@ ArchPWrite(FILE *file, void const *bytes, size_t count, int64_t offset)
     // written, or we get an error return.
 
     // Write and check if all got written (most common case).
-    int fd = fileno(file);
+    int fd = fileno(_file);
     // Convert to signed so we can compare the result of pwrite with count
     // without the compiler complaining.  This conversion is implementation
     // defined if count is larger than what's representable by int64_t, and
@@ -917,9 +1224,8 @@ ArchReadLink(const char* path)
 
 #endif
 
-ARCH_API
-void ArchFileAdvise(
-    FILE *file, int64_t offset, size_t count, ArchFileAdvice adv)
+
+void ArchDiscFile::FileAdvise(int64_t offset, size_t count, ArchFileAdvice adv)
 {
 #if defined(ARCH_OS_WINDOWS)
     // No windows implementation yet.  Not clear what's equivalent.
@@ -933,12 +1239,12 @@ void ArchFileAdvise(
         /* ArchFileAdviceDontNeed     = */ POSIX_FADV_DONTNEED,
         /* ArchFileAdviceRandomAccess = */ POSIX_FADV_RANDOM
     };
-    int rval = posix_fadvise(fileno(file), offset, static_cast<off_t>(count),
+    int rval = posix_fadvise(fileno(_file), offset, static_cast<off_t>(count),
                              adviceMap[adv]);
     if (rval != 0) {
         fprintf(stderr, "failed call to posix_fadvise(%d, %zd, %zd)"
                 "ret=%d, errno=%d '%s'\n",
-                fileno(file), offset, static_cast<off_t>(count),
+                fileno(_file), offset, static_cast<off_t>(count),
                 rval, errno, ArchStrerror().c_str());
     }
 #endif

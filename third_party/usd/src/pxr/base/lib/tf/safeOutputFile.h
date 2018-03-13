@@ -36,6 +36,8 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+class ArchFile;
+
 /// \class TfSafeOutputFile
 ///
 /// Opens a file for output, either for update "r+" or to completely replace
@@ -83,19 +85,19 @@ public:
     TF_API void Close();
 
     /// Return the opened FILE *.
-    FILE *Get() const { return _file; }
+    ArchFile *Get() const { return _file; }
     
     /// If the underlying file was opened by Update(), return it.  The caller
     /// takes responsibility for closing the file later.  It is an error to call
     /// this for files opened for Replace.
-    TF_API FILE *ReleaseUpdatedFile();
+    TF_API ArchFile *ReleaseUpdatedFile();
 
     /// Return true if this TfSafeOutputFile was created by a call to Update(),
     /// false otherwise.
     TF_API bool IsOpenForUpdate() const;
 
 private:
-    FILE *_file = nullptr;
+    ArchFile *_file = nullptr;
     std::string _targetFileName;
     std::string _tempFileName;
 };

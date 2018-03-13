@@ -124,7 +124,7 @@ static int _GetMMapPrefetchKB()
 
 // Write nbytes bytes to fd at pos.
 static inline int64_t
-WriteToFd(FILE *file, void const *bytes, int64_t nbytes, int64_t pos) {
+WriteToFd(ArchFile *file, void const *bytes, int64_t nbytes, int64_t pos) {
     int64_t nwritten = ArchPWrite(file, bytes, nbytes, pos);
     if (ARCH_UNLIKELY(nwritten < 0)) {
         TF_RUNTIME_ERROR("Failed writing usdc data: %s",
@@ -463,7 +463,7 @@ private:
 };
 
 struct _PreadStream {
-    explicit _PreadStream(FILE *file) : _cur(0), _file(file) {}
+    explicit _PreadStream(ArchFile *file) : _cur(0), _file(file) {}
     inline void Read(void *dest, size_t nBytes) {
         _cur += ArchPRead(_file, dest, nBytes, _cur);
     }
@@ -475,7 +475,7 @@ struct _PreadStream {
 
 private:
     int64_t _cur;
-    FILE *_file;
+	ArchFile *_file;
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -521,7 +521,7 @@ public:
         int64_t size = 0;
     };
 
-    explicit _BufferedOutput(FILE *file)
+    explicit _BufferedOutput(ArchFile *file)
         : _filePos(0)
         , _file(file)
         , _bufferPos(0)
@@ -630,7 +630,7 @@ private:
     
     // Write head in the file.  Always inside the buffer region.
     int64_t _filePos;
-    FILE *_file;
+    ArchFile *_file;
 
     // Start of current buffer is at this file offset.
     int64_t _bufferPos;
@@ -1404,11 +1404,11 @@ CrateFile::CreateNew()
 
 /* static */
 ArchConstFileMapping
-CrateFile::_MmapFile(char const *fileName, FILE *file)
+CrateFile::_MmapFile(char const *fileName, ArchFile *file)
 {
     ArchConstFileMapping map = ArchMapFileReadOnly(file);
     if (!map)
-        TF_RUNTIME_ERROR("Couldn't map file '%s'", fileName);
+		TF_DIAGNOSTIC_WARNING("Couldn't map file '%s'", fileName);
     return map;
 }
 
@@ -1428,9 +1428,9 @@ CrateFile::Open(string const &fileName)
         return result;
     }
 
-    if (!TfGetenvBool("USDC_USE_PREAD", false)) {
+	ArchConstFileMapping mapStart;
+    if (!TfGetenvBool("USDC_USE_PREAD", false) && (mapStart = _MmapFile(fileName.c_str(), inputFile.get()))) {
         // Map the file.
-        auto mapStart = _MmapFile(fileName.c_str(), inputFile.get());
         result.reset(new CrateFile(fileName, std::move(mapStart)));
     } else {
         result.reset(new CrateFile(fileName, std::move(inputFile)));
@@ -1519,6 +1519,7 @@ CrateFile::CrateFile(string const &fileName, _UniqueFILE inputFile)
     , _useMmap(false)
 {
     _DoAllTypeRegistrations();
+	_InitPread();
 }
 
 void
@@ -1542,7 +1543,7 @@ CrateFile::~CrateFile()
     static std::mutex outputMutex;
 
     // Dump a debug page map if requested.
-    if (_useMmap && _mapStart && _debugPageMap) {
+    if (_mapStart && _debugPageMap) {
         int64_t length = ArchGetFileMappingLength(_mapStart);
         int64_t npages = (length + PAGESIZE-1) / PAGESIZE;
         std::unique_ptr<unsigned char []> mincoreMap(new unsigned char[npages]);
@@ -1660,11 +1661,8 @@ CrateFile::Packer::Close()
     
     // Reset the mapping or file so we can read values from the newly
     // written file.
-    if (_crate->_useMmap) {
+    if (_crate->_useMmap && (_crate->_mapStart = _MmapFile(_crate->_fileName.c_str(), file.get()))) {
         // Must remap the file.
-        _crate->_mapStart = _MmapFile(_crate->_fileName.c_str(), file.get());
-        if (!_crate->_mapStart)
-            return false;
         _crate->_InitMMap();
     } else {
         // Must adopt the file handle if we don't already have one.
@@ -1921,7 +1919,7 @@ CrateFile::_GetTimeSampleValueImpl(TimeSamples const &ts, size_t i) const
 {
     // Need to read the rep from the file for index i.
     auto offset = ts.valuesFileOffset + i * sizeof(ValueRep);
-    if (_useMmap) {
+    if (_mapStart) {
         auto reader = _MakeReader(_MmapStream(_mapStart, _debugPageMap.get()));
         reader.Seek(offset);
         return VtValue(reader.Read<ValueRep>());
@@ -1937,7 +1935,7 @@ CrateFile::_MakeTimeSampleValuesMutableImpl(TimeSamples &ts) const
 {
     // Read out the reps into the vector.
     ts.values.resize(ts.times.Get().size());
-    if (_useMmap) {
+    if (_mapStart) {
         auto reader = _MakeReader(_MmapStream(_mapStart, _debugPageMap.get()));
         reader.Seek(ts.valuesFileOffset);
         for (size_t i = 0, n = ts.times.Get().size(); i != n; ++i)
@@ -2809,7 +2807,7 @@ CrateFile::_BuildDecompressedPathsImpl(
 void
 CrateFile::_ReadRawBytes(int64_t start, int64_t size, char *buf) const
 {
-    if (_useMmap) {
+    if (_mapStart) {
         auto reader = _MakeReader(_MmapStream(_mapStart, _debugPageMap.get()));
         reader.Seek(start);
         reader.template ReadContiguous<char>(buf, size);
@@ -2971,7 +2969,7 @@ void
 CrateFile::_UnpackValue(ValueRep rep, T *out) const
 {
     auto const &h = _GetValueHandler<T>();
-    if (_useMmap) {
+    if (_mapStart) {
         h.Unpack(_MakeReader(_MmapStream(_mapStart,
                                          _debugPageMap.get())), rep, out);
     } else {
@@ -2983,7 +2981,7 @@ template <class T>
 void
 CrateFile::_UnpackValue(ValueRep rep, VtArray<T> *out) const {
     auto const &h = _GetValueHandler<T>();
-    if (_useMmap) {
+    if (_mapStart) {
         h.UnpackArray(_MakeReader(_MmapStream(_mapStart,
                                               _debugPageMap.get())), rep, out);
     } else {
@@ -3001,7 +2999,7 @@ CrateFile::_UnpackValue(ValueRep rep, VtValue *result) const {
         return;
     }
     auto index = static_cast<int>(repType);
-    if (_useMmap) {
+    if (_mapStart) {
         _unpackValueFunctionsMmap[index](rep, result);
     } else {
         _unpackValueFunctionsPread[index](rep, result);
@@ -3110,11 +3108,9 @@ CrateFile::_IsKnownSection(char const *name) {
 }
 
 void
-CrateFile::_Fcloser::operator()(FILE *f) const
+CrateFile::_Fcloser::operator()(ArchFile *f) const
 {
-    if (f) {
-        fclose(f);
-    }
+    ArchReleaseFile(f);
 }
 
 CrateFile::Spec::Spec(Spec_0_0_1 const &s) 

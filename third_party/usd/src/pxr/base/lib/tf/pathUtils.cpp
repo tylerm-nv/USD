@@ -429,7 +429,7 @@ TfNormPath(string const &inPath)
 string
 TfAbsPath(string const& path)
 {
-    if (path.empty()) {
+    if (path.empty() || ArchIsMemoryPath(path.c_str())) {
         return path;
     }
 
