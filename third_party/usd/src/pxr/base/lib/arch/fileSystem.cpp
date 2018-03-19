@@ -183,7 +183,7 @@ private:
 				copyFunc(data, _chunks[begChunkIdx].get() + offsetInChunk, copyCount);
 				data += copyCount;
 			}
-			auto curChunkIdx = begChunkIdx;
+			auto curChunkIdx = begChunkIdx + 1;
 			for (; curChunkIdx < endChunkIdx - 1; ++curChunkIdx)
 			{
 				copyFunc(data, _chunks[curChunkIdx].get(), ChunkSize);
