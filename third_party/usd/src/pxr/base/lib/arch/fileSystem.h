@@ -128,11 +128,16 @@ enum ArchFileAdvice {
 class ArchMappingImpl
 {
 protected:
-	ArchMappingImpl() = default;
+	void* _ptr;
+	size_t _length;
+
+	ArchMappingImpl(void* ptr, size_t length) : _ptr(ptr), _length(length) {}
+
 public:
-	virtual ~ArchMappingImpl() = default;
-	virtual size_t GetLength() const = 0;
-	virtual void* GetPtr() const = 0;
+	virtual ~ArchMappingImpl() {}
+
+	inline size_t GetLength() const { return _length; }
+	inline void* GetPtr() const { return _ptr; }
 };
 
 template <typename T>
@@ -452,25 +457,6 @@ inline void ArchFileAdvise(ArchFile *file, int64_t offset, size_t count, ArchFil
 
 
 ARCH_API inline bool ArchIsMemoryPath(const char* path) { return (strncmp(path, "mem://", 6) == 0); }
-
-class ArchMemStorage
-{
-protected:
-	ArchMemStorage() {}
-
-public:
-	virtual ~ArchMemStorage() {}
-
-	virtual size_t GetLength() const = 0;
-
-	virtual size_t Read(uint8_t* data, size_t count, size_t offset) = 0;
-	virtual size_t Write(const uint8_t* data, size_t count, size_t offset) = 0;
-
-	virtual const void* GetPtrForMapping() const = 0;
-};
-
-ARCH_API std::shared_ptr<ArchMemStorage> ArchCreateMemStorageRO(const std::string& path, const void* data, size_t size);
-ARCH_API std::shared_ptr<ArchMemStorage> ArchCreateMemStorageRW(const std::string& path);
 
 ///@}
 

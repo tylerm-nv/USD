@@ -68,270 +68,12 @@ static inline HANDLE _FileToWinHANDLE(FILE *file)
 }
 #endif // ARCH_OS_WINDOWS
 
-class ArchMemFixedStorage : public ArchMemStorage
-{
-public:
-	ArchMemFixedStorage(size_t length, const uint8_t* data) : _length(length), _data(data) {}
-
-	virtual size_t GetLength() const override { return _length; }
-
-	virtual size_t Read(uint8_t* data, size_t count, size_t offset) override
-	{
-		size_t offsetEnd = offset + count;
-		if (offsetEnd > _length) offsetEnd = _length;
-
-		if (offsetEnd > offset)
-		{
-			const size_t copyCount = (offsetEnd - offset);
-			memcpy(data, _data + offset, copyCount);
-			return copyCount;
-		}
-		else
-		{
-			return 0;
-		}
-	}
-	virtual size_t Write(const uint8_t* data, size_t count, size_t offset) override
-	{
-		return 0;
-	}
-
-	virtual const void* GetPtrForMapping() const override { return _data; }
-
-private:
-	size_t _length;
-	const uint8_t* _data;
-};
-
-
-class ArchMemGrowingStorage : public ArchMemStorage
-{
-public:
-	static const size_t ChunkSize = 256 * 1024; // 256 Kb (8 bits)
-
-	ArchMemGrowingStorage() : _length(0) {}
-
-	virtual size_t GetLength() const override { return _length; }
-
-	virtual size_t Read(uint8_t* data, size_t count, size_t offset) override
-	{
-		size_t offsetEnd = offset + count;
-		if (offsetEnd > _length) offsetEnd = _length;
-
-		if (offsetEnd > offset)
-		{
-			const size_t begChunkIdx = offset / ChunkSize;
-			const size_t endChunkIdx = (offsetEnd + ChunkSize - 1) / ChunkSize;
-
-			_CopyData(data, begChunkIdx, endChunkIdx, offset, offsetEnd, [](uint8_t* dst, const uint8_t* src, size_t size) { memcpy(dst, src, size); });
-
-			return (offsetEnd - offset);
-		}
-		else
-		{
-			return 0;
-		}
-	}
-
-	virtual size_t Write(const uint8_t* data, size_t count, size_t offset) override
-	{
-		if (count > 0)
-		{
-			const size_t offsetEnd = offset + count;
-			const size_t begChunkIdx = offset / ChunkSize;
-			const size_t endChunkIdx = (offsetEnd + ChunkSize - 1) / ChunkSize;
-
-			const size_t endChunkIdx0 = _chunks.size();
-			if (endChunkIdx > endChunkIdx0)
-			{
-				//allocate new chunks
-				_chunks.resize(endChunkIdx);
-				for (auto idx = endChunkIdx0; idx < endChunkIdx; ++idx)
-				{
-					_chunks[idx] = Chunk_t(new uint8_t[ChunkSize]);
-				}
-			}
-
-			_CopyData(data, begChunkIdx, endChunkIdx, offset, offsetEnd, [](const uint8_t* src, uint8_t* dst, size_t size) { memcpy(dst, src, size); });
-
-			if (_length < offsetEnd) _length = offsetEnd;
-		}
-		return count;
-	}
-
-	virtual const void* GetPtrForMapping() const override { return nullptr; }
-
-private:
-	size_t _length;
-
-	typedef std::unique_ptr<uint8_t[]> Chunk_t;
-	std::vector<Chunk_t> _chunks;
-
-	template <typename Ptr, typename Func>
-	Ptr _CopyData(Ptr data, size_t begChunkIdx, size_t endChunkIdx, size_t offsetBeg, size_t offsetEnd, Func copyFunc)
-	{
-		if (begChunkIdx == endChunkIdx - 1)
-		{
-			const size_t offsetInChunk = (offsetBeg - begChunkIdx * ChunkSize);
-			copyFunc(data, _chunks[begChunkIdx].get() + offsetInChunk, offsetEnd - offsetBeg);
-		}
-		else
-		{
-			{
-				const size_t offsetInChunk = (offsetBeg - begChunkIdx * ChunkSize);
-				const size_t copyCount = ChunkSize - offsetInChunk;
-				copyFunc(data, _chunks[begChunkIdx].get() + offsetInChunk, copyCount);
-				data += copyCount;
-			}
-			auto curChunkIdx = begChunkIdx + 1;
-			for (; curChunkIdx < endChunkIdx - 1; ++curChunkIdx)
-			{
-				copyFunc(data, _chunks[curChunkIdx].get(), ChunkSize);
-				data += ChunkSize;
-			}
-			{
-				const size_t copyCount = (offsetEnd - curChunkIdx * ChunkSize);
-				copyFunc(data, _chunks[curChunkIdx].get(), copyCount);
-				data += copyCount;
-			}
-		}
-		return data;
-	}
-};
-
-
-namespace
-{
-	class ArchMemStorageRegistry
-	{
-		struct CompareStr
-		{
-			using is_transparent = void;
-
-			bool operator()(const std::string& str1, const std::string& str2) const
-			{
-				return str1 < str2;
-			}
-			bool operator()(const char* str1, const std::string& str2) const
-			{
-				return ::strcmp(str1, str2.c_str()) < 0;
-			}
-			bool operator()(const std::string& str1, const char* str2) const
-			{
-				return ::strcmp(str1.c_str(), str2) < 0;
-			}
-		};
-
-		std::map<std::string, std::weak_ptr<ArchMemStorage>, CompareStr> _map;
-
-		ArchMemStorageRegistry() {}
-
-	public:
-		static ArchMemStorageRegistry* GetInst()
-		{
-			static ArchMemStorageRegistry inst;
-			return &inst;
-		}
-
-		void Set(const std::string& path, const std::shared_ptr<ArchMemStorage>& ptr)
-		{
-			_map[path] = ptr;
-		}
-
-		std::shared_ptr<ArchMemStorage> Get(const char* path)
-		{
-			auto it = _map.find(path);
-			return it != _map.end() ? it->second.lock() : std::shared_ptr<ArchMemStorage>();
-		}
-	};
-}
-
-
-std::shared_ptr<ArchMemStorage> ArchCreateMemStorageRO(const std::string& path, const void* data, size_t size)
-{
-	auto result = std::shared_ptr<ArchMemStorage>(new ArchMemFixedStorage(size, static_cast<const uint8_t*>(data)));
-	ArchMemStorageRegistry::GetInst()->Set(path, result);
-	return result;
-}
-
-std::shared_ptr<ArchMemStorage> ArchCreateMemStorageRW(const std::string& path)
-{
-	auto result = std::shared_ptr<ArchMemStorage>(new ArchMemGrowingStorage());
-	ArchMemStorageRegistry::GetInst()->Set(path, result);
-	return result;
-}
-
-class ArchMappingMemImpl : public ArchMappingImpl
-{
-	std::shared_ptr<ArchMemStorage> _memStorage;
-
-	ArchMappingMemImpl(const std::shared_ptr<ArchMemStorage>& memStorage) : _memStorage(memStorage) {}
-
-public:
-	static ArchMappingMemImpl* Create(const std::shared_ptr<ArchMemStorage>& memStorage)
-	{
-		return (memStorage->GetPtrForMapping() != nullptr) ? new ArchMappingMemImpl(memStorage) : nullptr;
-	}
-
-	virtual ~ArchMappingMemImpl() override {}
-
-	virtual size_t GetLength() const override { return _memStorage->GetLength(); }
-	virtual void* GetPtr() const override { return const_cast<void*>(_memStorage->GetPtrForMapping()); }
-};
-
-class ArchMemFile : public ArchFile
-{
-	std::shared_ptr<ArchMemStorage> _memStorage;
-
-	ArchMemFile(const std::shared_ptr<ArchMemStorage>& memStorage) : _memStorage(memStorage) {}
-
-public:
-	static ArchMemFile* Open(const char* fileName)
-	{
-		auto memStorage = ArchMemStorageRegistry::GetInst()->Get(fileName);
-		return memStorage ? new ArchMemFile(memStorage) : nullptr;
-	}
-
-	virtual int64_t GetFileLength() override
-	{
-		return _memStorage->GetLength();
-	}
-
-	virtual ArchConstFileMapping MapFileReadOnly(std::string *errMsg) override
-	{
-		return ArchConstFileMapping(ArchMappingMemImpl::Create(_memStorage));
-	}
-	virtual ArchMutableFileMapping MapFileReadWrite(std::string *errMsg) override
-	{
-		return ArchMutableFileMapping();
-	}
-
-	virtual int64_t PRead(void *buffer, size_t count, int64_t offset) override
-	{
-		return _memStorage->Read(static_cast<uint8_t*>(buffer), count, offset);
-	}
-	virtual int64_t PWrite(void const *bytes, size_t count, int64_t offset) override
-	{
-		return _memStorage->Write(static_cast<const uint8_t*>(bytes), count, offset);
-	}
-
-	virtual void FileAdvise(int64_t offset, size_t count, ArchFileAdvice adv) override
-	{
-		//do nothing
-	}
-
-};
-
-
 class ArchMappingDiscImpl : public ArchMappingImpl
 {
-	void* _ptr;
-	size_t _length;
-
-	ArchMappingDiscImpl(void* ptr, size_t length) : _ptr(ptr), _length(length) {}
+	using ArchMappingImpl::ArchMappingImpl;
 
 public:
-	static ArchMappingDiscImpl* Create(FILE* file, std::string *errMsg, bool isConst)
+	static ArchMappingDiscImpl* Create(FILE* file, std::string *errMsg, bool isReadOnly)
 	{
 		auto length = ArchGetFileLength(file);
 		if (length < 0)
@@ -347,14 +89,14 @@ public:
 			maxSizeHigh, maxSizeLow, NULL);
 		if (hFileMap == NULL)
 			return nullptr;
-		void* ptr = MapViewOfFile(hFileMap, isConst ? FILE_MAP_READ : FILE_MAP_COPY,
+		void* ptr = MapViewOfFile(hFileMap, isReadOnly ? FILE_MAP_READ : FILE_MAP_COPY,
 			/*offsetHigh=*/ 0, /*offsetLow=*/0, unsignedLength);
 		// Close the mapping handle, and return the view pointer.
 		CloseHandle(hFileMap);
 		return new ArchMappingDiscImpl(ptr, length);
 #else // Assume POSIX
 		auto m = mmap(nullptr, length,
-			isConst ? PROT_READ : PROT_READ | PROT_WRITE,
+			isReadOnly ? PROT_READ : PROT_READ | PROT_WRITE,
 			MAP_PRIVATE, fileno(file), 0);
 		if (m == MAP_FAILED) {
 			if (errMsg) {
@@ -387,9 +129,6 @@ public:
 #endif
 		}
 	}
-
-	virtual size_t GetLength() const override { return _length; }
-	virtual void* GetPtr() const override { return _ptr; }
 };
 
 
@@ -437,11 +176,13 @@ public:
 };
 
 
+ArchFile* _ArchOpenMemFile(char const* fileName, char const* mode);
+
 ArchFile* ArchOpenFile(char const* fileName, char const* mode)
 {
 	if (ArchIsMemoryPath(fileName))
 	{
-		return ArchMemFile::Open(fileName);
+		return _ArchOpenMemFile(fileName, mode);
 	}
 	return ArchDiscFile::Open(fileName, mode);
 }

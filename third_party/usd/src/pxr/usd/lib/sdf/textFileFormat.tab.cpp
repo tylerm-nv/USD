@@ -6497,7 +6497,7 @@ static void _ReportParseError(Sdf_TextParserContext *context,
 struct Sdf_MemoryFlexBuffer : public boost::noncopyable
 {
 public:
-    Sdf_MemoryFlexBuffer(FILE* file, const std::string& name, yyscan_t scanner);
+    Sdf_MemoryFlexBuffer(ArchFile* file, const std::string& name, yyscan_t scanner);
     ~Sdf_MemoryFlexBuffer();
 
     yy_buffer_state *GetBuffer() { return _flexBuffer; }
@@ -6510,7 +6510,7 @@ private:
     yyscan_t _scanner;
 };
 
-Sdf_MemoryFlexBuffer::Sdf_MemoryFlexBuffer(FILE* file, 
+Sdf_MemoryFlexBuffer::Sdf_MemoryFlexBuffer(ArchFile* file,
                                            const std::string& name,
                                            yyscan_t scanner)
     : _flexBuffer(nullptr)
@@ -6530,27 +6530,10 @@ Sdf_MemoryFlexBuffer::Sdf_MemoryFlexBuffer(FILE* file,
 
     std::unique_ptr<char[]> buffer(new char[fileSize + paddingBytesRequired]);
 
-    fseek(file, 0, SEEK_SET);
-    clearerr(file);
-    if (fread(buffer.get(), 1, fileSize, file) !=
+    if (ArchPRead(file, buffer.get(), fileSize, 0) !=
         static_cast<size_t>(fileSize)) {
-        if (feof(file)) {
-            TF_RUNTIME_ERROR("Failed to read file contents @%s@: "
-                             "premature end-of-file",
+            TF_RUNTIME_ERROR("Failed to read file contents @%s@: ",
                              name.c_str());
-        }
-        else if (ferror(file)) {
-            TF_RUNTIME_ERROR("Failed to read file contents @%s@: "
-                             "an error occurred while reading",
-                             name.c_str());
-        }
-        else {
-            TF_RUNTIME_ERROR("Failed to read file contents @%s@: "
-                             "fread() reported incomplete read but "
-                             "neither feof() nor ferror() returned "
-                             "nonzero",
-                             name.c_str());
-        }
         return;
     }
 
@@ -6583,7 +6566,7 @@ private:
 }
 
 /// Parse a .menva file into an SdfData
-bool Sdf_ParseMenva(const std::string & fileContext, FILE *fin,
+bool Sdf_ParseMenva(const std::string & fileContext, ArchFile *fin,
                    const std::string & magicId,
                    const std::string & versionString,
                    bool metadataOnly,

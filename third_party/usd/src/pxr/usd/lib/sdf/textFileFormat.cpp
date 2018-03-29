@@ -51,7 +51,7 @@ PXR_NAMESPACE_CLOSE_SCOPE
 // Our interface to the YACC menva parser for parsing to SdfData.
 extern bool Sdf_ParseMenva(
     const string& context, 
-    FILE *f,
+	PXR_NS::ArchFile *f,
     const string& token,
     const string& version,
     bool metadataOnly,
@@ -105,40 +105,40 @@ SdfTextFileFormat::CanRead(const string& filePath) const
     TRACE_FUNCTION();
 
     bool canRead = false;
-    if (FILE *f = fopen(filePath.c_str(), "rb")) {
+    if (ArchFile *f = ArchOpenFile(filePath.c_str(), "rb")) {
         canRead = _CanReadImpl(f);
-        fclose(f);
+		ArchReleaseFile(f);
     }
 
     return canRead;
 }
 
 bool
-SdfTextFileFormat::_CanReadImpl(FILE *fp) const
+SdfTextFileFormat::_CanReadImpl(ArchFile *fp) const
 {
     const string &cookie = GetFileCookie();
     char aLine[512];
-    return fgets(aLine, sizeof(aLine), fp) && TfStringStartsWith(aLine, cookie);
+    return ArchPRead(fp, aLine, cookie.size(), 0) == cookie.size() && memcmp(aLine, cookie.data(), cookie.size()) == 0;
 }
 
 class Sdf_ScopedFilePointer : boost::noncopyable
 {
 public:
     explicit Sdf_ScopedFilePointer(const string& filePath)
-        : _fp(fopen(filePath.c_str(), "rb"))
+        : _fp(ArchOpenFile(filePath.c_str(), "rb"))
     { }
 
     ~Sdf_ScopedFilePointer() {
         if (_fp)
-            fclose(_fp);
+			ArchReleaseFile(_fp);
     }
 
-    FILE* operator *() const {
+	ArchFile* operator *() const {
         return _fp;
     }
 
 private:
-    FILE* _fp;
+    ArchFile* _fp;
 };
 
 bool
@@ -166,7 +166,6 @@ SdfTextFileFormat::Read(
                          GetFormatId().GetText());
         return false;
     }
-    fseek(*fp, 0, SEEK_SET);
 
     SdfAbstractDataRefPtr data = InitData(layerBase->GetFileFormatArguments());
     if (!Sdf_ParseMenva(resolvedPath, *fp, 
