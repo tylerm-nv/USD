@@ -34,7 +34,7 @@
 #include "pxr/base/arch/inttypes.h"
 #include <memory>
 #include <cstdio>
-#include <string>
+#include <cstring>
 #include <set>
 
 #include <fcntl.h>
@@ -188,7 +188,7 @@ protected:
 	ArchFile() {}
 
 public:
-	virtual ~ArchFile() = 0 {}
+	virtual ~ArchFile() {}
 
 	virtual int64_t GetFileLength() = 0;
 

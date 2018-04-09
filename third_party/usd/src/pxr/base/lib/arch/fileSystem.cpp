@@ -37,6 +37,8 @@
 #include <cstdlib>
 #include <cerrno>
 #include <memory>
+#include <vector>
+#include <map>
 
 #include <fcntl.h>
 #include <sys/types.h>
@@ -320,7 +322,7 @@ int64_t ArchGetFileLength(FILE* file)
         return -1;
 #if defined (ARCH_OS_LINUX) || defined (ARCH_OS_DARWIN)
     struct stat buf;
-    return fstat(fileno(_file), &buf) < 0 ? -1 :
+    return fstat(fileno(file), &buf) < 0 ? -1 :
         static_cast<int64_t>(buf.st_size);
 #elif defined (ARCH_OS_WINDOWS)
     return _GetFileLength(_FileToWinHANDLE(file));

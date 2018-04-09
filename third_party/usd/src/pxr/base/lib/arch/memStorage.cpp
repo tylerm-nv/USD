@@ -25,6 +25,7 @@
 
 #include <boost/weak_ptr.hpp>
 #include <boost/make_shared.hpp>
+#include <map>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
