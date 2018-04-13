@@ -73,7 +73,7 @@ public:
     TF_API ~TfSafeOutputFile();
 
     /// Open \p fileName for update ("r+").
-    TF_API static TfSafeOutputFile Update(std::string const &fileName);
+    TF_API static TfSafeOutputFile Update(std::string const &fileName, bool overwrite = false);
 
     /// Arrange for \p fileName to be replaced.  Create a sibling temporary file
     /// and open that for writing.  When Close() is called (or the destructor is

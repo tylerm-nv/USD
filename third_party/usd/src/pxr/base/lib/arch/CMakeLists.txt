@@ -30,7 +30,6 @@ pxr_library(arch
         hash
         library
         mallocHook
-        memStorage
         regex
         stackTrace
         symbols

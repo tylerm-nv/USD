@@ -431,9 +431,14 @@ TfNormPath(string const &inPath)
 string
 TfAbsPath(string const& path)
 {
-    if (path.empty() || ArchIsMemoryPath(path.c_str())) {
+    if (path.empty()) {
         return path;
     }
+
+	std::string _result;
+	if (ArchTryAbsPath(path, _result)) {
+		return _result;
+	}
 
 #if defined(ARCH_OS_WINDOWS)
     char buffer[ARCH_PATH_MAX];

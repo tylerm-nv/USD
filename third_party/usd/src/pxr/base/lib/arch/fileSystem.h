@@ -456,7 +456,31 @@ ARCH_API
 inline void ArchFileAdvise(ArchFile *file, int64_t offset, size_t count, ArchFileAdvice adv) { file->FileAdvise(offset, count, adv); }
 
 
-ARCH_API inline bool ArchIsMemoryPath(const char* path) { return (strncmp(path, "mem://", 6) == 0); }
+class ArchFileSysImpl
+{
+protected:
+	ArchFileSysImpl() {}
+
+public:
+	virtual ~ArchFileSysImpl() {}
+
+	virtual ArchFile* OpenFile(char const* fileName, char const* mode) = 0;
+
+	virtual std::string AbsPath(const std::string& path) = 0;
+	virtual bool IsDir(const std::string& path) = 0;
+};
+
+ARCH_API
+void ArchRegisterFileSysImpl(const char* prefix, ArchFileSysImpl* fileSysImpl);
+
+ARCH_API
+bool ArchCanMakeTmpFile(const char* fileName);
+
+ARCH_API
+bool ArchTryAbsPath(const std::string& pathIn, std::string& pathOut);
+
+ARCH_API
+bool ArchTryIsDir(const std::string& path, bool& result);
 
 ///@}
 

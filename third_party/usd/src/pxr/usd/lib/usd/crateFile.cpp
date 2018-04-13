@@ -1655,7 +1655,7 @@ ArchConstFileMapping
 CrateFile::_MmapFile(char const *fileName, ArchFile *file)
 {
     ArchConstFileMapping map = ArchMapFileReadOnly(file);
-	if (!map && !ArchIsMemoryPath(fileName))
+	if (!map)
 		TF_DIAGNOSTIC_WARNING("Couldn't map file '%s'", fileName);
     return map;
 }

@@ -91,11 +91,11 @@ TfSafeOutputFile::Close()
 }
 
 TfSafeOutputFile
-TfSafeOutputFile::Update(std::string const &fileName)
+TfSafeOutputFile::Update(std::string const &fileName, bool overwrite)
 {
     TfSafeOutputFile result;
     result._targetFileName = fileName;
-    ArchFile *file = ArchOpenFile(fileName.c_str(), "r+");
+    ArchFile *file = ArchOpenFile(fileName.c_str(), overwrite ? "w" : "r+");
     if (!file) {
         TF_RUNTIME_ERROR("Unable to open file '%s' for writing",
                          fileName.c_str());
@@ -108,12 +108,12 @@ TfSafeOutputFile::Update(std::string const &fileName)
 TfSafeOutputFile
 TfSafeOutputFile::Replace(std::string const &fileName)
 {
-	if (ArchIsMemoryPath(fileName.c_str())) {
-		return TfSafeOutputFile::Update(fileName);
+	if (!ArchCanMakeTmpFile(fileName.c_str())) {
+		return TfSafeOutputFile::Update(fileName, true);
 	}
 
-    TfSafeOutputFile result;
-    std::string error;
+	TfSafeOutputFile result;
+	std::string error;
     int tmpFd = Tf_CreateSiblingTempFile(fileName,
                                          &result._targetFileName,
                                          &result._tempFileName,
