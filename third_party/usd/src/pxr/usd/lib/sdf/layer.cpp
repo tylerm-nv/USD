@@ -386,37 +386,39 @@ SdfLayer::_CreateNew(
     // In case of failure below, we want to release the layer
     // registry mutex lock before destroying the layer.
     SdfLayerRefPtr layer;
-    {
-        tbb::queuing_rw_mutex::scoped_lock lock(_GetLayerRegistryMutex());
+	{
+		tbb::queuing_rw_mutex::scoped_lock lock(_GetLayerRegistryMutex());
 
-        // Check for existing layer with this identifier.
-        if (_layerRegistry->Find(absIdentifier)) {
-            TF_CODING_ERROR("A layer already exists with identifier '%s'",
-                absIdentifier.c_str());
-            return TfNullPtr;
-        }
+		// Check for existing layer with this identifier.
+		if (_layerRegistry->Find(absIdentifier)) {
+			TF_CODING_ERROR("A layer already exists with identifier '%s'",
+				absIdentifier.c_str());
+			return TfNullPtr;
+		}
 
-        // Direct newly created layers to a local path.
-        const string localPath = realPath.empty() ? 
-            resolver.ComputeLocalPath(absIdentifier) : realPath;
-        if (localPath.empty()) {
-            TF_CODING_ERROR(
-                "Failed to compute local path for new layer with "
-                "identifier '%s'", absIdentifier.c_str());
-            return TfNullPtr;
-        }
+		// Direct newly created layers to a local path.
+		const string localPath = realPath.empty() ?
+			resolver.ComputeLocalPath(absIdentifier) : realPath;
+		if (localPath.empty()) {
+			TF_CODING_ERROR(
+				"Failed to compute local path for new layer with "
+				"identifier '%s'", absIdentifier.c_str());
+			return TfNullPtr;
+		}
 
-        // If not explicitly supplied one, try to determine the fileFormat 
-        // based on the identifier suffix,
-        if (!fileFormat) {
-            fileFormat = _GetFileFormatForPath(absIdentifier, args);
-            if (!TF_VERIFY(fileFormat))
-                return TfNullPtr;
-        }
+		// If not explicitly supplied one, try to determine the fileFormat 
+		// based on the identifier suffix,
+		if (!fileFormat) {
+			fileFormat = _GetFileFormatForPath(absIdentifier, args);
+			if (!TF_VERIFY(fileFormat))
+				return TfNullPtr;
+		}
 
-        layer = _CreateNewWithFormat(
-            fileFormat, absIdentifier, localPath, assetInfo, args);
-
+		layer = _CreateNewWithFormat(
+			fileFormat, absIdentifier, localPath, assetInfo, args);
+	}
+	if (layer)
+	{
         // XXX 2011-08-19 Newly created layers should not be
         // saved to disk automatically.
         //
@@ -425,6 +427,7 @@ SdfLayer::_CreateNew(
         if (!TF_VERIFY(layer) || !layer->_Save(/* force = */ true)) {
             // Dropping the layer reference will destroy it, and
             // the destructor will remove it from the registry.
+			layer->_FinishInitialization(/* success = */ false);
             return TfNullPtr;
         }
 
