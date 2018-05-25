@@ -190,9 +190,12 @@ def RunCMake(context, force, extraArgs = None):
         if msvcCompilerAndVersion:
             _, version = msvcCompilerAndVersion
             if version >= MSVC_2017_COMPILER_VERSION:
-                generator = '-G "Visual Studio 15 2017 Win64"'
+                generator = "Visual Studio 15 2017 Win64"
             else:
-                generator = '-G "Visual Studio 14 2015 Win64"'
+                generator = "Visual Studio 14 2015 Win64"
+
+    if generator is not None:
+        generator = '-G "{gen}"'.format(gen=generator)
                 
     # On MacOS, enable the use of @rpath for  relocatable builds.
     osx_rpath = None
@@ -213,8 +216,9 @@ def RunCMake(context, force, extraArgs = None):
                     osx_rpath=(osx_rpath or ""),
                     generator=(generator or ""),
                     extraArgs=(" ".join(extraArgs) if extraArgs else "")))
-        Run("cmake --build . --config Release --target install -- {multiproc}"
-            .format(multiproc=("/M:{procs}" if Windows() else "-j{procs}")
+        Run("cmake --build . --config {config} --target install -- {multiproc}"
+            .format(config=("Debug" if context.buildDebug else "Release"),
+                    multiproc=("/M:{procs}" if Windows() else "-j{procs}")
                                .format(procs=context.numJobs)))
 
 def PatchFile(filename, patches):
@@ -395,7 +399,7 @@ def InstallBoost(context, force):
             'link=shared',
             'runtime-link=shared',
             'threading=multi', 
-            'variant=release',
+            'variant={variant}'.format(variant="debug" if context.buildDebug else "release"),
             '--with-atomic',
             '--with-date_time',
             '--with-filesystem',
@@ -405,6 +409,9 @@ def InstallBoost(context, force):
             '--with-system',
             '--with-thread'
         ]
+
+        if context.buildPython:
+            b2_settings.append("--with-python")
 
         if force:
             b2_settings.append("-a")
@@ -667,6 +674,11 @@ def InstallOpenImageIO(context, force):
         if not context.enablePtex:
             extraArgs.append('-DUSE_PTEX=OFF')
 
+		# Use the python executable that started this script
+		# instead of requiring the env var to be set in build environment
+        extraArgs.append('-DPYTHON_EXECUTABLE="{pythonExe}"'
+                         .format(pythonExe=sys.executable))
+
         RunCMake(context, force, extraArgs)
 
 OPENIMAGEIO = Dependency("OpenImageIO", InstallOpenImageIO,
@@ -812,6 +824,11 @@ def InstallUSD(context):
             extraArgs.append('-DBUILD_SHARED_LIBS=ON')
         elif context.buildMonolithic:
             extraArgs.append('-DPXR_BUILD_MONOLITHIC=ON')
+
+        if context.buildDebug:
+            extraArgs.append('-DTBB_USE_DEBUG_BUILD=ON')
+        else:
+            extraArgs.append('-DTBB_USE_DEBUG_BUILD=OFF')
         
         if context.buildDocs:
             extraArgs.append('-DPXR_BUILD_DOCUMENTATION=ON')
@@ -936,6 +953,9 @@ subgroup.add_argument("--build-shared", dest="build_type",
 subgroup.add_argument("--build-monolithic", dest="build_type",
                       action="store_const", const=MONOLITHIC_LIB,
                       help="Build a single monolithic shared library")
+
+group.add_argument("--build-debug", dest="build_debug", action="store_true",
+                    help="Build with debugging information")
 
 group = parser.add_argument_group(title="3rd Party Dependency Build Options")
 group.add_argument("--src", type=str,
@@ -1073,6 +1093,7 @@ class InstallContext:
         self.numJobs = args.jobs
 
         # Build type
+        self.buildDebug = args.build_debug;
         self.buildShared = (args.build_type == SHARED_LIBS)
         self.buildMonolithic = (args.build_type == MONOLITHIC_LIB)
 
@@ -1234,7 +1255,7 @@ if context.buildDocs:
                    "PATH")
         sys.exit(1)
 
-if context.buildUsdImaging:
+if PYSIDE in requiredDependencies:
     # The USD build will skip building usdview if pyside-uic or pyside2-uic is 
     # not found, so check for it here to avoid confusing users. This list of 
     # PySide executable names comes from cmake/modules/FindPySide.cmake
@@ -1263,8 +1284,10 @@ Building with settings:
   3rd-party source directory    {srcDir}
   3rd-party install directory   {instDir}
   Build directory               {buildDir}
+  CMake generator               {cmakeGenerator}
 
   Building                      {buildType}
+    Config                      {buildConfig}
     Imaging                     {buildImaging}
       Ptex support:             {enablePtex}
     UsdImaging                  {buildUsdImaging}
@@ -1284,11 +1307,14 @@ Building with settings:
     srcDir=context.srcDir,
     buildDir=context.buildDir,
     instDir=context.instDir,
+    cmakeGenerator=("Default" if not context.cmakeGenerator
+                    else context.cmakeGenerator),
     dependencies=("None" if not dependenciesToBuild else 
                   ", ".join([d.name for d in dependenciesToBuild])),
     buildType=("Shared libraries" if context.buildShared
                else "Monolithic shared library" if context.buildMonolithic
                else ""),
+    buildConfig=("Debug" if context.buildDebug else "Release"),
     buildImaging=("On" if context.buildImaging else "Off"),
     enablePtex=("On" if context.enablePtex else "Off"),
     buildUsdImaging=("On" if context.buildUsdImaging else "Off"),

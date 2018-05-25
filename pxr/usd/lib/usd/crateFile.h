@@ -273,9 +273,9 @@ public:
 
 private:
     struct _Fcloser {
-        void operator()(FILE *f) const;
+        void operator()(ArchFile *f) const;
     };
-    typedef std::unique_ptr<FILE, _Fcloser> _UniqueFILE;
+    typedef std::unique_ptr<ArchFile, _Fcloser> _UniqueFILE;
 
     ////////////////////////////////////////////////////////////////////////
 
@@ -534,7 +534,7 @@ private:
     void _InitMMap();
     void _InitPread();
 
-    static ArchConstFileMapping _MmapFile(char const *fileName, FILE *file);
+    static ArchConstFileMapping _MmapFile(char const *fileName, ArchFile *file);
 
     class _Writer;
     class _BufferedOutput;

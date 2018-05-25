@@ -267,6 +267,8 @@ class VtArray {
         }
     }
 
+	size_t capacity() const { return _data ? _data->vec.capacity() : 0; }
+
     /// Return a reference to the first element in this array.  Invokes
     /// undefined behavior if the array is empty.
     reference front() { return *begin(); }

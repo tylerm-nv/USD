@@ -435,6 +435,11 @@ TfAbsPath(string const& path)
         return path;
     }
 
+	std::string _result;
+	if (ArchTryAbsPath(path, _result)) {
+		return _result;
+	}
+
 #if defined(ARCH_OS_WINDOWS)
     char buffer[ARCH_PATH_MAX];
     if (GetFullPathName(path.c_str(), ARCH_PATH_MAX, buffer, nullptr)) {

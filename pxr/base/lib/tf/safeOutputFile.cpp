@@ -52,7 +52,7 @@ TfSafeOutputFile::IsOpenForUpdate() const
     return _file && _tempFileName.empty();
 }
 
-FILE *
+ArchFile *
 TfSafeOutputFile::ReleaseUpdatedFile()
 {
     if (!IsOpenForUpdate()) {
@@ -60,7 +60,7 @@ TfSafeOutputFile::ReleaseUpdatedFile()
                         "replace)");
         return nullptr;
     }
-    FILE *ret = _file;
+	ArchFile *ret = _file;
     _file = nullptr;
     _tempFileName.clear();
     _targetFileName.clear();
@@ -74,7 +74,7 @@ TfSafeOutputFile::Close()
         return;
 
     // Close the file.
-    fclose(_file);
+    ArchReleaseFile(_file);
     _file = nullptr;
 
     // If this was for update, we have nothing else to do.
@@ -91,11 +91,11 @@ TfSafeOutputFile::Close()
 }
 
 TfSafeOutputFile
-TfSafeOutputFile::Update(std::string const &fileName)
+TfSafeOutputFile::Update(std::string const &fileName, bool overwrite)
 {
     TfSafeOutputFile result;
     result._targetFileName = fileName;
-    FILE *file = ArchOpenFile(fileName.c_str(), "r+");
+    ArchFile *file = ArchOpenFile(fileName.c_str(), overwrite ? "w" : "r+");
     if (!file) {
         TF_RUNTIME_ERROR("Unable to open file '%s' for writing",
                          fileName.c_str());
@@ -108,8 +108,12 @@ TfSafeOutputFile::Update(std::string const &fileName)
 TfSafeOutputFile
 TfSafeOutputFile::Replace(std::string const &fileName)
 {
-    TfSafeOutputFile result;
-    std::string error;
+	if (!ArchCanMakeTmpFile(fileName.c_str())) {
+		return TfSafeOutputFile::Update(fileName, true);
+	}
+
+	TfSafeOutputFile result;
+	std::string error;
     int tmpFd = Tf_CreateSiblingTempFile(fileName,
                                          &result._targetFileName,
                                          &result._tempFileName,
@@ -120,7 +124,7 @@ TfSafeOutputFile::Replace(std::string const &fileName)
     }
 
     // Obtain a FILE *.
-    result._file = ArchFdOpen(tmpFd, "w");
+    result._file = ArchOpenFile(tmpFd, "w");
     if (!result._file) {
         TF_RUNTIME_ERROR("Unable to obtain writable FILE pointer: %s",
                          ArchStrerror(errno).c_str());

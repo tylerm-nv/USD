@@ -103,10 +103,12 @@ Hd_SortedIds::Remove(const SdfPath &id)
             // the list is now only sorted up to the place where the element
             // was removed.
 
-
-            _sortedCount = std::min(_sortedCount,
-                                    static_cast<size_t>(
-                                              (idToRemove - _ids.begin())));
+            if (_ids.size())
+            {
+                _sortedCount = std::min(_sortedCount,
+                    static_cast<size_t>(
+                    (idToRemove - _ids.begin())));
+            }
         }
     }
 }
@@ -147,15 +149,18 @@ Hd_SortedIds::_InsertSort()
 {
     SdfPathVector::iterator sortPosIt = _ids.begin();
     // skip already sorted items
-    sortPosIt += _sortedCount;
+    if (_ids.size())
+    {
+        sortPosIt += _sortedCount;
 
-    while (sortPosIt != _ids.end()) {
-        SdfPathVector::iterator insertPosIt = std::lower_bound(_ids.begin(),
-                                                               sortPosIt,
-                                                               *sortPosIt);
+        while (sortPosIt != _ids.end()) {
+            SdfPathVector::iterator insertPosIt = std::lower_bound(_ids.begin(),
+                sortPosIt,
+                *sortPosIt);
 
-        std::rotate(insertPosIt, sortPosIt, sortPosIt + 1);
-        ++sortPosIt;
+            std::rotate(insertPosIt, sortPosIt, sortPosIt + 1);
+            ++sortPosIt;
+        }
     }
 }
 
