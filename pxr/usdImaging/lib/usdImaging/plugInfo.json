@@ -104,11 +104,6 @@
                         "isInternal": true,
                         "primTypeName": "Sphere"
                     },
-                    "UsdImagingHydraMaterialAdapter" : {
-                        "bases": ["UsdImagingPrimAdapter"],
-                        "isInternal": true,
-                        "primTypeName": "HydraPbsSurface"
-                    },
                     "UsdImagingDomeLightAdapter": {
                         "bases": [
                             "UsdImagingLightAdapter"
@@ -129,6 +124,27 @@
                         ],
                         "isInternal": true,
                         "primTypeName": "SphereLight"
+                    },
+                    "UsdImagingCylinderLightAdapter": {
+                        "bases": [
+                            "UsdImagingLightAdapter"
+                        ],
+                        "isInternal": true,
+                        "primTypeName": "CylinderLight"
+                    },
+                    "UsdImagingDiskLightAdapter": {
+                        "bases": [
+                            "UsdImagingLightAdapter"
+                        ],
+                        "isInternal": true,
+                        "primTypeName": "DiskLight"
+                    },
+                    "UsdImagingDistantLightAdapter": {
+                        "bases": [
+                            "UsdImagingLightAdapter"
+                        ],
+                        "isInternal": true,
+                        "primTypeName": "DistantLight"
                     }
                 }
             },

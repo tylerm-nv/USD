@@ -34,6 +34,7 @@
 #include "pxr/base/gf/interval.h"
 
 #include <boost/python.hpp>
+#include <boost/python/tuple.hpp>
 
 #include <vector>
 
@@ -62,6 +63,18 @@ _ComputeJointLocalTransforms(const UsdSkelAnimQuery& self, UsdTimeCode time)
     VtMatrix4dArray xforms;
     self.ComputeJointLocalTransforms(&xforms, time);
     return xforms;
+}
+
+
+boost::python::tuple
+_ComputeJointLocalTransformComponents(const UsdSkelAnimQuery& self, UsdTimeCode time)
+{
+    VtVec3fArray translations;
+    VtQuatfArray rotations;
+    VtVec3hArray scales;
+    self.ComputeJointLocalTransformComponents(&translations, &rotations,
+                                              &scales, time);
+    return boost::python::make_tuple(translations, rotations, scales);
 }
 
 
@@ -105,6 +118,10 @@ void wrapUsdSkelAnimQuery()
         .def("ComputeJointLocalTransforms", &_ComputeJointLocalTransforms,
              (arg("time")=UsdTimeCode::Default()))
 
+        .def("ComputeJointLocalTransformComponents",
+             &_ComputeJointLocalTransformComponents,
+             (arg("time")=UsdTimeCode::Default()))
+
         .def("GetJointTransformTimeSamples", &_GetJointTransformTimeSamples)
 
         .def("GetJointTransformTimeSamplesInInterval",
@@ -113,6 +130,8 @@ void wrapUsdSkelAnimQuery()
         
         .def("JointTransformsMightBeTimeVarying",
              &This::JointTransformsMightBeTimeVarying)
+
+        .def("TransformMightBeTimeVarying", &This::TransformMightBeTimeVarying)
 
         .def("GetJointOrder", &This::GetJointOrder)
         ;

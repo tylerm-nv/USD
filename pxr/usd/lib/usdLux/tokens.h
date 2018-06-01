@@ -130,6 +130,10 @@ struct UsdLuxTokensType {
     /// 
     /// Possible value for UsdLuxDomeLight::GetTextureFormatAttr()
     const TfToken latlong;
+    /// \brief "length"
+    /// 
+    /// UsdLuxCylinderLight
+    const TfToken length;
     /// \brief "lightList"
     /// 
     /// UsdLuxListAPI
@@ -152,7 +156,7 @@ struct UsdLuxTokensType {
     const TfToken portals;
     /// \brief "radius"
     /// 
-    /// UsdLuxSphereLight, UsdLuxDiskLight
+    /// UsdLuxCylinderLight, UsdLuxSphereLight, UsdLuxDiskLight
     const TfToken radius;
     /// \brief "shadow:color"
     /// 
@@ -218,6 +222,14 @@ struct UsdLuxTokensType {
     /// 
     /// UsdLuxDomeLight
     const TfToken textureFormat;
+    /// \brief "treatAsLine"
+    /// 
+    /// UsdLuxCylinderLight
+    const TfToken treatAsLine;
+    /// \brief "treatAsPoint"
+    /// 
+    /// UsdLuxSphereLight
+    const TfToken treatAsPoint;
     /// \brief "width"
     /// 
     /// UsdLuxRectLight

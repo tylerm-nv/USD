@@ -30,7 +30,9 @@
 #include "pxr/base/gf/frustum.h"
 #include "pxr/base/gf/matrix4d.h"
 #include "pxr/base/gf/vec2i.h"
+
 #include "pxr/imaging/glf/glew.h"
+#include "pxr/imaging/hdx/intersector.h"
 #include "pxr/imaging/hdx/selectionTracker.h"
 
 #include <memory>
@@ -44,12 +46,17 @@ class HdRprimCollection;
 namespace HdxUnitTestUtils
 {
     struct PickParams {
+        PickParams() :
+             highlightMode(HdxSelectionHighlightModeSelect)
+           , pickTarget(HdxIntersector::PickPrimsAndInstances)
+           , pickThrough(false) {}
+
     public:
         GfVec2i pickRadius;
 
         // window/viewport
-        float screenWidth;
-        float screenHeight;
+        int screenWidth;
+        int screenHeight;
         GfFrustum viewFrustum;
         GfMatrix4d viewMatrix;
 
@@ -57,6 +64,8 @@ namespace HdxUnitTestUtils
         HdEngine* engine;
         const HdRprimCollection* pickablesCol;
         HdxSelectionHighlightMode highlightMode;
+        HdxIntersector::PickTarget pickTarget;
+        bool pickThrough;
     };
 
     class Picker {
@@ -65,8 +74,30 @@ namespace HdxUnitTestUtils
         ~Picker();
 
         void InitIntersector(HdRenderIndex* renderIndex);
-        void SetPickParams(PickParams const& pParams);
-        void SetHighlightMode(HdxSelectionHighlightMode mode);
+        
+        void SetPickParams(PickParams const& pParams) {
+            _pParams = pParams;
+        }
+        void SetWidthHeight(int w, int h) {
+            _pParams.screenWidth  = w;
+            _pParams.screenHeight = h;
+        }
+        void SetViewFrustum(GfFrustum const& frustum) {
+            _pParams.viewFrustum = frustum;
+        }
+        void SetViewMatrix(GfMatrix4d const& matrix) {
+            _pParams.viewMatrix = matrix;
+        }
+        void SetHighlightMode(HdxSelectionHighlightMode mode) {
+            _pParams.highlightMode = mode;
+        }
+        void SetPickTarget(HdxIntersector::PickTarget mode) {
+            _pParams.pickTarget = mode;
+        }
+         void SetPickThrough(bool pickThrough) {
+            _pParams.pickThrough = pickThrough;
+        }
+
         void Pick(GfVec2i const& startPos,
                   GfVec2i const& endPos);
         HdxSelectionTrackerSharedPtr GetSelectionTracker() const;

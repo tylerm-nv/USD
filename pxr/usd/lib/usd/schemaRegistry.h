@@ -176,6 +176,14 @@ public:
     USD_API
     static bool IsConcrete(const TfType& primType);
 
+    /// Returns true if \p apiSchemaType is an applied API schema type.
+    USD_API
+    bool IsAppliedAPISchema(const TfType& apiSchemaType);
+
+    /// Returns true if \p apiSchemaType is a multiple-apply API schema type.
+    USD_API
+    bool IsMultipleApplyAPISchema(const TfType& apiSchemaType);
+
 private:
     friend class TfSingleton<UsdSchemaRegistry>;
 
@@ -227,6 +235,9 @@ private:
         const SdfAbstractDataSpecId *,
         _TokenPairHash> _PrimTypePropNameToSpecIdMap;
     _PrimTypePropNameToSpecIdMap _primTypePropNameToSpecIdMap;
+
+    TfToken::HashSet _appliedAPISchemaNames;
+    TfToken::HashSet _multipleApplyAPISchemaNames;
 };
 
 USD_API_TEMPLATE_CLASS(TfSingleton<UsdSchemaRegistry>);

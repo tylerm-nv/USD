@@ -55,7 +55,7 @@ void wrapUsdClipsAPI()
 {
     typedef UsdClipsAPI This;
 
-    class_<This, bases<UsdSchemaBase> >
+    class_<This, bases<UsdAPISchemaBase> >
         cls("ClipsAPI");
 
     cls
@@ -66,9 +66,6 @@ void wrapUsdClipsAPI()
         .def("Get", &This::Get, (arg("stage"), arg("path")))
         .staticmethod("Get")
 
-        .def("Apply", &This::Apply, (arg("stage"), arg("path")))
-        .staticmethod("Apply")
-
         .def("IsConcrete",
             static_cast<bool (*)(void)>( [](){ return This::IsConcrete; }))
         .staticmethod("IsConcrete")
@@ -76,6 +73,10 @@ void wrapUsdClipsAPI()
         .def("IsTyped",
             static_cast<bool (*)(void)>( [](){ return This::IsTyped; } ))
         .staticmethod("IsTyped")
+
+        .def("IsApplied", 
+            static_cast<bool (*)(void)>( [](){ return This::IsApplied; } ))
+        .staticmethod("IsApplied")
 
         .def("GetSchemaAttributeNames",
              &This::GetSchemaAttributeNames,

@@ -647,16 +647,16 @@ class TestUsdGeomSchemata(unittest.TestCase):
         self.assertEqual([], root.GetAppliedSchemas())
 
         # Check duplicates
-        UsdGeom.MotionAPI.Apply(s, '/hello')
+        UsdGeom.MotionAPI.Apply(root)
         self.assertEqual(['MotionAPI'], root.GetAppliedSchemas())
-        UsdGeom.MotionAPI.Apply(s, '/hello')
+        UsdGeom.MotionAPI.Apply(root)
         self.assertEqual(['MotionAPI'], root.GetAppliedSchemas())
         
         # Ensure duplicates aren't picked up
-        UsdGeom.ModelAPI.Apply(s, '/hello')
+        UsdGeom.ModelAPI.Apply(root)
         self.assertEqual(['MotionAPI', 'GeomModelAPI'], root.GetAppliedSchemas())
 
-    def test_IsA(self):
+    def test_IsATypeless(self):
         from pxr import Usd, Tf
         s = Usd.Stage.CreateInMemory()
         spherePrim = s.DefinePrim('/sphere', typeName='Sphere')
@@ -682,19 +682,15 @@ class TestUsdGeomSchemata(unittest.TestCase):
         prim = s.DefinePrim('/prim')
 
         types = [Tf.Type.FindByName('UsdGeomMotionAPI'),
-                 Tf.Type.FindByName('UsdGeomModelAPI'),
-                 Tf.Type.FindByName('UsdModelAPI')]
+                 Tf.Type.FindByName('UsdGeomModelAPI')]
 
         # Check that no APIs have yet been applied
         for t in types:
             self.assertFalse(prim.HasAPI(t))
 
         # Apply our schemas to this prim
-        UsdGeom.ModelAPI.Apply(s, '/prim')
-        UsdGeom.MotionAPI.Apply(s, '/prim')
-
-        # Note that were applying an ancestor type of UsdGeomModelAPI
-        Usd.ModelAPI.Apply(s, '/prim')
+        UsdGeom.ModelAPI.Apply(prim)
+        UsdGeom.MotionAPI.Apply(prim)
 
         # Check that all our applied schemas show up
         for t in types:
@@ -709,6 +705,10 @@ class TestUsdGeomSchemata(unittest.TestCase):
 
         with self.assertRaises(Tf.ErrorException):
             prim.HasAPI(Tf.Type.FindByName('UsdGeomImageable'))
+
+        with self.assertRaises(Tf.ErrorException):
+            # Test with a non-applied API schema.
+            prim.HasAPI(Tf.Type.FindByName('UsdModelAPI'))
 
 if __name__ == "__main__":
     unittest.main()

@@ -54,7 +54,6 @@ class SdfAssetPath;
 ///
 /// Light emitted from one side of a circular disk.
 /// The disk is centered in the XY plane and emits light along the -Z axis.
-/// The disk has a diameter of 1 unit in local space.
 ///
 class UsdLuxDiskLight : public UsdLuxLight
 {
@@ -158,7 +157,7 @@ public:
     /// \n  C++ Type: float
     /// \n  Usd Type: SdfValueTypeNames->Float
     /// \n  Variability: SdfVariabilityVarying
-    /// \n  Fallback Value: 1.0
+    /// \n  Fallback Value: 0.5
     USDLUX_API
     UsdAttribute GetRadiusAttr() const;
 

@@ -38,9 +38,10 @@ PXR_NAMESPACE_OPEN_SCOPE
 
 
 UsdSkelSkeletonQuery::UsdSkelSkeletonQuery(
+    const UsdPrim& prim,
     const UsdSkel_SkelDefinitionRefPtr& definition,
     const UsdSkelAnimQuery& animQuery)
-    : _definition(definition), _animQuery(animQuery)
+    : _prim(prim), _definition(definition), _animQuery(animQuery)
 {
     if(definition && animQuery) {
         _animToSkelMapper = UsdSkelAnimMapper(animQuery.GetJointOrder(),
@@ -90,6 +91,24 @@ UsdSkelSkeletonQuery::ComputeAnimTransform(GfMatrix4d* xform,
 
 
 bool
+UsdSkelSkeletonQuery::ComputeLocalToWorldTransform(
+    GfMatrix4d* xform,
+    UsdGeomXformCache* xfCache) const
+{
+    if(!xfCache) {
+        TF_CODING_ERROR("'xfCache' pointer is null.");
+        return false;
+    }
+
+    if(ComputeAnimTransform(xform, xfCache->GetTime())) {
+        *xform *= xfCache->GetLocalToWorldTransform(_prim);
+        return true;
+    }
+    return false;
+}
+
+
+bool
 UsdSkelSkeletonQuery::ComputeJointLocalTransforms(VtMatrix4dArray* xforms,
                                                   UsdTimeCode time,
                                                   bool atRest) const
@@ -127,9 +146,17 @@ UsdSkelSkeletonQuery::_ComputeJointLocalTransforms(VtMatrix4dArray* xforms,
 
     VtMatrix4dArray animXforms;
     if(_animQuery.ComputeJointLocalTransforms(&animXforms, time)) {
-        return _animToSkelMapper.Remap(animXforms, xforms);
+        return _animToSkelMapper.RemapTransforms(animXforms, xforms);
+    } else {
+        // Failed to compute anim xforms.
+        // Fall back to our rest transforms.
+        // These will have already been uninitialized above,
+        // unless we have a non-sparse mapping.
+        if(!_animToSkelMapper.IsSparse()) {
+            *xforms = _definition->GetJointLocalRestTransforms();
+        }
     }
-    return false;
+    return true;
 }
 
 
@@ -239,6 +266,13 @@ UsdSkelSkeletonQuery::_ComputeSkinningTransforms(VtMatrix4dArray* xforms,
         }
     }
     return false;
+}
+
+
+const UsdPrim&
+UsdSkelSkeletonQuery::GetPrim() const
+{
+    return _prim;
 }
 
 

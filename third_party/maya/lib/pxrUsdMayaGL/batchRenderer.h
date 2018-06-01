@@ -24,7 +24,7 @@
 #ifndef PXRUSDMAYAGL_BATCH_RENDERER_H
 #define PXRUSDMAYAGL_BATCH_RENDERER_H
 
-/// \file batchRenderer.h
+/// \file pxrUsdMayaGL/batchRenderer.h
 
 #include "pxr/pxr.h"
 #include "pxrUsdMayaGL/api.h"
@@ -34,22 +34,23 @@
 #include "pxrUsdMayaGL/softSelectHelper.h"
 
 #include "pxr/base/gf/matrix4d.h"
-#include "pxr/base/gf/vec3d.h"
+#include "pxr/base/gf/vec3f.h"
 #include "pxr/base/gf/vec4d.h"
-#include "pxr/base/tf/debug.h"
+#include "pxr/base/tf/singleton.h"
 #include "pxr/imaging/hd/engine.h"
 #include "pxr/imaging/hd/renderIndex.h"
+#include "pxr/imaging/hd/rprimCollection.h"
 #include "pxr/imaging/hdSt/renderDelegate.h"
 #include "pxr/imaging/hdx/intersector.h"
+#include "pxr/imaging/hdx/selectionTracker.h"
 #include "pxr/usd/sdf/path.h"
-#include "pxr/usd/usd/prim.h"
 
 #include <maya/M3dView.h>
-#include <maya/MBoundingBox.h>
-#include <maya/MDagPath.h>
 #include <maya/MDrawContext.h>
 #include <maya/MDrawRequest.h>
-#include <maya/MPxSurfaceShapeUI.h>
+#include <maya/MObjectHandle.h>
+#include <maya/MSelectionContext.h>
+#include <maya/MTypes.h>
 #include <maya/MUserData.h>
 
 #include <memory>
@@ -58,120 +59,125 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <boost/noncopyable.hpp>
-#include <boost/shared_ptr.hpp>
-
 
 PXR_NAMESPACE_OPEN_SCOPE
 
 
-TF_DEBUG_CODES(
-    PXRUSDMAYAGL_QUEUE_INFO
-);
-
-
-typedef boost::shared_ptr<class HdxIntersector> HdxIntersectorSharedPtr;
-
-
-/// \brief This is an helper object that shapes can hold to get consistent usd
-/// batch drawing in maya, regardless of VP 1.0 or VP 2.0 usage.
+/// UsdMayaGLBatchRenderer is a singleton that shapes can use to get consistent
+/// batched drawing via Hydra in Maya, regardless of legacy viewport or
+/// Viewport 2.0 usage.
 ///
 /// Typical usage is as follows:
 ///
-/// Every batched object can request a \c PxrMayaHdShapeAdapter
-/// object constructed from and cached within a shared batchRenderer.
+/// Objects that manage drawing and selection of Maya shapes (e.g. classes
+/// derived from \c MPxSurfaceShapeUI or \c MPxDrawOverride) should construct
+/// and maintain a PxrMayaHdShapeAdapter. Those objects should call
+/// AddShapeAdapter() to add their shape for batched drawing and selection.
 ///
-/// At every refresh, in the prepare for draw stage, the shape adapter should
-/// be populated with Maya scene graph and viewport display data. It should
-/// then be passed along to \c QueueShapeForDraw(...) for every batch draw pass
-/// desired.
+/// In preparation for drawing, the shape adapter should be synchronized to
+/// populate it with data from its shape and from the viewport display state.
+/// A user data object should also be created/obtained for the shape by calling
+/// the shape adapter's GetMayaUserData() method.
 ///
-/// In the draw stage, \c Draw(...) must be called for each draw request to
-/// complete the render.
+/// In the draw stage, Draw() must be called for each draw request to complete
+/// the render.
 ///
-class UsdMayaGLBatchRenderer : private boost::noncopyable
+/// Draw/selection management objects should be sure to call
+/// RemoveShapeAdapter() (usually in the destructor) when they no longer wish
+/// for their shape to participate in batched drawing and selection.
+///
+class UsdMayaGLBatchRenderer : public TfSingleton<UsdMayaGLBatchRenderer>
 {
 public:
 
-    /// \brief Init the BatchRenderer class before using it.  This should be
-    /// called at least once and it is OK to call it multiple times.  This
-    /// handles things like initializing Gl/Glew.
+    /// Initialize the batch renderer.
+    ///
+    /// This should be called at least once and it is OK to call it multiple
+    /// times. This handles things like initializing OpenGL/Glew.
     PXRUSDMAYAGL_API
     static void Init();
 
+    /// Get the singleton instance of the batch renderer.
     PXRUSDMAYAGL_API
-    static UsdMayaGLBatchRenderer& Get();
+    static UsdMayaGLBatchRenderer& GetInstance();
 
-    /// Gets a pointer to the \c PxrMayaHdShapeAdapter associated with a
-    /// certain set of parameters.
+    /// Get the render index owned by the batch renderer.
     ///
-    /// The object pointed to is owned by the \c UsdMayaGLBatchRenderer and
-    /// will be valid for as long as the \c UsdMayaGLBatchRenderer object is
-    /// valid.
+    /// Clients of the batch renderer should use this render index to construct
+    /// their delegates.
     PXRUSDMAYAGL_API
-    PxrMayaHdShapeAdapter* GetShapeAdapter(
-            const MDagPath& shapeDagPath,
-            const UsdPrim& rootPrim,
-            const SdfPathVector& excludedPrimPaths);
+    HdRenderIndex* GetRenderIndex() const;
 
-    /// \brief Queue a batch draw call, to be executed later.
+    /// Get the delegate ID prefix for the specified viewport.
     ///
-    /// \p boxToDraw may be set to nullptr if no box is desired to be drawn.
-    ///
+    /// The batch renderer has a root SdfPath under which it maintains separate
+    /// hierarchies for shape adapter delegates based on whether they are for
+    /// the legacy viewport or for Viewport 2.0. Shape adapters should use this
+    /// method to request the appropriate prefix from the batch renderer when
+    /// building the ID for their delegate.
     PXRUSDMAYAGL_API
-    void QueueShapeForDraw(
-            PxrMayaHdShapeAdapter* shapeAdapter,
-            MPxSurfaceShapeUI* shapeUI,
-            MDrawRequest& drawRequest,
-            const PxrMayaHdRenderParams& params,
-            const bool drawShape,
-            const MBoundingBox* boxToDraw = nullptr);
+    SdfPath GetDelegatePrefix(const bool isViewport2) const;
 
-    /// \brief Queue a batch draw call, to be executed later.
+    /// Add the given shape adapter for batched rendering and selection.
     ///
-    /// \p userData should be the same parameter \c oldData passed into the
-    /// caller: the overridden \c prepareForDraw(...) call. The \p userData
-    /// pointer must also be returned from the overridden caller.
-    ///
-    /// \p boxToDraw may be set to nullptr if no box is desired to be drawn.
-    ///
+    /// Returns true if the shape adapter had not been previously added, or
+    /// false otherwise.
     PXRUSDMAYAGL_API
-    void QueueShapeForDraw(
-            PxrMayaHdShapeAdapter* shapeAdapter,
-            MUserData*& userData,
-            const PxrMayaHdRenderParams& params,
-            const bool drawShape,
-            const MBoundingBox* boxToDraw = nullptr);
+    bool AddShapeAdapter(PxrMayaHdShapeAdapter* shapeAdapter);
 
-    /// Construct a new, unique BatchRenderer.
+    /// Remove the given shape adapter from batched rendering and selection.
     ///
-    /// In almost all cases, this should not be used. Use \c Get() instead.
+    /// Returns true if the shape adapter was removed from internal caches, or
+    /// false otherwise.
     PXRUSDMAYAGL_API
-    UsdMayaGLBatchRenderer();
+    bool RemoveShapeAdapter(PxrMayaHdShapeAdapter* shapeAdapter);
 
-    PXRUSDMAYAGL_API
-    virtual ~UsdMayaGLBatchRenderer();
-
-    /// \brief Reset the internal state of the global UsdMayaGLBatchRenderer.
+    /// Reset the internal state of the global UsdMayaGLBatchRenderer.
+    ///
     /// In particular, it's important that this happen when switching to a new
     /// Maya scene so that any UsdImagingDelegates held by shape adapters that
     /// have been populated with USD stages can have those stages released,
-    /// since the delegates hold a strong pointers to their stages.
+    /// since the delegates hold a strong pointer to their stages.
     PXRUSDMAYAGL_API
     static void Reset();
 
-    /// \brief Render batch or bounds in VP1 based on \p request
+    /// Replaces the contents of the given \p collection with \p dagPath, if
+    /// a shape adapter for \p dagPath has already been batched. Returns true
+    /// if successful. Otherwise, does not modify the \p collection, and returns
+    /// false.
+    /// Note that the VP2 shape adapters are searched first, followed by the
+    /// Legacy shape adapters. You cannot rely on the shape adapters being
+    /// associated with a specific viewport.
+    PXRUSDMAYAGL_API
+    bool PopulateCustomCollection(
+            const MDagPath& dagPath,
+            HdRprimCollection& collection);
+
+    /// Render batch or bounding box in the legacy viewport based on \p request
     PXRUSDMAYAGL_API
     void Draw(const MDrawRequest& request, M3dView& view);
 
-    /// \brief Render batch or bounds in VP2 based on \p userData
+    /// Render batch or bounding box in Viewport 2.0 based on \p userData
     PXRUSDMAYAGL_API
     void Draw(
             const MHWRender::MDrawContext& context,
             const MUserData* userData);
 
-    /// \brief Tests the object from the given shape renderer for intersection
-    /// with a given view.
+    /// Render the contents of the given custom collection (previously obtained
+    /// via PopulateCustomCollection).
+    /// The caller is responsible for ensuring that an appropriate OpenGL
+    /// context is available; this function is not appropriate for drawing into
+    /// the native Maya viewport.
+    PXRUSDMAYAGL_API
+    void DrawCustomCollection(
+            const HdRprimCollection& collection,
+            const GfMatrix4d& viewMatrix,
+            const GfMatrix4d& projectionMatrix,
+            const GfVec4d& viewport,
+            const PxrMayaHdRenderParams& params = PxrMayaHdRenderParams());
+
+    /// Tests the object from the given shape adapter for intersection with
+    /// a given view using the legacy viewport.
     ///
     /// \p hitPoint yields the point of intersection if \c true is returned.
     ///
@@ -179,11 +185,47 @@ public:
     bool TestIntersection(
             const PxrMayaHdShapeAdapter* shapeAdapter,
             M3dView& view,
-            const unsigned int pickResolution,
             const bool singleSelection,
+            GfVec3f* hitPoint);
+
+    /// Tests the object from the given shape adapter for intersection with
+    /// a given draw context in Viewport 2.0.
+    ///
+    /// \p hitPoint yields the point of intersection if \c true is returned.
+    ///
+    PXRUSDMAYAGL_API
+    bool TestIntersection(
+            const PxrMayaHdShapeAdapter* shapeAdapter,
+            const MHWRender::MSelectionInfo& selectInfo,
+            const MHWRender::MDrawContext& context,
+            const bool singleSelection,
+            GfVec3f* hitPoint);
+
+    /// Tests the contents of the given custom collection (previously obtained
+    /// via PopulateCustomCollection) for intersection with the current OpenGL
+    /// context.
+    /// The caller is responsible for ensuring that an appropriate OpenGL
+    /// context is available; this function is not appropriate for interesecting
+    /// using the Maya viewport.
+    ///
+    /// \p hitPoint yields the point of intersection if \c true is returned.
+    ///
+    PXRUSDMAYAGL_API
+    bool TestIntersectionCustomCollection(
+            const HdRprimCollection& collection,
+            const GfMatrix4d& viewMatrix,
+            const GfMatrix4d& projectionMatrix,
             GfVec3d* hitPoint);
 
 private:
+
+    friend class TfSingleton<UsdMayaGLBatchRenderer>;
+
+    PXRUSDMAYAGL_API
+    UsdMayaGLBatchRenderer();
+
+    PXRUSDMAYAGL_API
+    virtual ~UsdMayaGLBatchRenderer();
 
     /// Gets the UsdMayaGLSoftSelectHelper that this batchRenderer maintains.
     ///
@@ -191,26 +233,23 @@ private:
     PXRUSDMAYAGL_API
     const UsdMayaGLSoftSelectHelper& GetSoftSelectHelper();
 
-    /// Allow shape adapters access to the soft selection helper.
+    /// Allow shape adapters access to the soft selection helper, and to the
+    /// _UpdateLegacyRenderPending() method.
     friend PxrMayaHdShapeAdapter;
 
-    /// Private helper function for registering a batch render call.
-    void _QueueShapeForDraw(
-            PxrMayaHdShapeAdapter* shapeAdapter,
-            const PxrMayaHdRenderParams& params);
+    typedef std::pair<PxrMayaHdRenderParams, HdRprimCollectionVector>
+            _RenderItem;
 
-    /// \brief Tests an object for intersection with a given view.
-    ///
-    /// \returns Hydra Hit info for instance associated with \p sharedId
-    ///
-    const HdxIntersector::Hit* _GetHitInfo(
-            M3dView& view,
-            const unsigned int pickResolution,
-            const bool singleSelection,
-            const SdfPath& sharedId,
-            const GfMatrix4d& localToWorldSpace);
+    /// Private helper function to render the given list of render items.
+    /// Note that this doesn't set lighting, so if you need to update the
+    /// lighting from the scene, you need to do that beforehand.
+    void _Render(
+            const GfMatrix4d& worldToViewMatrix,
+            const GfMatrix4d& projectionMatrix,
+            const GfVec4d& viewport,
+            const std::vector<_RenderItem>& items);
 
-     /// \brief Call to render all queued batches. May be called safely w/o
+    /// Call to render all queued batches. May be called safely without
     /// performance hit when no batches are queued.
     void _RenderBatches(
             const MHWRender::MDrawContext* vp2Context,
@@ -218,7 +257,17 @@ private:
             const GfMatrix4d& projectionMatrix,
             const GfVec4d& viewport);
 
-    /// \brief Handler for Maya Viewport 2.0 end render notifications.
+    /// Private helper function for testing intersection on a single collection
+    /// only.
+    /// \returns True if there was at least one hit. All hits are returned in
+    /// the outHitSet.
+    bool _TestIntersection(
+            const HdRprimCollection& rprimCollection,
+            HdxIntersector::Params queryParams,
+            const bool singleSelection,
+            HdxIntersector::HitSet* outHitSet);
+
+    /// Handler for Maya Viewport 2.0 end render notifications.
     ///
     /// Viewport 2.0 may execute a render in multiple passes (shadow, color,
     /// etc.), and Maya sends a notification when all rendering has finished.
@@ -230,35 +279,136 @@ private:
             MHWRender::MDrawContext& context,
             void* clientData);
 
-    /// \brief Perform post-render state cleanup.
+    /// Perform post-render state cleanup.
     ///
     /// For Viewport 2.0, this method gets invoked by
     /// _OnMayaEndRenderCallback() and is what does the actual cleanup work.
     /// For the legacy viewport, there is no such notification sent by Maya, so
     /// this method is called internally at the end of Hydra draws for the
+    /// legacy viewport. In that case, vp2Context will be nullptr.
+    void _MayaRenderDidEnd(const MHWRender::MDrawContext* vp2Context);
+
+    /// Update the last render frame stamp using the given \p frameStamp.
+    ///
+    /// Note that frame stamps are only available from the MDrawContext when
+    /// using Viewport 2.0.
+    ///
+    /// Returns true if the last frame stamp was updated, or false if the given
+    /// frame stamp is the same as the last frame stamp.
+    bool _UpdateRenderFrameStamp(const MUint64 frameStamp);
+
+    /// Update the last selection frame stamp using the given \p frameStamp.
+    ///
+    /// Note that frame stamps are only available from the MDrawContext when
+    /// using Viewport 2.0.
+    ///
+    /// Returns true if the last frame stamp was updated, or false if the given
+    /// frame stamp is the same as the last frame stamp.
+    bool _UpdateSelectionFrameStamp(const MUint64 frameStamp);
+
+    /// Update the internal marker of whether a legacy viewport render is
+    /// pending.
+    ///
+    /// Returns true if the internal marker's value was changed, or false if
+    /// the given value is the same as the current value.
+    bool _UpdateLegacyRenderPending(const bool isPending);
+
+    /// Update the internal marker of whether a legacy viewport selection is
+    /// pending.
+    ///
+    /// Returns true if the internal marker's value was changed, or false if
+    /// the given value is the same as the current value.
+    bool _UpdateLegacySelectionPending(const bool isPending);
+
+    /// With Viewport 2.0, we can query the draw context for its frameStamp,
+    /// a pseudo-unique identifier for each draw/select operation. We use that
+    /// to determine when to do a batched draw or batched selection versus when
+    /// to simply pass through or re-use cached data.
+    ///
+    /// The legacy viewport however does not provide a context we can query for
+    /// the frameStamp, so we simulate it with bools instead. Shape adapters
+    /// should call _UpdateLegacyRenderPending(true) during the legacy viewport
+    /// draw prep phase (sometime during MPxSurfaceShapeUI::getDrawRequests())
+    /// to indicate that we are prepping for a legacy viewport render.
+    /// Rendering invalidates selection, so when a render completes, we mark
+    /// selection as pending.
+    MUint64 _lastRenderFrameStamp;
+    MUint64 _lastSelectionFrameStamp;
+    bool _legacyRenderPending;
+    bool _legacySelectionPending;
+
+    /// Type definition for a set of pointers to shape adapters.
+    typedef std::unordered_set<PxrMayaHdShapeAdapter*> _ShapeAdapterSet;
+
+    /// A shape adapter bucket is a pairing of a render params object and a
+    /// set of shape adapters that all share those render params. Shape
+    /// adapters are gathered together this way to minimize Hydra/OpenGL state
+    /// changes when performing batched draws/selections.
+    typedef std::pair<PxrMayaHdRenderParams, _ShapeAdapterSet> _ShapeAdapterBucket;
+
+    /// This is the batch renderer's primary container for storing the current
+    /// bucketing of all shape adapters registered with the batch renderer.
+    /// The map is indexed by the hash of the bucket's render params object.
+    typedef std::unordered_map<size_t, _ShapeAdapterBucket> _ShapeAdapterBucketsMap;
+
+    /// We maintain separate bucket maps for Viewport 2.0 and the legacy
+    /// viewport.
+    _ShapeAdapterBucketsMap _shapeAdapterBuckets;
+
+    _ShapeAdapterBucketsMap _legacyShapeAdapterBuckets;
+
+    /// Mapping of Maya object handles to their shape adapters.
+    /// This is a "secondary" container for storing shape adapters.
+    struct _MObjectHandleHash {
+        unsigned long operator()(const MObjectHandle& handle) const {
+            return handle.hashCode();
+        }
+    };
+    typedef std::unordered_map<MObjectHandle, PxrMayaHdShapeAdapter*,
+            _MObjectHandleHash> _ShapeAdapterHandleMap;
+
+    /// We maintain separate object handle path maps for Viewport 2.0 and the
     /// legacy viewport.
-    void _MayaRenderDidEnd();
+    _ShapeAdapterHandleMap _shapeAdapterHandleMap;
 
-    /// Cache of hashed shape adapters for fast lookup
-    typedef std::unordered_map<size_t, PxrMayaHdShapeAdapter> _ShapeAdapterMap;
-    _ShapeAdapterMap _shapeAdapterMap;
+    _ShapeAdapterHandleMap _legacyShapeAdapterHandleMap;
 
-    /// Cache of shape adapter hashes for shapes that should be rendered.
-    typedef std::unordered_set<size_t> _ShapeAdapterHashSet;
+    /// We detect and store whether Viewport 2.0 is using the legacy
+    /// viewport-based selection mechanism (i.e. whether the
+    /// MAYA_VP2_USE_VP1_SELECTION environment variable is enabled) when the
+    /// batch renderer is constructed. Then when a legacy selection is
+    /// performed, we consult this value and the viewport renderer of the
+    /// M3dView in which the selection is occurring to determine which bucket
+    /// map of shape adapters we should use to compute the selection.
+    bool _viewport2UsesLegacySelection;
 
-    /// Associative pair of \c PxrMayaHdRenderParams and shape adapter hashes
-    /// of shapes to be rendered with said params.
-    typedef std::pair<PxrMayaHdRenderParams, _ShapeAdapterHashSet> _RenderParamSet;
+    /// Gets the vector of rprim collections to use for intersection testing.
+    ///
+    /// As an optimization for when we do not need to do intersection testing
+    /// against all objects in depth (i.e. with single selections or when the
+    /// PXRMAYAHD_ENABLE_DEPTH_SELECTION env setting is disabled), we use a
+    /// single HdRprimCollection that includes all shape adapters/delegates
+    /// registered with the batch renderer for the active viewport renderer
+    /// (legacy viewport or Viewport 2.0), since we're only interested in the
+    /// single nearest hit in depth for a particular pixel. This is much faster
+    /// than testing against each shape adapter's collection individually.
+    /// Otherwise, we test each shape adapter's collection individually so that
+    /// occluded shapes will be included in the selection.
+    HdRprimCollectionVector _GetIntersectionRprimCollections(
+            _ShapeAdapterBucketsMap& bucketsMap,
+            const bool useDepthSelection) const;
 
-    /// Lookup table to to find \c _RenderParamSet given a param hash key.
-    typedef std::unordered_map<size_t, _RenderParamSet> _RendererQueueMap;
+    /// Populates the selection results using the given parameters by
+    /// performing intersection tests against all of the shapes in the given
+    /// \p bucketsMap.
+    void _ComputeSelection(
+            _ShapeAdapterBucketsMap& bucketsMap,
+            const GfMatrix4d& viewMatrix,
+            const GfMatrix4d& projectionMatrix,
+            const bool singleSelection);
 
-    /// Container of all batched render calls to be made at next display
-    /// refresh.
-    _RendererQueueMap _renderQueue;
-
-    /// \brief Container of Maya render pass identifiers of passes drawn so far
-    /// during a Viewport 2.0 render.
+    /// Container of Maya render pass identifiers of passes drawn so far during
+    /// a Viewport 2.0 render.
     ///
     /// Since all Hydra geometry is drawn at once, we only ever want to execute
     /// the Hydra draw once per Maya render pass (shadow, color, etc.). This
@@ -267,17 +417,14 @@ private:
     /// ended.
     std::unordered_set<std::string> _drawnMayaRenderPasses;
 
-    /// \brief container of batched render calls made at last display refresh,
-    /// to be used at next selection operation.
-    _RendererQueueMap _selectQueue;
-
     typedef std::unordered_map<SdfPath, HdxIntersector::Hit, SdfPath::Hash> HitBatch;
 
-    /// \brief a cache of all selection results gathered since the last display
-    /// refresh.
+    /// A cache of all selection results gathered since the last selection was
+    /// computed.
     HitBatch _selectResults;
 
-    /// \brief Hydra engine objects used to render batches.
+    /// Hydra engine objects used to render batches.
+    ///
     /// Note that the Hydra render index is constructed with and is dependent
     /// on the render delegate. At destruction time, the render index uses the
     /// delegate to destroy Hydra prims, so the delegate must be destructed
@@ -288,13 +435,27 @@ private:
     HdStRenderDelegate _renderDelegate;
     std::unique_ptr<HdRenderIndex> _renderIndex;
 
-    PxrMayaHdSceneDelegateSharedPtr _taskDelegate;
-    HdxIntersectorSharedPtr _intersector;
-    UsdMayaGLSoftSelectHelper _softSelectHelper;
+    /// The root ID of the batch renderer itself, and the top of the path
+    /// hierarchies for shape adapter delegates, one for the legacy viewport
+    /// and one for Viewport 2.0.
+    SdfPath _rootId;
+    SdfPath _legacyViewportPrefix;
+    SdfPath _viewport2Prefix;
 
-    /// \brief Sole global batch renderer used by default.
-    static std::unique_ptr<UsdMayaGLBatchRenderer> _sGlobalRendererPtr;
+    /// The batch renderer maintains a collection per viewport renderer that
+    /// includes all shape adapters registered for that renderer.
+    HdRprimCollection _legacyViewportRprimCollection;
+    HdRprimCollection _viewport2RprimCollection;
+
+    PxrMayaHdSceneDelegateSharedPtr _taskDelegate;
+
+    std::unique_ptr<HdxIntersector> _intersector;
+    HdxSelectionTrackerSharedPtr _selectionTracker;
+
+    UsdMayaGLSoftSelectHelper _softSelectHelper;
 };
+
+PXRUSDMAYAGL_API_TEMPLATE_CLASS(TfSingleton<UsdMayaGLBatchRenderer>);
 
 
 PXR_NAMESPACE_CLOSE_SCOPE

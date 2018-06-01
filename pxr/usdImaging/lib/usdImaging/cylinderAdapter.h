@@ -24,6 +24,8 @@
 #ifndef USDIMAGING_CYLINDER_ADAPTER_H
 #define USDIMAGING_CYLINDER_ADAPTER_H
 
+/// \file usdImaging/cylinderAdapter.h
+
 #include "pxr/pxr.h"
 #include "pxr/usdImaging/usdImaging/api.h"
 #include "pxr/usdImaging/usdImaging/gprimAdapter.h"
@@ -65,7 +67,7 @@ public:
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext = NULL);
+                                      instancerContext = NULL) const;
     /// Thread Safe.
     USDIMAGING_API
     virtual void UpdateForTime(UsdPrim const& prim,
@@ -73,7 +75,7 @@ public:
                                UsdTimeCode time,
                                HdDirtyBits requestedBits,
                                UsdImagingInstancerContext const* 
-                                   instancerContext = NULL);
+                                   instancerContext = NULL) const;
 
     USDIMAGING_API
     static VtValue GetMeshPoints(UsdPrim const& prim,

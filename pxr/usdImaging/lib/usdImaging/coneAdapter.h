@@ -24,6 +24,8 @@
 #ifndef USDIMAGING_CONE_ADAPTER_H
 #define USDIMAGING_CONE_ADAPTER_H
 
+/// \file usdImaging/coneAdapter.h
+
 #include "pxr/pxr.h"
 #include "pxr/usdImaging/usdImaging/api.h"
 #include "pxr/usdImaging/usdImaging/gprimAdapter.h"
@@ -65,7 +67,7 @@ public:
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext = NULL);
+                                      instancerContext = NULL) const;
 
     /// Thread Safe.
     USDIMAGING_API
@@ -74,7 +76,7 @@ public:
                                UsdTimeCode time,
                                HdDirtyBits requestedBits,
                                UsdImagingInstancerContext const* 
-                                   instancerContext = NULL);
+                                   instancerContext = NULL) const;
 
     USDIMAGING_API
     static VtValue GetMeshPoints(UsdPrim const& prim, 

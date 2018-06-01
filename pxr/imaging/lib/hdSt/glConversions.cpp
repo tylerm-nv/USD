@@ -130,6 +130,44 @@ HdStGLConversions::GetGlDepthFunc(HdCompareFunction func)
     return HD_2_GL_DEPTH_FUNC[func];
 }
 
+GLenum
+HdStGLConversions::GetGlStencilFunc(HdCompareFunction func)
+{
+    static GLenum HD_2_GL_STENCIL_FUNC[] =
+    {
+        GL_NEVER,    // HdCmpFuncNever
+        GL_LESS,     // HdCmpFuncLess
+        GL_EQUAL,    // HdCmpFuncEqual
+        GL_LEQUAL,   // HdCmpFuncLEqual
+        GL_GREATER,  // HdCmpFuncGreater
+        GL_NOTEQUAL, // HdCmpFuncNotEqual
+        GL_GEQUAL,   // HdCmpFuncGEqual
+        GL_ALWAYS,   // HdCmpFuncAlways
+    };
+    static_assert((sizeof(HD_2_GL_STENCIL_FUNC) / sizeof(HD_2_GL_STENCIL_FUNC[0])) == HdCmpFuncLast, "Mismatch enum sizes in convert function");
+
+    return HD_2_GL_STENCIL_FUNC[func];
+}
+
+GLenum
+HdStGLConversions::GetGlStencilOp(HdStencilOp op)
+{
+    static GLenum HD_2_GL_STENCIL_OP[] =
+    {
+        GL_KEEP,      // HdStencilOpKeep
+        GL_ZERO,      // HdStencilOpZero
+        GL_REPLACE,   // HdStencilOpReplace
+        GL_INCR,      // HdStencilOpIncrement
+        GL_INCR_WRAP, // HdStencilOpIncrementWrap
+        GL_DECR,      // HdStencilOpDecrement
+        GL_DECR_WRAP, // HdStencilOpDecrementWrap
+        GL_INVERT,    // HdStencilOpInvert
+    };
+    static_assert((sizeof(HD_2_GL_STENCIL_OP) / sizeof(HD_2_GL_STENCIL_OP[0])) == HdStencilOpLast, "Mismatch enum sizes in convert function");
+
+    return HD_2_GL_STENCIL_OP[op];
+}
+
 GLenum 
 HdStGLConversions::GetMinFilter(HdMinFilter filter)
 {
@@ -209,12 +247,14 @@ HdStGLConversions::GetGLAttribType(HdType type)
     case HdTypeFloatVec2:
     case HdTypeFloatVec3:
     case HdTypeFloatVec4:
+    case HdTypeFloatMat3:
     case HdTypeFloatMat4:
         return GL_FLOAT;
     case HdTypeDouble:
     case HdTypeDoubleVec2:
     case HdTypeDoubleVec3:
     case HdTypeDoubleVec4:
+    case HdTypeDoubleMat3:
     case HdTypeDoubleMat4:
         return GL_DOUBLE;
     case HdTypeInt32_2_10_10_10_REV:
@@ -233,12 +273,14 @@ TF_DEFINE_PRIVATE_TOKENS(
     (vec2)
     (vec3)
     (vec4)
+    (mat3)
     (mat4)
 
     ((_double, "double"))
     (dvec2)
     (dvec3)
     (dvec4)
+    (dmat3)
     (dmat4)
 
     ((_int, "int"))
@@ -290,6 +332,8 @@ HdStGLConversions::GetGLSLTypename(HdType type)
         // Special case: treat as a vec4.
     case HdTypeFloatVec4:
         return _glTypeNames->vec4;
+    case HdTypeFloatMat3:
+        return _glTypeNames->mat3;
     case HdTypeFloatMat4:
         return _glTypeNames->mat4;
 
@@ -301,6 +345,8 @@ HdStGLConversions::GetGLSLTypename(HdType type)
         return _glTypeNames->dvec3;
     case HdTypeDoubleVec4:
         return _glTypeNames->dvec4;
+    case HdTypeDoubleMat3:
+        return _glTypeNames->dmat3;
     case HdTypeDoubleMat4:
         return _glTypeNames->dmat4;
     };

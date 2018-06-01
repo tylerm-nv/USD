@@ -100,13 +100,16 @@ class testUsdExportShadingModeDisplayColor(unittest.TestCase):
         materialInput = material.GetInput('transparency')
         self.assertTrue(materialInput)
 
-        # Validate the Shader prim created for the lambert material on the
-        # Maya mesh.
-        shaderPrimPath = material.GetPath().AppendChild('RedLambertSG_lambert')
-        shaderPrim = self._stage.GetPrimAtPath(shaderPrimPath)
-        self.assertTrue(shaderPrim)
-        shader = UsdShade.Shader(shaderPrim)
+        # Validate the surface shader that is connected to the material.
+        materialOutputs = material.GetOutputs()
+        self.assertEqual(len(materialOutputs), 4)
+        print self._stage.ExportToString()
+        materialOutput = material.GetOutput('ri:surface')
+        (connectableAPI, outputName, outputType) = materialOutput.GetConnectedSource()
+        self.assertEqual(outputName, 'out')
+        shader = UsdShade.Shader(connectableAPI)
         self.assertTrue(shader)
+        self.assertEqual(shader.GetPrim().GetName(), 'RedLambertSG_lambert')
 
         shaderId = shader.GetIdAttr().Get()
         self.assertEqual(shaderId, 'PxrDiffuse')

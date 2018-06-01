@@ -24,9 +24,11 @@
 #include "GU_PackedUSD.h"
 
 #include "GT_PackedUSD.h"
+#include "GT_Utils.h"
 #include "xformWrapper.h"
 #include "meshWrapper.h"
 #include "pointsWrapper.h"
+#include "primWrapper.h"
 
 #include "UT_Gf.h"
 #include "GU_USD.h"
@@ -150,6 +152,37 @@ GusdGU_PackedUSD::Build(
     impl->m_primPath = primPath;
     impl->m_frame = frame;
     impl->m_usdPrim = prim;
+
+    if( prim && !prim.IsA<UsdGeomBoundable>() )
+    {
+        UsdGeomImageable geom = UsdGeomImageable(prim);
+        std::vector<UsdGeomPrimvar> authoredPrimvars = geom.GetAuthoredPrimvars();
+        GT_DataArrayHandle buffer;
+
+        for( const UsdGeomPrimvar &primvar : authoredPrimvars ) {
+            // This is temporary code, we need to factor the usd read code into GT_Utils.cpp
+            // to avoid duplicates and read for types GfHalf,double,int,string ...
+            GT_DataArrayHandle gtData = GusdPrimWrapper::convertPrimvarData( primvar, frame );
+            const UT_String  name(primvar.GetPrimvarName());
+            const GT_Storage gtStorage = gtData->getStorage();
+            const GT_Size    gtTupleSize = gtData->getTupleSize();
+
+            GA_Attribute *anAttr = detail.addTuple(GT_Util::getGAStorage(gtStorage), GA_ATTRIB_PRIMITIVE, name,
+                                                   gtTupleSize);
+
+            if( const GA_AIFTuple *aIFTuple = anAttr->getAIFTuple()) {
+
+                const float* flatArray = gtData->getF32Array( buffer );
+                aIFTuple->set( anAttr, packedPrim->getMapOffset(), flatArray, gtTupleSize );
+
+            }  else {
+
+                //TF_WARN( "Unsupported primvar type: %s, %s, tupleSize = %zd", 
+                //         GT_String( name ), GTstorage( gtStorage ), gtTupleSize );
+            }
+        }
+    }
+
     if( lod )
     {
 #if HDK_API_VERSION < 16050000
@@ -749,6 +782,10 @@ GusdGU_PackedUSD::getInstanceKey(UT_Options& key) const
     if( !m_masterPathCacheValid ) {
         UsdPrim usdPrim = getUsdPrim();
 
+        if( !usdPrim ) {
+            return true;
+        }
+
         // Disambiguate masters of instances by including the stage pointer.
         // Sometimes instances are opened on different stages, so their
         // path will both be "/__Master_1" even if they are different prims.
@@ -804,30 +841,22 @@ GusdGU_PackedUSD::visibleGT() const
 }
 
 UsdPrim 
-GusdGU_PackedUSD::getUsdPrim(GusdUT_ErrorContext* err) const
+GusdGU_PackedUSD::getUsdPrim(UT_ErrorSeverity sev) const
 {
     if(m_usdPrim)
         return m_usdPrim;
 
     m_masterPathCacheValid = false;
 
+    SdfPath primPathWithoutVariants;
+    GusdStageBasicEditPtr edit;
+    GusdStageBasicEdit::GetPrimPathAndEditFromVariantsPath(
+        m_primPath, primPathWithoutVariants, edit);
+
     GusdStageCacheReader cache;
-    m_usdPrim =
-        cache.GetPrim(m_fileName, m_primPath.StripAllVariantSelections(),
-                      getStageEdit(), GusdStageOpts::LoadAll(), err).first;
+    m_usdPrim = cache.GetPrim(m_fileName, primPathWithoutVariants, edit,
+                              GusdStageOpts::LoadAll(), sev).first;
     return m_usdPrim;
-}
-
-
-GusdStageEditPtr
-GusdGU_PackedUSD::getStageEdit() const
-{
-    if(!m_primPath.ContainsPrimVariantSelection())
-        return GusdStageEditPtr();
-
-    auto* edit = new GusdStageBasicEdit;
-    edit->GetVariants().append(m_primPath);
-    return GusdStageEditPtr(edit);
 }
 
 

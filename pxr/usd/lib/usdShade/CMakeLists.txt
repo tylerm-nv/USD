@@ -13,7 +13,6 @@ pxr_library(usdShade
         connectableAPI
         debugCodes
         input
-        look
         material
         materialBindingAPI
         output
@@ -32,7 +31,6 @@ pxr_library(usdShade
         module.cpp
         wrapConnectableAPI.cpp
         wrapInput.cpp
-        wrapLook.cpp
         wrapMaterial.cpp
         wrapMaterialBindingAPI.cpp
         wrapOutput.cpp
@@ -55,6 +53,7 @@ pxr_test_scripts(
     testenv/testUsdShadeConnectability.py
     testenv/testUsdShadeInterfaceInputConsumers.py
     testenv/testUsdShadeMaterialBinding.py
+    testenv/testUsdShadeMaterialOutputs.py
     testenv/testUsdShadeMaterialFaceSet.py
     testenv/testUsdShadeMaterialBindFaceSubset.py
     testenv/testUsdShadeMaterialAuthoring.py
@@ -113,6 +112,12 @@ pxr_register_test(testUsdShadeMaterialAuthoring
 pxr_register_test(testUsdShadeMaterialBinding
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdShadeMaterialBinding"
+    EXPECTED_RETURN_CODE 0
+)
+
+pxr_register_test(testUsdShadeMaterialOutputs
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdShadeMaterialOutputs"
     EXPECTED_RETURN_CODE 0
 )
 

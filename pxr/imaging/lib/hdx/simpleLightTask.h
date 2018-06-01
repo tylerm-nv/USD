@@ -29,7 +29,6 @@
 #include "pxr/imaging/hdx/version.h"
 
 #include "pxr/imaging/hd/changeTracker.h"
-#include "pxr/imaging/hd/rprimCollection.h"
 #include "pxr/imaging/hd/task.h"
 
 #include "pxr/imaging/glf/simpleLight.h"
@@ -78,11 +77,12 @@ private:
 private:
     SdfPath _cameraId;
     std::map<TfToken, SdfPathVector> _lightIds;
+    SdfPathVector _lightIncludePaths;
+    SdfPathVector _lightExcludePaths;
     size_t _numLights;
 
     // Should be weak ptrs
     HdxSimpleLightingShaderSharedPtr _lightingShader;
-    int _collectionVersion;
     bool _enableShadows;
     GfVec4f _viewport;
 
