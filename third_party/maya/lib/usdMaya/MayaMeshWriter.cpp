@@ -81,27 +81,56 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
     // Write parent class attrs
     writeTransformAttrs(usdTime, primSchema);
 
-    // Return if usdTime does not match if shape is animated
-    if (usdTime.IsDefault() == isShapeAnimated() ) {
-        // skip shape as the usdTime does not match if shape isAnimated value
-        return true; 
+    // Write UsdSkel skeletal skinning data first, since this function will
+    // determine whether we use the "input" or "final" mesh when exporting
+    // mesh geometry. This should only be run once at default time.
+    if (usdTime.IsDefault()) {
+        _skelInputMesh = writeSkinningData(primSchema);
     }
 
-    MFnMesh lMesh(getDagPath(), &status);
+    // This is the mesh that "lives" at the end of this dag node. We should
+    // always pull user-editable "sidecar" data like color sets and tags from
+    // this mesh.
+    MFnMesh finalMesh(getDagPath(), &status);
     if (!status) {
         MGlobal::displayError(
-            "MayaMeshWriter: MFnMesh() failed for mesh at dagPath: " +
+            "Failed to get final mesh at dagPath: " +
             getDagPath().fullPathName());
         return false;
     }
 
-    unsigned int numVertices = lMesh.numVertices();
-    unsigned int numPolygons = lMesh.numPolygons();
+    // If exporting skinning, then geomMesh and finalMesh will be different
+    // meshes. The general rule is to use geomMesh only for geometric data such
+    // as vertices, faces, normals, but use finalMesh for UVs, color sets,
+    // and user-defined tagging (e.g. subdiv tags).
+    MObject geomMeshObj = _skelInputMesh.isNull() ?
+            finalMesh.object() : _skelInputMesh;
+    MFnMesh geomMesh(geomMeshObj, &status);
+    if (!status) {
+        MGlobal::displayError(
+            "Failed to get geom mesh at dagPath: " +
+            getDagPath().fullPathName());
+        return false;
+    }
+
+    // Return if usdTime does not match if shape is animated.
+    // XXX In theory you could have an animated input mesh before the
+    // skinCluster is applied but we don't support that right now.
+    // Note that isShapeAnimated() as computed by MayaTransformWriter is
+    // whether the finalMesh is animated.
+    bool isAnimated = _skelInputMesh.isNull() ? isShapeAnimated() : false;
+    if (usdTime.IsDefault() == isAnimated) {
+        // skip shape as the usdTime does not match if shape isAnimated value
+        return true; 
+    }
+
+    unsigned int numVertices = geomMesh.numVertices();
+    unsigned int numPolygons = geomMesh.numPolygons();
 
     // Set mesh attrs ==========
     // Get points
     // TODO: Use memcpy()
-    const float* mayaRawPoints = lMesh.getRawPoints(&status);
+    const float* mayaRawPoints = geomMesh.getRawPoints(&status);
     VtArray<GfVec3f> points(numVertices);
     for (unsigned int i = 0; i < numVertices; i++) {
         unsigned int floatIndex = i*3;
@@ -109,87 +138,91 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
                       mayaRawPoints[floatIndex+1],
                       mayaRawPoints[floatIndex+2]);
     }
-    primSchema.GetPointsAttr().Set(points, usdTime); // ANIMATED
 
-    // Compute the extent using the raw points
     VtArray<GfVec3f> extent(2);
+    // Compute the extent using the raw points
     UsdGeomPointBased::ComputeExtent(points, &extent);
-    primSchema.CreateExtentAttr().Set(extent, usdTime);
+
+    _SetAttribute(primSchema.GetPointsAttr(), &points, usdTime);
+    _SetAttribute(primSchema.CreateExtentAttr(), &extent, usdTime);
 
     // Get faceVertexIndices
-    unsigned int numFaceVertices = lMesh.numFaceVertices(&status);
+    unsigned int numFaceVertices = geomMesh.numFaceVertices(&status);
     VtArray<int>     faceVertexCounts(numPolygons);
     VtArray<int>     faceVertexIndices(numFaceVertices);
     MIntArray mayaFaceVertexIndices; // used in loop below
     unsigned int curFaceVertexIndex = 0;
     for (unsigned int i = 0; i < numPolygons; i++) {
-        lMesh.getPolygonVertices(i, mayaFaceVertexIndices);
+        geomMesh.getPolygonVertices(i, mayaFaceVertexIndices);
         faceVertexCounts[i] = mayaFaceVertexIndices.length();
         for (unsigned int j=0; j < mayaFaceVertexIndices.length(); j++) {
             faceVertexIndices[ curFaceVertexIndex ] = mayaFaceVertexIndices[j]; // push_back
             curFaceVertexIndex++;
         }
     }
-    primSchema.GetFaceVertexCountsAttr().Set(faceVertexCounts);   // not animatable
-    primSchema.GetFaceVertexIndicesAttr().Set(faceVertexIndices); // not animatable
+    _SetAttribute(primSchema.GetFaceVertexCountsAttr(), &faceVertexCounts);
+    _SetAttribute(primSchema.GetFaceVertexIndicesAttr(), &faceVertexIndices);
 
     // Read usdSdScheme attribute. If not set, we default to defaultMeshScheme
     // flag that can be user defined and initialized to catmullClark
-    TfToken sdScheme = PxrUsdMayaMeshUtil::getSubdivScheme(lMesh, getArgs().defaultMeshScheme);
+    TfToken sdScheme = PxrUsdMayaMeshUtil::getSubdivScheme(finalMesh,
+            getArgs().defaultMeshScheme);
     primSchema.CreateSubdivisionSchemeAttr(VtValue(sdScheme), true);
 
     if (sdScheme == UsdGeomTokens->none) {
         // Polygonal Mesh Case
-        if (PxrUsdMayaMeshUtil::getEmitNormals(lMesh, sdScheme)) {
+        if (PxrUsdMayaMeshUtil::getEmitNormals(finalMesh, sdScheme)) {
             VtArray<GfVec3f> meshNormals;
             TfToken normalInterp;
 
-            if (PxrUsdMayaMeshUtil::GetMeshNormals(lMesh,
+            if (PxrUsdMayaMeshUtil::GetMeshNormals(geomMesh,
                                                    &meshNormals,
                                                    &normalInterp)) {
-                primSchema.GetNormalsAttr().Set(meshNormals, usdTime);
+                _SetAttribute(primSchema.GetNormalsAttr(), &meshNormals, 
+                              usdTime);
                 primSchema.SetNormalsInterpolation(normalInterp);
             }
         }
     } else {
         TfToken sdInterpBound = PxrUsdMayaMeshUtil::getSubdivInterpBoundary(
-            lMesh, UsdGeomTokens->edgeAndCorner);
+            finalMesh, UsdGeomTokens->edgeAndCorner);
 
-        primSchema.CreateInterpolateBoundaryAttr(VtValue(sdInterpBound), true);
+        _SetAttribute(primSchema.CreateInterpolateBoundaryAttr(VtValue(), true), 
+                      sdInterpBound);
         
         TfToken sdFVLinearInterpolation =
-            PxrUsdMayaMeshUtil::getSubdivFVLinearInterpolation(lMesh);
+            PxrUsdMayaMeshUtil::getSubdivFVLinearInterpolation(finalMesh);
 
         if (!sdFVLinearInterpolation.IsEmpty()) {
-            primSchema.CreateFaceVaryingLinearInterpolationAttr(
-                VtValue(sdFVLinearInterpolation), true);
+            _SetAttribute(primSchema.CreateFaceVaryingLinearInterpolationAttr(),
+                          sdFVLinearInterpolation);
         }
 
-        assignSubDivTagsToUSDPrim(lMesh, primSchema);
+        assignSubDivTagsToUSDPrim(finalMesh, primSchema);
     }
 
     // Holes - we treat InvisibleFaces as holes
-    MUintArray mayaHoles = lMesh.getInvisibleFaces();
+    MUintArray mayaHoles = finalMesh.getInvisibleFaces();
     if (mayaHoles.length() > 0) {
         VtArray<int> subdHoles(mayaHoles.length());
         for (unsigned int i=0; i < mayaHoles.length(); i++) {
             subdHoles[i] = mayaHoles[i];
         }
         // not animatable in Maya, so we'll set default only
-        primSchema.GetHoleIndicesAttr().Set(subdHoles);
+        _SetAttribute(primSchema.GetHoleIndicesAttr(), &subdHoles);
     }
 
     // == Write UVSets as Vec2f Primvars
     MStringArray uvSetNames;
     if (getArgs().exportMeshUVs) {
-        status = lMesh.getUVSetNames(uvSetNames);
+        status = finalMesh.getUVSetNames(uvSetNames);
     }
     for (unsigned int i = 0; i < uvSetNames.length(); ++i) {
         VtArray<GfVec2f> uvValues;
         TfToken interpolation;
         VtArray<int> assignmentIndices;
 
-        if (!_GetMeshUVSetData(lMesh,
+        if (!_GetMeshUVSetData(finalMesh,
                                   uvSetNames[i],
                                   &uvValues,
                                   &interpolation,
@@ -223,7 +256,7 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
     // == Gather ColorSets
     MStringArray colorSetNames;
     if (getArgs().exportColorSets) {
-        status = lMesh.getColorSetNames(colorSetNames);
+        status = finalMesh.getColorSetNames(colorSetNames);
     }
 
     VtArray<GfVec3f> shadersRGBData;
@@ -236,7 +269,7 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
     // If we find a displayColor color set, the shader colors and opacities
     // will be used to fill in unauthored/unpainted faces in the color set.
     if (getArgs().exportDisplayColor || colorSetNames.length() > 0) {
-        PxrUsdMayaUtil::GetLinearShaderColor(lMesh,
+        PxrUsdMayaUtil::GetLinearShaderColor(finalMesh,
                                              &shadersRGBData,
                                              &shadersAlphaData,
                                              &shadersInterpolation,
@@ -255,7 +288,7 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
         }
         
         if (colorSetNames[i] == PxrUsdMayaMeshColorSetTokens->DisplayOpacityColorSetName.GetText()) {
-            MGlobal::displayWarning("Mesh \"" + lMesh.fullPathName() +
+            MGlobal::displayWarning("Mesh \"" + finalMesh.fullPathName() +
                 "\" has a color set named \"" +
                 MString(PxrUsdMayaMeshColorSetTokens->DisplayOpacityColorSetName.GetText()) +
                 "\" which is a reserved Primvar name in USD. Skipping...");
@@ -270,7 +303,7 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
         MFnMesh::MColorRepresentation colorSetRep;
         bool clamped = false;
 
-        if (!_GetMeshColorSetData(lMesh,
+        if (!_GetMeshColorSetData(finalMesh,
                                      colorSetNames[i],
                                      isDisplayColor,
                                      shadersRGBData,
@@ -283,7 +316,7 @@ bool MayaMeshWriter::writeMeshAttrs(const UsdTimeCode &usdTime, UsdGeomMesh &pri
                                      &colorSetRep,
                                      &clamped)) {
             MGlobal::displayWarning("Unable to retrieve colorSet data: " +
-                colorSetNames[i] + " on mesh: " + lMesh.fullPathName() +
+                colorSetNames[i] + " on mesh: " + finalMesh.fullPathName() +
                 ". Skipping...");
             continue;
         }
@@ -410,7 +443,7 @@ MayaMeshWriter::exportsGprims() const
 {
     return true;
 }
-    
+
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

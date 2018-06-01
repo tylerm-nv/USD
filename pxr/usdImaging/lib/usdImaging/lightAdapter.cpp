@@ -23,11 +23,12 @@
 //
 #include "pxr/usdImaging/usdImaging/lightAdapter.h"
 #include "pxr/usdImaging/usdImaging/delegate.h"
+#include "pxr/usdImaging/usdImaging/indexProxy.h"
 #include "pxr/usdImaging/usdImaging/tokens.h"
 
 #include "pxr/imaging/hd/tokens.h"
 
-#include "pxr/imaging/hdSt/light.h"
+#include "pxr/imaging/hd/light.h"
 
 #include "pxr/base/tf/envSetting.h"
 
@@ -57,11 +58,11 @@ UsdImagingLightAdapter::TrackVariability(UsdPrim const& prim,
                                         SdfPath const& cachePath,
                                         HdDirtyBits* timeVaryingBits,
                                         UsdImagingInstancerContext const* 
-                                            instancerContext)
+                                            instancerContext) const
 {
     // Discover time-varying transforms.
     _IsTransformVarying(prim,
-        HdStLight::DirtyBits::DirtyTransform,
+        HdLight::DirtyBits::DirtyTransform,
         UsdImagingTokens->usdVaryingXform,
         timeVaryingBits);
 
@@ -71,7 +72,7 @@ UsdImagingLightAdapter::TrackVariability(UsdPrim const& prim,
     TF_FOR_ALL(attrIter, attrs) {
         const UsdAttribute& attr = *attrIter;
         if (attr.GetNumTimeSamples()>1){
-            *timeVaryingBits |= HdStLight::DirtyBits::DirtyParams;
+            *timeVaryingBits |= HdLight::DirtyBits::DirtyParams;
         }
     }
 }
@@ -84,7 +85,7 @@ UsdImagingLightAdapter::UpdateForTime(UsdPrim const& prim,
                                UsdTimeCode time,
                                HdDirtyBits requestedBits,
                                UsdImagingInstancerContext const* 
-                                   instancerContext)
+                                   instancerContext) const
 {
 }
 
@@ -110,8 +111,7 @@ UsdImagingLightAdapter::MarkTransformDirty(UsdPrim const& prim,
                                            SdfPath const& cachePath,
                                            UsdImagingIndexProxy* index)
 {
-    // XXX: This should really look at a base light schema for the dirty bits
-    static const HdDirtyBits transformDirty = HdStLight::DirtyTransform;
+    static const HdDirtyBits transformDirty = HdLight::DirtyTransform;
     index->MarkSprimDirty(cachePath, transformDirty);
 }
 

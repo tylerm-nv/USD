@@ -71,15 +71,12 @@ HdRprim::Finalize(HdRenderParam *renderParam)
 }
 
 const std::vector<HdDrawItem*>*
-HdRprim::GetDrawItems(HdSceneDelegate* delegate,
-                      TfToken const &defaultReprName, bool forced)
+HdRprim::GetDrawItems(TfToken const &defaultReprName, bool forced) const
 {
     // note: GetDrawItems is called at execute phase.
     // All required dirtyBits should have cleaned at this point.
-    HdDirtyBits dirtyBits(HdChangeTracker::Clean);
-    TfToken reprName = _GetReprName(delegate, defaultReprName,
-                                    forced, &dirtyBits);
-    HdReprSharedPtr repr = _GetRepr(delegate, reprName, &dirtyBits);
+    TfToken reprName = _GetReprName(defaultReprName, forced);
+    HdReprSharedPtr repr = _GetRepr(reprName);
 
     if (repr) {
         return &repr->GetDrawItems();
@@ -115,26 +112,40 @@ HdRprim::_Sync(HdSceneDelegate* delegate,
     }
 }
 
-TfToken
-HdRprim::_GetReprName(HdSceneDelegate* delegate,
-                      TfToken const &defaultReprName,
-                      bool forced,
-                      HdDirtyBits *dirtyBits)
+void
+HdRprim::_UpdateReprName(HdSceneDelegate* delegate,
+                         HdDirtyBits *dirtyBits)
 {
-    // resolve reprName
+    SdfPath const& id = GetId();
+    if (HdChangeTracker::IsReprDirty(*dirtyBits, id)) {
+        _authoredReprName = delegate->GetReprName(id);
+        *dirtyBits &= ~HdChangeTracker::DirtyRepr;
+    }
+}
 
+TfToken
+HdRprim::_GetReprName(TfToken const &defaultReprName, bool forced) const
+{
     // if not forced, the prim's authored reprname wins.
     // otherewise we respect defaultReprName (used for shadowmap drawing etc)
-    if (!forced) {
-        SdfPath const& id = GetId();
-        if (HdChangeTracker::IsReprDirty(*dirtyBits, id)) {
-            _authoredReprName = delegate->GetReprName(id);
-        }
-        if (!_authoredReprName.IsEmpty()) {
-            return _authoredReprName;
-        }
+    if (!forced && !_authoredReprName.IsEmpty()) {
+        return _authoredReprName;
     }
     return defaultReprName;
+}
+
+HdReprSharedPtr const &
+HdRprim::_GetRepr(TfToken const &reprName) const
+{
+    _ReprVector::const_iterator reprIt =
+        std::find_if(_reprs.begin(), _reprs.end(), _ReprComparator(reprName));
+    if (reprIt == _reprs.end()) {
+        TF_CODING_ERROR("_InitRepr() should be called for repr %s on prim %s.",
+                        reprName.GetText(), GetId().GetText());
+        static const HdReprSharedPtr ERROR_RETURN;
+        return ERROR_RETURN;
+    }
+    return reprIt->second;
 }
 
 bool
@@ -184,7 +195,7 @@ HdRprim::PropagateRprimDirtyBits(HdDirtyBits bits)
         bits |= (HdChangeTracker::DirtyPoints  |
                  HdChangeTracker::DirtyNormals |
                  HdChangeTracker::DirtyWidths  |
-                 HdChangeTracker::DirtyPrimVar);
+                 HdChangeTracker::DirtyPrimvar);
     }
 
     // propagate point dirtiness to normal
@@ -201,7 +212,7 @@ HdRprim::PropagateRprimDirtyBits(HdDirtyBits bits)
     if (bits & HdChangeTracker::DirtyTopology) {
         bits |= (HdChangeTracker::DirtyPoints  |
                  HdChangeTracker::DirtyNormals |
-                 HdChangeTracker::DirtyPrimVar);
+                 HdChangeTracker::DirtyPrimvar);
     }
 
     // Let subclasses propagate bits
@@ -214,9 +225,8 @@ HdRprim::InitRepr(HdSceneDelegate* delegate,
                   bool forced,
                   HdDirtyBits *dirtyBits)
 {
-    TfToken reprName = _GetReprName(delegate, defaultReprName,
-                                    forced, dirtyBits);
-
+    _UpdateReprName(delegate, dirtyBits);
+    TfToken reprName = _GetReprName(defaultReprName, forced);
     _InitRepr(reprName, dirtyBits);
 
 }
@@ -250,7 +260,7 @@ HdRprim::_SetMaterialId(HdChangeTracker &changeTracker,
 }
 
 bool
-HdRprim::IsDirty(HdChangeTracker &changeTracker)
+HdRprim::IsDirty(HdChangeTracker &changeTracker) const
 {
     return changeTracker.IsRprimDirty(GetId());
 }
@@ -269,7 +279,7 @@ HdRprim::GetInitialDirtyBitsMask() const
 }
 
 void
-HdRprim::_PopulateConstantPrimVars(HdSceneDelegate* delegate,
+HdRprim::_PopulateConstantPrimvars(HdSceneDelegate* delegate,
                                    HdDrawItem *drawItem,
                                    HdDirtyBits *dirtyBits)
 {
@@ -360,12 +370,13 @@ HdRprim::_PopulateConstantPrimVars(HdSceneDelegate* delegate,
         sources.push_back(source);
     }
 
-    if (HdChangeTracker::IsAnyPrimVarDirty(*dirtyBits, id)) {
-        TfTokenVector primVarNames = delegate->GetPrimVarConstantNames(id);
-        sources.reserve(sources.size()+primVarNames.size());
-        for (const TfToken& name: primVarNames) {
-            if (HdChangeTracker::IsPrimVarDirty(*dirtyBits, id, name)) {
-                VtValue value = delegate->Get(id, name);
+    if (HdChangeTracker::IsAnyPrimvarDirty(*dirtyBits, id)) {
+        HdPrimvarDescriptorVector constantPrimvars =
+            delegate->GetPrimvarDescriptors(id, HdInterpolationConstant);
+        sources.reserve(sources.size()+constantPrimvars.size());
+        for (const HdPrimvarDescriptor& pv: constantPrimvars) {
+            if (HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, pv.name)) {
+                VtValue value = delegate->Get(id, pv.name);
 
                 // XXX Hydra doesn't support string primvar yet
                 if (value.IsHolding<std::string>()) continue;
@@ -374,13 +385,13 @@ HdRprim::_PopulateConstantPrimVars(HdSceneDelegate* delegate,
                     // A value holding an empty array does not count as an
                     // empty value. Catch that case here.
                     TF_WARN("Empty array value for constant primvar %s "
-                            "on Rprim %s", name.GetText(), id.GetText());
+                            "on Rprim %s", pv.name.GetText(), id.GetText());
                 } else if (!value.IsEmpty()) {
                     // Given that this is a constant primvar, if it is
                     // holding VtArray then use that as a single array
                     // value rather than as one value per element.
                     HdBufferSourceSharedPtr source(
-                        new HdVtBufferSource(name, value,
+                        new HdVtBufferSource(pv.name, value,
                             value.IsArrayValued() ? value.GetArraySize() : 1));
 
                     TF_VERIFY(source->GetTupleType().type != HdTypeInvalid);
@@ -396,7 +407,7 @@ HdRprim::_PopulateConstantPrimVars(HdSceneDelegate* delegate,
         return;
 
     // Allocate a new uniform buffer if not exists.
-    if (!drawItem->GetConstantPrimVarRange()) {
+    if (!drawItem->GetConstantPrimvarRange()) {
         // establish a buffer range
         HdBufferSpecVector bufferSpecs;
         TF_FOR_ALL(srcIt, sources) {
@@ -405,16 +416,16 @@ HdRprim::_PopulateConstantPrimVars(HdSceneDelegate* delegate,
 
         HdBufferArrayRangeSharedPtr range =
             resourceRegistry->AllocateShaderStorageBufferArrayRange(
-                HdTokens->primVar, bufferSpecs);
+                HdTokens->primvar, bufferSpecs);
         TF_VERIFY(range->IsValid());
 
         _sharedData.barContainer.Set(
-            drawItem->GetDrawingCoord()->GetConstantPrimVarIndex(), range);
+            drawItem->GetDrawingCoord()->GetConstantPrimvarIndex(), range);
     }
-    TF_VERIFY(drawItem->GetConstantPrimVarRange()->IsValid());
+    TF_VERIFY(drawItem->GetConstantPrimvarRange()->IsValid());
 
     resourceRegistry->AddSources(
-        drawItem->GetConstantPrimVarRange(), sources);
+        drawItem->GetConstantPrimvarRange(), sources);
 }
 
 VtMatrix4dArray

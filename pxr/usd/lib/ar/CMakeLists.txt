@@ -16,6 +16,7 @@ pxr_library(ar
         api.h
         assetInfo.h
         defaultResolver.h
+        defaultResolverContext.h
         resolver.h
         resolverContext.h
         resolverContextBinder.h
@@ -37,6 +38,7 @@ pxr_library(ar
         resolverScopedCache.cpp
         debugCodes.cpp
         defaultResolver.cpp
+        defaultResolverContext.cpp
 
     PYTHON_CPPFILES
         pyResolverContext.cpp
@@ -45,6 +47,7 @@ pxr_library(ar
     PYMODULE_CPPFILES
         module.cpp
         wrapDefaultResolver.cpp
+        wrapDefaultResolverContext.cpp
         wrapResolver.cpp
         wrapResolverContext.cpp
         wrapResolverContextBinder.cpp
@@ -58,7 +61,23 @@ pxr_library(ar
 )
 
 pxr_test_scripts(
+    testenv/testArAdvancedAPI.py
     testenv/testArDefaultResolver.py
+)
+
+pxr_build_test_shared_lib(TestArAdvancedAPI
+    CREATE_FRAMEWORK
+    INSTALL_PREFIX ArPlugins
+    LIBRARIES
+        tf
+        ar
+    CPPFILES
+        testenv/TestArAdvancedAPI_plugin.cpp
+) 
+
+pxr_register_test(testArAdvancedAPI
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testArAdvancedAPI"
 )
 
 pxr_register_test(testArDefaultResolver

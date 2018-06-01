@@ -22,6 +22,7 @@
 // language governing permissions and limitations under the Apache License.
 //
 #include "pxr/imaging/glf/glew.h"
+#include "pxr/imaging/glf/diagnostic.h"
 
 #include "pxr/imaging/hdSt/bufferArrayRangeGL.h"
 #include "pxr/imaging/hdSt/drawItem.h"
@@ -79,6 +80,7 @@ HdStRenderPassState::Sync(HdResourceRegistrySharedPtr const &resourceRegistry)
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
+    GLF_GROUP_FUNCTION();
 
     VtVec4fArray clipPlanes;
     TF_FOR_ALL(it, _clipPlanes) {
@@ -112,6 +114,15 @@ HdStRenderPassState::Sync(HdResourceRegistrySharedPtr const &resourceRegistry)
         bufferSpecs.emplace_back(
             HdShaderTokens->wireframeColor,
             HdTupleType{HdTypeFloatVec4, 1});
+        bufferSpecs.emplace_back(
+            HdShaderTokens->pointColor,
+            HdTupleType{HdTypeFloatVec4, 1});
+        bufferSpecs.emplace_back(
+            HdShaderTokens->pointSize,
+            HdTupleType{HdTypeFloat, 1});
+        bufferSpecs.emplace_back(
+            HdShaderTokens->pointSelectedSize,
+            HdTupleType{HdTypeFloat, 1});
         bufferSpecs.emplace_back(
             HdShaderTokens->lightingBlendAmount,
             HdTupleType{HdTypeFloat, 1});
@@ -167,6 +178,15 @@ HdStRenderPassState::Sync(HdResourceRegistrySharedPtr const &resourceRegistry)
     sources.push_back(HdBufferSourceSharedPtr(
                           new HdVtBufferSource(HdShaderTokens->wireframeColor,
                                                VtValue(_wireframeColor))));
+    sources.push_back(HdBufferSourceSharedPtr(
+                          new HdVtBufferSource(HdShaderTokens->pointColor,
+                                               VtValue(_pointColor))));
+    sources.push_back(HdBufferSourceSharedPtr(
+                          new HdVtBufferSource(HdShaderTokens->pointSize,
+                                               VtValue(_pointSize))));
+    sources.push_back(HdBufferSourceSharedPtr(
+                          new HdVtBufferSource(HdShaderTokens->pointSelectedSize,
+                                               VtValue(_pointSelectedSize))));
 
     sources.push_back(HdBufferSourceSharedPtr(
                        new HdVtBufferSource(HdShaderTokens->lightingBlendAmount,
@@ -247,7 +267,15 @@ HdStRenderPassState::GetShaders() const
 void
 HdStRenderPassState::Bind()
 {
+    GLF_GROUP_FUNCTION();
+    
     // XXX: this states set will be refactored as hdstream PSO.
+    
+    // notify view-transform to the lighting shader to update its uniform block
+    // this needs to be done in execute as a multi camera setup may have been synced
+    // with a different view matrix baked in for shadows.
+    // SetCamera will no-op if the transforms are the same as before.
+    _lightingShader->SetCamera(_worldToViewMatrix, _projectionMatrix);
 
     // XXX: viewport should be set.
     // glViewport((GLint)_viewport[0], (GLint)_viewport[1],
@@ -267,6 +295,23 @@ HdStRenderPassState::Bind()
     }
 
     glDepthFunc(HdStGLConversions::GetGlDepthFunc(_depthFunc));
+    
+    // Stencil
+    if (_stencilEnabled) {
+        glEnable(GL_STENCIL_TEST);
+        glStencilFunc(HdStGLConversions::GetGlStencilFunc(_stencilFunc),
+                _stencilRef, _stencilMask);
+        glStencilOp(HdStGLConversions::GetGlStencilOp(_stencilFailOp),
+                HdStGLConversions::GetGlStencilOp(_stencilZFailOp),
+                HdStGLConversions::GetGlStencilOp(_stencilZPassOp));
+    } else {
+        glDisable(GL_STENCIL_TEST);
+    }
+    
+    // Line width
+    if (_lineWidth > 0) {
+        glLineWidth(_lineWidth);
+    }
 
     if (!_alphaToCoverageUseDefault) {
         if (_alphaToCoverageEnabled) {
@@ -301,13 +346,16 @@ HdStRenderPassState::Bind()
 void
 HdStRenderPassState::Unbind()
 {
+    GLF_GROUP_FUNCTION();
     // restore back to the GL defaults
 
     glDisable(GL_POLYGON_OFFSET_FILL);
     glDisable(GL_SAMPLE_ALPHA_TO_COVERAGE);
     glDisable(GL_PROGRAM_POINT_SIZE);
+    glDisable(GL_STENCIL_TEST);
     glDepthFunc(GL_LESS);
     glPolygonOffset(0, 0);
+    glLineWidth(1.0f);
 
     for (size_t i = 0; i < _clipPlanes.size(); ++i) {
         glDisable(GL_CLIP_DISTANCE0 + i);

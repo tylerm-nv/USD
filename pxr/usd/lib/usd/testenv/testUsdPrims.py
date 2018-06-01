@@ -510,13 +510,23 @@ class TestUsdPrim(unittest.TestCase):
             return list(x for x in chars)
 
         for fmt in allFormats:
-            s = Usd.Stage.CreateInMemory('PropertyReorder.'+fmt)
+            sl = Sdf.Layer.CreateAnonymous(fmt)
+            s = Usd.Stage.CreateInMemory('PropertyReorder.'+fmt, sl)
             f = s.OverridePrim('/foo')
 
-            for name in reversed(l('abcdefg')):
+            s.SetEditTarget(s.GetRootLayer())
+            for name in reversed(l('abcd')):
+                f.CreateAttribute(name, Sdf.ValueTypeNames.Int)
+
+            s.SetEditTarget(s.GetSessionLayer())
+            for name in reversed(l('defg')):
                 f.CreateAttribute(name, Sdf.ValueTypeNames.Int)
 
             self.assertEqual(f.GetPropertyNames(), l('abcdefg'))
+
+            pred = lambda tok : tok in ['a', 'd', 'f']
+            self.assertEqual(f.GetPropertyNames(predicate=pred),
+                             l('adf'))
 
             f.SetPropertyOrder(l('edc'))
             self.assertEqual(f.GetPropertyNames(), l('edcabfg'))
@@ -532,6 +542,9 @@ class TestUsdPrim(unittest.TestCase):
 
             f.SetPropertyOrder(l('d'))
             self.assertEqual(f.GetPropertyNames(), l('dabcefg'))
+
+            self.assertEqual(f.GetPropertyNames(predicate=pred),
+                             l('daf'))
 
             f.SetPropertyOrder(l('xyz'))
             self.assertEqual(f.GetPropertyNames(), l('abcdefg'))
@@ -754,18 +767,73 @@ class TestUsdPrim(unittest.TestCase):
                 s._GetPcpCache().FindPrimIndex('/Root/Group/Child'))
 
     def test_AppliedSchemas(self):
+        self.assertTrue(Usd.ModelAPI.IsAPISchema())
+        self.assertTrue(Usd.ClipsAPI.IsAPISchema())
+        self.assertTrue(Usd.CollectionAPI.IsAPISchema())
+
+        self.assertFalse(Usd.ModelAPI.IsApplied())
+        self.assertFalse(Usd.ClipsAPI.IsApplied())
+        self.assertTrue(Usd.CollectionAPI.IsApplied())
+
+        self.assertTrue(Usd.CollectionAPI.IsMultipleApply())
+
         for fmt in allFormats:
-            s = Usd.Stage.CreateInMemory('AppliedSchemas.%s' % fmt)
-            root = s.DefinePrim('/hello')
-            self.assertEqual([], root.GetAppliedSchemas())
-            Usd.ModelAPI.Apply(s, '/hello')
-            self.assertEqual(['ModelAPI'], root.GetAppliedSchemas())
-            Usd.ClipsAPI.Apply(s, '/hello')
-            self.assertEqual(['ModelAPI', 'ClipsAPI'], root.GetAppliedSchemas())
+            sessionLayer = Sdf.Layer.CreateNew("SessionLayer.%s" % fmt)
+            s = Usd.Stage.CreateInMemory('AppliedSchemas.%s' % fmt, sessionLayer)
+
+            s.SetEditTarget(Usd.EditTarget(s.GetRootLayer()))
+
+            world= s.OverridePrim('/world')
+            self.assertEqual([], world.GetAppliedSchemas())
+
+            rootCollAPI = Usd.CollectionAPI.ApplyCollection(world, "root")
+            self.assertTrue(rootCollAPI)
+
+            world = rootCollAPI.GetPrim()
+            self.assertTrue(world)
+
+            self.assertTrue(world.HasAPI(Usd.CollectionAPI))
+
+            # The schemaType that's passed into HasAPI must derive from 
+            # UsdAPISchemaBase and must not be UsdAPISchemaBase.
+            with self.assertRaises(RuntimeError):
+                world.HasAPI(Usd.Typed)
+            with self.assertRaises(RuntimeError):
+                world.HasAPI(Usd.APISchemaBase)
+            with self.assertRaises(RuntimeError):
+                world.HasAPI(Usd.ModelAPI)
+
+            # Try calling HasAPI a random TfType that isn't a derivative of 
+            # SchemaBase.
+            with self.assertRaises(RuntimeError):
+                world.HasAPI(Sdf.ListOpType)
+
+            self.assertEqual(['CollectionAPI:root'], world.GetAppliedSchemas())
+
+            # Switch the edit target to the session layer and test bug 156929
+            s.SetEditTarget(Usd.EditTarget(s.GetSessionLayer()))
+            sessionCollAPI = Usd.CollectionAPI.ApplyCollection(world, "session")
+            self.assertTrue(sessionCollAPI)
+            self.assertEqual(['CollectionAPI:session', 'CollectionAPI:root'],
+                             world.GetAppliedSchemas())
+
+            self.assertTrue(world.HasAPI(Usd.CollectionAPI))
 
             # Ensure duplicates aren't picked up
-            Usd.ClipsAPI.Apply(s, '/hello')
-            self.assertEqual(['ModelAPI', 'ClipsAPI'], root.GetAppliedSchemas())
+            anotherSessionCollAPI = Usd.CollectionAPI.ApplyCollection(world, 
+                                                                       "session")
+            self.assertTrue(anotherSessionCollAPI)
+            self.assertEqual(['CollectionAPI:session', 'CollectionAPI:root'],
+                             world.GetAppliedSchemas())
+
+            # Add a duplicate in the root layer and ensure that there are no 
+            # duplicates in the composed result.
+            s.SetEditTarget(Usd.EditTarget(s.GetRootLayer()))
+            rootLayerSessionCollAPI = Usd.CollectionAPI.ApplyCollection(world,
+                    "session")
+            self.assertTrue(rootLayerSessionCollAPI)
+            self.assertEqual(['CollectionAPI:session', 'CollectionAPI:root'],
+                             world.GetAppliedSchemas())
 
 if __name__ == "__main__":
     unittest.main()

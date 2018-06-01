@@ -31,6 +31,7 @@
 #include "pxr/usd/usd/attributeQuery.h"
 #include "pxr/base/gf/bbox3d.h"
 #include "pxr/base/tf/hashmap.h"
+#include "pxr/base/work/arenaDispatcher.h"
 
 #include <boost/optional.hpp>
 #include <boost/shared_array.hpp>
@@ -103,6 +104,14 @@ public:
     USDGEOM_API
     UsdGeomBBoxCache(UsdTimeCode time, TfTokenVector includedPurposes,
                      bool useExtentsHint=false);
+
+    /// Copy constructor.
+    USDGEOM_API
+    UsdGeomBBoxCache(UsdGeomBBoxCache const &other);
+     
+    /// Copy assignment.
+    USDGEOM_API
+    UsdGeomBBoxCache &operator=(UsdGeomBBoxCache const &other);
 
     /// Compute the bound of the given prim in world space, leveraging any
     /// pre-existing, cached bounds.
@@ -382,6 +391,12 @@ private:
     // bbox volume > 0.
     bool _Resolve(const UsdPrim& prim, _PurposeToBBoxMap *bboxes);
 
+    // Compute the extent of a UsdGeomBoundable object. Return true if the
+    // computation succeeds and false on failure.
+    bool _ComputeExtent(
+        const UsdGeomBoundable& boundableObj,
+        VtVec3fArray* extent) const;
+
     // Resolves a single prim. This method must be thread safe. Assumes the
     // cache entry has been created for \p prim.
     //
@@ -453,6 +468,7 @@ private:
     typedef boost::hash<UsdPrim> _UsdPrimHash;
     typedef TfHashMap<UsdPrim, _Entry, _UsdPrimHash> _PrimBBoxHashMap;
 
+    WorkArenaDispatcher _dispatcher;
     UsdTimeCode _time;
     boost::optional<UsdTimeCode> _baseTime;
     TfTokenVector _includedPurposes;

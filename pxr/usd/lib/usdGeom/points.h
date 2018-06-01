@@ -185,7 +185,7 @@ public:
     /// binary state on Id'd points without adding a separate 
     /// primvar.
     ///
-    /// \n  C++ Type: VtArray<long>
+    /// \n  C++ Type: VtArray<int64_t>
     /// \n  Usd Type: SdfValueTypeNames->Int64Array
     /// \n  Variability: SdfVariabilityVarying
     /// \n  Fallback Value: No Fallback
@@ -226,6 +226,13 @@ public:
     USDGEOM_API
     static bool ComputeExtent(const VtVec3fArray& points,
         const VtFloatArray& widths, VtVec3fArray* extent);
+
+    /// \overload
+    /// Computes the extent as if the matrix \p transform was first applied.
+    USDGEOM_API
+    static bool ComputeExtent(const VtVec3fArray& points,
+        const VtFloatArray& widths, const GfMatrix4d& transform,
+        VtVec3fArray* extent);
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE
