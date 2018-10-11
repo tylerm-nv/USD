@@ -1462,6 +1462,13 @@ UsdStage::_SetValue(UsdTimeCode time, const UsdAttribute &attr,
 }
 
 bool
+UsdStage::SetValues(UsdTimeCode time, VtArray<UsdAttribute>& attrs,
+	VtArray<const SdfAbstractDataConstValue *>& newValues)
+{
+	return _SetValuesImpl(time, attrs, newValues);
+}
+
+bool
 UsdStage::_SetValue(
     UsdTimeCode time, const UsdAttribute &attr, const VtValue &newValue)
 {
@@ -1527,7 +1534,8 @@ UsdStage::_SetValueImpl(
     }
 
     if (time.IsDefault()) {
-        attrSpec->GetLayer()->SetField(attrSpec->GetPath(),
+		SdfPath path = attrSpec->GetPath();
+        attrSpec->GetLayer()->SetField(path,
                                        SdfFieldKeys->Default,
                                        newValue);
     } else {
@@ -1552,6 +1560,121 @@ UsdStage::_SetValueImpl(
 
     return true;
 }
+
+template <class T>
+bool
+UsdStage::_SetValuesImpl(
+	UsdTimeCode time, VtArray<UsdAttribute>& attrs, 
+	VtArray<const T*>& newValues)
+{
+#if 0
+	//RT TODO: Implement type checking
+
+	// if we are setting a value block, we don't want type checking
+	if (!Usd_ValueContainsBlock(&newValue)) {
+		// Do a type check.  Obtain typeName.
+		TfToken typeName;
+		SdfAbstractDataTypedValue<TfToken> abstrToken(&typeName);
+		_GetMetadata(attr, SdfFieldKeys->TypeName,
+			TfToken(), /*useFallbacks=*/true, &abstrToken);
+		if (typeName.IsEmpty()) {
+			TF_RUNTIME_ERROR("Empty typeName for <%s>",
+				attr.GetPath().GetText());
+			return false;
+		}
+		// Ensure this typeName is known to our schema.
+		TfType valType = SdfSchema::GetInstance().FindType(typeName).GetType();
+		if (valType.IsUnknown()) {
+			TF_RUNTIME_ERROR("Unknown typename for <%s>: '%s'",
+				typeName.GetText(), attr.GetPath().GetText());
+			return false;
+		}
+		// Check that the passed value is the expected type.
+		if (!TfSafeTypeCompare(_GetTypeInfo(newValue), valType.GetTypeid())) {
+			TF_CODING_ERROR("Type mismatch for <%s>: expected '%s', got '%s'",
+				attr.GetPath().GetText(),
+				ArchGetDemangled(valType.GetTypeid()).c_str(),
+				ArchGetDemangled(_GetTypeInfo(newValue)).c_str());
+			return false;
+		}
+
+		// Check variability, but only if the appropriate debug flag is
+		// enabled. Variability is a statement of intent but doesn't control
+		// behavior, so we only want to perform this validation when it is
+		// requested.
+		if (TfDebug::IsEnabled(USD_VALIDATE_VARIABILITY) &&
+			time != UsdTimeCode::Default() &&
+			_GetVariability(attr) == SdfVariabilityUniform) {
+			TF_DEBUG(USD_VALIDATE_VARIABILITY)
+				.Msg("Warning: authoring time sample value on "
+					"uniform attribute <%s> at time %.3f\n",
+					UsdDescribe(attr).c_str(), time.GetValue());
+		}
+	}
+#endif
+
+	uint32_t attrCount = attrs.size();
+	VtArray<SdfAttributeSpecHandle> attrSpecs(attrCount);
+	for (int i = 0; i != attrCount; i++)
+	{
+		attrSpecs[i] = _CreateAttributeSpecForEditing(attrs[i]);
+
+		if (!attrSpecs[i]) {
+			TF_RUNTIME_ERROR(
+				"Cannot set attribute value.  Failed to create "
+				"attribute spec <%s> in layer @%s@",
+				GetEditTarget().MapToSpecPath(attrs[i].GetPath()).GetText(),
+				GetEditTarget().GetLayer()->GetIdentifier().c_str());
+			return false;
+		}
+	}
+
+	VtArray<SdfAbstractDataSpecId*> attrPaths(attrCount);
+	for (int i = 0; i != attrCount; i++)
+	{
+		attrPaths[i] = new SdfAbstractDataSpecId(&attrSpecs[i]->GetPath());
+	}
+
+	if (time.IsDefault()) {
+
+		//RT: We're assuming that there's at least one attr
+		//RT: We're assuming that all attrs are from same layer
+		SdfLayerHandle layer = attrSpecs[0]->GetLayer();
+
+		layer->SetFields(attrPaths,
+			SdfFieldKeys->Default,
+			newValues);
+	}
+#if 0
+	//RT TODO: Handle time
+	else {
+		// XXX: should this loft the underlying values up when
+		// authoring over a weaker layer?
+
+		// XXX: this won't be correct if we are trying to edit
+		// across two different reference arcs -- which may have
+		// different time offsets.  perhaps we need the map function
+		// to track a time offset for each path?
+		const SdfLayerOffset stageToLayerOffset =
+			UsdPrepLayerOffset(GetEditTarget().GetMapFunction().GetTimeOffset())
+			.GetInverse();
+
+		double localTime = stageToLayerOffset * time.GetValue();
+
+		attrSpec->GetLayer()->SetTimeSample(
+			attrSpec->GetPath(),
+			localTime,
+			newValue);
+	}
+#endif
+
+	for (int i = 0; i != attrCount; i++)
+	{
+		delete attrPaths[i];
+	}
+	return true;
+}
+
 
 bool
 UsdStage::_ClearValue(UsdTimeCode time, const UsdAttribute &attr)
