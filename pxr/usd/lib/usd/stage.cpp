@@ -1629,10 +1629,12 @@ UsdStage::_SetValuesImpl(
 		}
 	}
 
-	VtArray<SdfAbstractDataSpecId*> attrPaths(attrCount);
+	VtArray<SdfPath*> attrPaths(attrCount);
+	VtArray<SdfAbstractDataSpecId*> attrSpecIds(attrCount);
 	for (int i = 0; i != attrCount; i++)
 	{
-		attrPaths[i] = new SdfAbstractDataSpecId(&attrSpecs[i]->GetPath());
+		attrPaths[i] = new SdfPath(attrSpecs[i]->GetPath());
+		attrSpecIds[i] = new SdfAbstractDataSpecId(attrPaths[i]);
 	}
 
 	if (time.IsDefault()) {
@@ -1641,7 +1643,7 @@ UsdStage::_SetValuesImpl(
 		//RT: We're assuming that all attrs are from same layer
 		SdfLayerHandle layer = attrSpecs[0]->GetLayer();
 
-		layer->SetFields(attrPaths,
+		layer->SetFields(attrSpecIds,
 			SdfFieldKeys->Default,
 			newValues);
 	}
@@ -1671,6 +1673,7 @@ UsdStage::_SetValuesImpl(
 	for (int i = 0; i != attrCount; i++)
 	{
 		delete attrPaths[i];
+		delete attrSpecIds[i];
 	}
 	return true;
 }
