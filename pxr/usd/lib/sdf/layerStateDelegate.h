@@ -60,7 +60,7 @@ class SdfLayerStateDelegateBase
     , public TfWeakBase
 {
 public:
-    virtual ~SdfLayerStateDelegateBase();
+	SDF_API virtual ~SdfLayerStateDelegateBase();
 
     bool IsDirty();
 
@@ -127,15 +127,15 @@ public:
         const SdfPath& oldValue);
 
 protected:
-    SdfLayerStateDelegateBase();
+	SDF_API SdfLayerStateDelegateBase();
 
     /// Returns the layer associated with this state delegate.
     /// May be NULL if no layer is associated.
-    SdfLayerHandle _GetLayer() const;
+	SDF_API SdfLayerHandle _GetLayer() const;
 
     /// Returns the underlying data object for the layer associated with
     /// this state delegate. May be NULL if no layer is associated.
-    SdfAbstractDataPtr _GetLayerData() const;
+	SDF_API SdfAbstractDataPtr _GetLayerData() const;
 
     /// Returns true if the associated layer has been authored to since
     /// the last time the layer was marked clean, false otherwise.

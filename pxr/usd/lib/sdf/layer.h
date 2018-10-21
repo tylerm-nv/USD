@@ -602,6 +602,10 @@ public:
     void SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName,
         const SdfAbstractDataConstValue& value);
 
+	SDF_API
+	void SetFields(VtArray<SdfAbstractDataSpecId*> ids, const TfToken& fieldName,
+		VtArray<const SdfAbstractDataConstValue*> values);
+
     /// Set the value of the given \a id and \a fieldName.
     template <class T>
     void SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName, 
@@ -702,6 +706,9 @@ public:
 
     template <class T>
     void SetField(const SdfPath& path, const TfToken& fieldName, const T& val);
+	//template <class T>
+	//void SetFields(VtArray<SdfPath> path, const TfToken& fieldName, VtArray<T> val);
+
     template <class T>
     void SetFieldDictValueByKey(const SdfPath& path, const TfToken& fieldName,
                                 const TfToken &keyPath, const T& val);
@@ -1640,6 +1647,13 @@ private:
                        const T& value,
                        const VtValue *oldValue = NULL,
                        bool useDelegate = true);
+
+	template <class T>
+	void _PrimSetFields(VtArray<SdfAbstractDataSpecId*> ids,
+						const TfToken& fieldName,
+						VtArray<const T*> values,
+						VtArray<VtValue> oldValues,
+						bool useDelegate = true);
 
     // Inverse primitive for setting a single key in a dict-valued field.
     template <class T>

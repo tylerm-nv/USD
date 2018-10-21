@@ -146,7 +146,7 @@ static int _GetMMapPrefetchKB()
 
 // Write nbytes bytes to fd at pos.
 static inline int64_t
-WriteToFd(FILE *file, void const *bytes, int64_t nbytes, int64_t pos) {
+WriteToFd(ArchFile *file, void const *bytes, int64_t nbytes, int64_t pos) {
     int64_t nwritten = ArchPWrite(file, bytes, nbytes, pos);
     if (ARCH_UNLIKELY(nwritten < 0)) {
         TF_RUNTIME_ERROR("Failed writing usdc data: %s",
@@ -450,7 +450,7 @@ template <> struct _IsBitwiseReadWrite<_ListOpHeader> : std::true_type {};
 CrateFile::_FileRange::~_FileRange()
 {
     if (file && hasOwnership) {
-        fclose(file);
+        ArchReleaseFile(file);
     }
 }
 
@@ -630,7 +630,7 @@ struct _PreadStream {
 private:
     int64_t _start;
     int64_t _cur;
-    FILE *_file;
+    ArchFile *_file;
 };
 
 struct _AssetStream {
@@ -697,7 +697,7 @@ public:
         int64_t size = 0;
     };
 
-    explicit _BufferedOutput(FILE *file)
+    explicit _BufferedOutput(ArchFile *file)
         : _filePos(0)
         , _file(file)
         , _bufferPos(0)
@@ -813,7 +813,7 @@ private:
     
     // Write head in the file.  Always inside the buffer region.
     int64_t _filePos;
-    FILE *_file;
+    ArchFile *_file;
 
     // Start of current buffer is at this file offset.
     int64_t _bufferPos;
@@ -1902,7 +1902,7 @@ CrateFile::CanRead(string const &assetPath) {
     }
 
     // If the asset has a file, mark it random access to avoid prefetch.
-    FILE *file; size_t offset;
+    ArchFile *file; size_t offset;
     std::tie(file, offset) = asset->GetFileUnsafe();
     if (file) {
         ArchFileAdvise(file, offset, asset->GetSize(),
@@ -1936,7 +1936,7 @@ CrateFile::CreateNew()
 CrateFile::_FileMappingIPtr
 CrateFile::_MmapAsset(char const *assetPath, ArAssetSharedPtr const &asset)
 {
-    FILE *file; size_t offset;
+    ArchFile *file; size_t offset;
     std::tie(file, offset) = asset->GetFileUnsafe();
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file), offset, asset->GetSize()));
@@ -1949,7 +1949,7 @@ CrateFile::_MmapAsset(char const *assetPath, ArAssetSharedPtr const &asset)
 
 /* static */
 CrateFile::_FileMappingIPtr
-CrateFile::_MmapFile(char const *fileName, FILE *file)
+CrateFile::_MmapFile(char const *fileName, ArchFile *file)
 {
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file)));
@@ -1975,8 +1975,8 @@ CrateFile::Open(string const &assetPath)
         return result;
     }
 
-    // See if we can get an underlying FILE * for the asset.
-    FILE *file; size_t offset;
+    // See if we can get an underlying ArchFile * for the asset.
+    ArchFile *file; size_t offset;
     std::tie(file, offset) = asset->GetFileUnsafe();
     if (file) {
         // If so, then we'll either mmap it or use pread() on it.
@@ -1996,7 +1996,7 @@ CrateFile::Open(string const &assetPath)
         }
     }
     else {
-        // With no underlying FILE *, we'll go through ArAsset::Read() directly.
+        // With no underlying ArchFile *, we'll go through ArAsset::Read() directly.
         result.reset(new CrateFile(assetPath, asset));
     }
     
@@ -2096,7 +2096,7 @@ CrateFile::CrateFile(string const &assetPath, string const &fileName,
     , _fileReadFrom(fileName)
     , _useMmap(false)
 {
-    // Note that we *do* store the asset here, since we need to keep the FILE*
+    // Note that we *do* store the asset here, since we need to keep the ArchFile*
     // alive to pread from it.
     _DoAllTypeRegistrations();
     _InitPread();
@@ -2224,11 +2224,11 @@ CrateFile::CanPackTo(string const &fileName) const
     }
     // Try to open \p fileName and get its filename.
     bool result = false;
-    if (FILE *f = ArchOpenFile(fileName.c_str(), "rb")) {
+    if (ArchFile *f = ArchOpenFile(fileName.c_str(), "rb")) {
         if (ArchGetFileName(f) == _fileReadFrom) {
             result = true;
         }
-        fclose(f);
+        ArchReleaseFile(f);
     }
     return result;
 }
@@ -2282,7 +2282,7 @@ CrateFile::Packer::Close()
     // Note that once Save()d, we never go back to reading from an _assetSrc.
     _crate->_assetSrc.reset();
 
-    // Try to reuse the open FILE * if we can, otherwise open for read.
+    // Try to reuse the open ArchFile * if we can, otherwise open for read.
     _FileRange fileRange;
     if (outFile.IsOpenForUpdate()) {
         fileRange = _FileRange(outFile.ReleaseUpdatedFile(),

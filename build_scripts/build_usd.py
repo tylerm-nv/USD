@@ -231,8 +231,9 @@ def RunCMake(context, force, extraArgs = None):
                     osx_rpath=(osx_rpath or ""),
                     generator=(generator or ""),
                     extraArgs=(" ".join(extraArgs) if extraArgs else "")))
-        Run("cmake --build . --config Release --target install -- {multiproc}"
-            .format(multiproc=("/M:{procs}" if Windows() else "-j{procs}")
+        Run("cmake --build . --config {config} --target install -- {multiproc}"
+            .format(config=("Debug" if context.buildDebug else "Release"),
+                    multiproc=("/M:{procs}" if Windows() else "-j{procs}")
                                .format(procs=context.numJobs)))
 
 def PatchFile(filename, patches):
@@ -492,7 +493,7 @@ def InstallBoost(context, force, buildArgs):
             'link=shared',
             'runtime-link=shared',
             'threading=multi', 
-            'variant=release',
+            'variant={variant}'.format(variant="debug" if context.buildDebug else "release"),
             '--with-atomic',
             '--with-date_time',
             '--with-filesystem',
@@ -925,6 +926,11 @@ def InstallUSD(context, force, buildArgs):
             extraArgs.append('-DBUILD_SHARED_LIBS=ON')
         elif context.buildMonolithic:
             extraArgs.append('-DPXR_BUILD_MONOLITHIC=ON')
+
+        if context.buildDebug:
+            extraArgs.append('-DTBB_USE_DEBUG_BUILD=ON')
+        else:
+            extraArgs.append('-DTBB_USE_DEBUG_BUILD=OFF')
         
         if context.buildDocs:
             extraArgs.append('-DPXR_BUILD_DOCUMENTATION=ON')
@@ -1095,6 +1101,8 @@ group.add_argument("--force-all", action="store_true",
 group.add_argument("--generator", type=str,
                    help=("CMake generator to use when building libraries with "
                          "cmake"))
+group.add_argument("--build-debug", dest="build_debug", action="store_true",
+                    help="Build with debugging information")
 
 group = parser.add_argument_group(title="3rd Party Dependency Build Options")
 group.add_argument("--src", type=str,
@@ -1288,6 +1296,7 @@ class InstallContext:
             self.buildArgs.setdefault(depName.lower(), []).append(arg)
 
         # Build type
+        self.buildDebug = args.build_debug;
         self.buildShared = (args.build_type == SHARED_LIBS)
         self.buildMonolithic = (args.build_type == MONOLITHIC_LIB)
 
@@ -1512,6 +1521,7 @@ Building with settings:
   Downloader                    {downloader}
 
   Building                      {buildType}
+    Config                      {buildConfig}
     Imaging                     {buildImaging}
       Ptex support:             {enablePtex}
       OpenImageIO support:      {buildOIIO} 
@@ -1558,6 +1568,7 @@ summaryMsg = summaryMsg.format(
     buildType=("Shared libraries" if context.buildShared
                else "Monolithic shared library" if context.buildMonolithic
                else ""),
+    buildConfig=("Debug" if context.buildDebug else "Release"),
     buildImaging=("On" if context.buildImaging else "Off"),
     enablePtex=("On" if context.enablePtex else "Off"),
     buildOIIO=("On" if context.buildOIIO else "Off"),

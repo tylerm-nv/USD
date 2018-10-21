@@ -30,7 +30,7 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-ArFilesystemAsset::ArFilesystemAsset(FILE* file) 
+ArFilesystemAsset::ArFilesystemAsset(ArchFile* file) 
     : _file(file) 
 { 
     if (!_file) {
@@ -40,7 +40,7 @@ ArFilesystemAsset::ArFilesystemAsset(FILE* file)
 
 ArFilesystemAsset::~ArFilesystemAsset() 
 { 
-    fclose(_file); 
+    ArchReleaseFile(_file); 
 }
 
 size_t
@@ -86,7 +86,7 @@ ArFilesystemAsset::Read(void* buffer, size_t count, size_t offset)
     return numRead;
 }
         
-std::pair<FILE*, size_t>
+std::pair<ArchFile*, size_t>
 ArFilesystemAsset::GetFileUnsafe()
 {
     return std::make_pair(_file, 0);

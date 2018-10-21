@@ -218,7 +218,7 @@ public:
     /// The visitor may not modify the SdfAbstractData object it is visiting.
     /// \sa SdfAbstractDataSpecVisitor
     SDF_API
-    void VisitSpecs(SdfAbstractDataSpecVisitor* visitor) const;
+    virtual void VisitSpecs(SdfAbstractDataSpecVisitor* visitor) const;
 
     /// @}
 

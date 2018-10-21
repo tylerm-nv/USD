@@ -442,7 +442,9 @@ SdfLayer::_CreateNew(
 
         layer = _CreateNewWithFormat(
             fileFormat, absIdentifier, localPath, assetInfo, args);
-
+    }
+    if (layer)
+    {
         // XXX 2011-08-19 Newly created layers should not be
         // saved to disk automatically.
         //
@@ -451,6 +453,7 @@ SdfLayer::_CreateNew(
         if (!TF_VERIFY(layer) || !layer->_Save(/* force = */ true)) {
             // Dropping the layer reference will destroy it, and
             // the destructor will remove it from the registry.
+            layer->_FinishInitialization(/* success = */ false);
             return TfNullPtr;
         }
 
@@ -3183,6 +3186,39 @@ SdfLayer::SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName,
 }
 
 void
+SdfLayer::SetFields(VtArray<SdfAbstractDataSpecId*> ids, const TfToken& fieldName,
+    VtArray<const SdfAbstractDataConstValue*> values)
+{
+    uint32_t attrCount = ids.size();
+    for (int i = 0; i != attrCount; i++)
+    {
+        const SdfAbstractDataSpecId& id = *ids[i];
+
+        if (values[i]->IsEqual(VtValue()))
+            EraseField(id, fieldName);
+    }
+
+    if (ARCH_UNLIKELY(!PermissionToEdit())) {
+        TF_CODING_ERROR("Cannot set %s. Layer @%s@ is not editable.",
+            fieldName.GetText(), 
+            GetIdentifier().c_str());
+        return;
+    }
+
+    VtArray<VtValue> oldValues(attrCount);
+    for (int i = 0; i != attrCount; i++)
+    {
+        oldValues[i] = GetField(*ids[i], fieldName);
+    }
+
+#if 0
+    // RT TODO: Only set field if value not changed
+    if (!value.IsEqual(oldValue))
+#endif
+        _PrimSetFields(ids, fieldName, values, oldValues);
+}
+
+void
 SdfLayer::SetFieldDictValueByKey(const SdfAbstractDataSpecId& id,
                                  const TfToken& fieldName,
                                  const TfToken &keyPath,
@@ -3514,9 +3550,51 @@ SdfLayer::_PrimSetField(const SdfAbstractDataSpecId& id,
     _data->Set(id, fieldName, value);
 }
 
+template <class T>
+void
+SdfLayer::_PrimSetFields(VtArray<SdfAbstractDataSpecId*> ids,
+    const TfToken& fieldName,
+    VtArray<const T*> values,
+    VtArray<VtValue> oldValues,
+    bool useDelegate)
+{
+    // Send notification when leaving the change block.
+    SdfChangeBlock block;
+
+    if (useDelegate && TF_VERIFY(_stateDelegate)) 
+    {
+        uint32_t count = ids.size();
+        for (int i = 0; i != count; i++)
+        {
+            _stateDelegate->SetField(*ids[i], fieldName, *values[i], &oldValues[i]);
+        }
+        return;
+    }
+
+#if 0
+    //RT TODO: Support useDelegate==false
+    const VtValue& oldValue =
+        oldValuePtr ? *oldValuePtr : GetField(id, fieldName);
+    const VtValue& newValue = _GetVtValue(value);
+
+    Sdf_ChangeManager::Get().DidChangeField(
+        SdfLayerHandle(this),
+        id.GetFullSpecPath(), fieldName, oldValue, newValue);
+
+    _data->Set(id, fieldName, value);
+#endif
+}
+
 template void SdfLayer::_PrimSetField(
     const SdfAbstractDataSpecId&, const TfToken&, 
     const VtValue&, const VtValue *, bool);
+template void SdfLayer::_PrimSetFields(
+    VtArray<SdfAbstractDataSpecId*> ids,
+    const TfToken& fieldName,
+    VtArray<const VtValue*> values,
+    VtArray<VtValue> oldValues,
+    bool useDelegate);
+
 template void SdfLayer::_PrimSetField(
     const SdfAbstractDataSpecId&, const TfToken&, 
     const SdfAbstractDataConstValue&, const VtValue *, bool);
