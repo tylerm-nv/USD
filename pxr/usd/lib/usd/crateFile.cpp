@@ -1941,7 +1941,7 @@ CrateFile::_MmapAsset(char const *assetPath, ArAssetSharedPtr const &asset)
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file), offset, asset->GetSize()));
     if (!mapping->GetMapStart()) {
-        TF_RUNTIME_ERROR("Couldn't map asset '%s'", assetPath);
+		TF_CODING_WARNING("Couldn't map asset '%s'", assetPath);
         mapping.reset();
     }
     return mapping;
@@ -1954,7 +1954,7 @@ CrateFile::_MmapFile(char const *fileName, ArchFile *file)
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file)));
     if (!mapping->GetMapStart()) {
-        TF_RUNTIME_ERROR("Couldn't map file '%s'", fileName);
+		TF_CODING_WARNING("Couldn't map file '%s'", fileName);
         mapping.reset();
     }
     return mapping;
@@ -1980,9 +1980,9 @@ CrateFile::Open(string const &assetPath)
     std::tie(file, offset) = asset->GetFileUnsafe();
     if (file) {
         // If so, then we'll either mmap it or use pread() on it.
-        if (!TfGetenvBool("USDC_USE_PREAD", false)) {
+		_FileMappingIPtr mapping;
+        if (!TfGetenvBool("USDC_USE_PREAD", false) && (mapping = _MmapAsset(assetPath.c_str(), asset))) {
             // Try to memory-map the file.
-            auto mapping = _MmapAsset(assetPath.c_str(), asset);
             result.reset(new CrateFile(assetPath, ArchGetFileName(file),
                                        std::move(mapping), asset));
         } else {
@@ -2301,12 +2301,8 @@ CrateFile::Packer::Close()
 
     // Reset the mapping or file so we can read values from the newly
     // written file.
-    if (_crate->_useMmap) {
+    if (_crate->_useMmap && (_crate->_mmapSrc = _MmapFile(_crate->_assetPath.c_str(), fileRange.file))) {
         // Must remap the file.
-        _crate->_mmapSrc =
-            _MmapFile(_crate->_assetPath.c_str(), fileRange.file);
-        if (!_crate->_mmapSrc)
-            return false;
         _crate->_InitMMap();
     } else {
         // Must adopt the file handle if we don't already have one.
@@ -2491,7 +2487,7 @@ CrateFile::_GetTimeSampleValueImpl(TimeSamples const &ts, size_t i) const
 {
     // Need to read the rep from the file for index i.
     auto offset = ts.valuesFileOffset + i * sizeof(ValueRep);
-    if (_useMmap) {
+    if (_useMmap && _mmapSrc) {
         auto reader = _MakeReader(
             _MakeMmapStream(_mmapSrc.get(), _debugPageMap.get()));
         reader.Seek(offset);
@@ -2512,7 +2508,7 @@ CrateFile::_MakeTimeSampleValuesMutableImpl(TimeSamples &ts) const
 {
     // Read out the reps into the vector.
     ts.values.resize(ts.times.Get().size());
-    if (_useMmap) {
+    if (_useMmap && _mmapSrc) {
         auto reader = _MakeReader(
             _MakeMmapStream(_mmapSrc.get(), _debugPageMap.get()));
         reader.Seek(ts.valuesFileOffset);
@@ -3390,7 +3386,7 @@ CrateFile::_BuildDecompressedPathsImpl(
 void
 CrateFile::_ReadRawBytes(int64_t start, int64_t size, char *buf) const
 {
-    if (_useMmap) {
+    if (_useMmap && _mmapSrc) {
         auto reader = _MakeReader(
             _MakeMmapStream(_mmapSrc.get(), _debugPageMap.get()));
         reader.Seek(start);
@@ -3557,7 +3553,7 @@ void
 CrateFile::_UnpackValue(ValueRep rep, T *out) const
 {
     auto const &h = _GetValueHandler<T>();
-    if (_useMmap) {
+    if (_useMmap && _mmapSrc) {
         h.Unpack(
             _MakeReader(
                 _MakeMmapStream(_mmapSrc.get(), _debugPageMap.get())), rep, out);
@@ -3572,7 +3568,7 @@ template <class T>
 void
 CrateFile::_UnpackValue(ValueRep rep, VtArray<T> *out) const {
     auto const &h = _GetValueHandler<T>();
-    if (_useMmap) {
+    if (_useMmap && _mmapSrc) {
         h.UnpackArray(
             _MakeReader(
                 _MakeMmapStream(_mmapSrc.get(), _debugPageMap.get())), rep, out);
@@ -3593,7 +3589,7 @@ CrateFile::_UnpackValue(ValueRep rep, VtValue *result) const {
         return;
     }
     auto index = static_cast<int>(repType);
-    if (_useMmap) {
+    if (_useMmap && _mmapSrc) {
         _unpackValueFunctionsMmap[index](rep, result);
     } else if (_preadSrc) {
         _unpackValueFunctionsPread[index](rep, result);
