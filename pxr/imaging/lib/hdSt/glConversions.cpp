@@ -25,6 +25,9 @@
 #include "pxr/imaging/hdSt/glConversions.h"
 #include "pxr/base/tf/iterator.h"
 #include "pxr/base/tf/staticTokens.h"
+#include "pxr/base/tf/stringUtils.h"
+
+#include <cctype>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -38,25 +41,25 @@ struct _FormatDesc {
 static const _FormatDesc FORMAT_DESC[] =
 {
     // format,  type,          internal format
-    {GL_RED,  GL_UNSIGNED_BYTE, GL_RED},     // HdFormatR8UNorm,
-    {GL_RED,  GL_BYTE,          GL_R8},      // HdFormatR8SNorm.
+    {GL_RED,  GL_UNSIGNED_BYTE, GL_R8},      // HdFormatUNorm8,
+    {GL_RG,   GL_UNSIGNED_BYTE, GL_RG8},     // HdFormatUNorm8Vec2,
+    {GL_RGB,  GL_UNSIGNED_BYTE, GL_RGB8},    // HdFormatUNorm8Vec3,
+    {GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA8},   // HdFormatUNorm8Vec4,
 
-    {GL_RG,   GL_UNSIGNED_BYTE, GL_RG8},     // HdFormatR8G8UNorm,
-    {GL_RG,   GL_BYTE,          GL_RG8},     // HdFormatR8G8SNorm,
+    {GL_RED,  GL_BYTE,          GL_R8_SNORM},      // HdFormatSNorm8,
+    {GL_RG,   GL_BYTE,          GL_RG8_SNORM},     // HdFormatSNorm8Vec2,
+    {GL_RGB,  GL_BYTE,          GL_RGB8_SNORM},    // HdFormatSNorm8Vec3,
+    {GL_RGBA, GL_BYTE,          GL_RGBA8_SNORM},   // HdFormatSNorm8Vec4,
 
-    {GL_RGB,  GL_UNSIGNED_BYTE, GL_RGB8},    // HdFormatR8G8B8UNorm,
-    {GL_RGB,  GL_BYTE,          GL_RGB8},    // HdFormatR8G8B8SNorm,
+    {GL_RED,  GL_FLOAT,         GL_R32F},    // HdFormatFloat32,
+    {GL_RG,   GL_FLOAT,         GL_RG32F},   // HdFormatFloat32Vec2,
+    {GL_RGB,  GL_FLOAT,         GL_RGB32F},  // HdFormatFloat32Vec3,
+    {GL_RGBA, GL_FLOAT,         GL_RGBA32F}, // HdFormatFloat32Vec4,
 
-    {GL_RGBA, GL_UNSIGNED_BYTE, GL_RGBA8},   // HdFormatR8G8B8A8UNorm,
-    {GL_RGBA, GL_BYTE,          GL_RGBA8},   // HdFormatR8G8B8A8SNorm,
-
-    {GL_RED,  GL_FLOAT,         GL_R32F},    // HdFormatR32Float,
-
-    {GL_RG,   GL_FLOAT,         GL_RG32F},   // HdFormatR32G32Float,
-
-    {GL_RGB,  GL_FLOAT,         GL_RGB32F},  // HdFormatR32G32B32Float,
-
-    {GL_RGBA,  GL_FLOAT,        GL_RGBA32F}, // HdFormatR32G32B32A32Float,
+    {GL_RED,  GL_INT,           GL_R32I},    // HdFormatInt32,
+    {GL_RG,   GL_INT,           GL_RG32I},   // HdFormatInt32Vec2,
+    {GL_RGB,  GL_INT,           GL_RGB32I},  // HdFormatInt32Vec3,
+    {GL_RGBA, GL_INT,           GL_RGBA32I}, // HdFormatInt32Vec4,
 };
 static_assert(TfArraySize(FORMAT_DESC) ==  HdFormatCount, "FORMAT_DESC to HdFormat enum mismatch");
 
@@ -203,11 +206,13 @@ HdStGLConversions::GetWrap(HdWrap wrap)
         case HdWrapClamp : return GL_CLAMP_TO_EDGE;
         case HdWrapRepeat : return GL_REPEAT;
         case HdWrapBlack : return GL_CLAMP_TO_BORDER;
-        case HdWrapUseMetaDict : return GL_REPEAT;
+        case HdWrapMirror : return GL_MIRRORED_REPEAT;
+        case HdWrapUseMetadata : return GL_CLAMP_TO_BORDER;
+        case HdWrapLegacy : return GL_REPEAT;
     }
 
     TF_CODING_ERROR("Unexpected HdWrap type %d", wrap);
-    return GL_REPEAT;
+    return GL_CLAMP_TO_BORDER;
 }
 
 void
@@ -292,6 +297,8 @@ TF_DEFINE_PRIVATE_TOKENS(
     (uvec2)
     (uvec3)
     (uvec4)
+
+    (packed_2_10_10_10)
 );
 
 TfToken
@@ -301,6 +308,11 @@ HdStGLConversions::GetGLSLTypename(HdType type)
     case HdTypeInvalid:
     default:
         return TfToken();
+
+    // Packed types (require special handling in codegen)...
+    case HdTypeInt32_2_10_10_10_REV:
+        return _glTypeNames->packed_2_10_10_10;
+
     case HdTypeBool:
         return _glTypeNames->_bool;
 
@@ -328,8 +340,6 @@ HdStGLConversions::GetGLSLTypename(HdType type)
         return _glTypeNames->vec2;
     case HdTypeFloatVec3:
         return _glTypeNames->vec3;
-    case HdTypeInt32_2_10_10_10_REV:
-        // Special case: treat as a vec4.
     case HdTypeFloatVec4:
         return _glTypeNames->vec4;
     case HdTypeFloatMat3:
@@ -350,6 +360,86 @@ HdStGLConversions::GetGLSLTypename(HdType type)
     case HdTypeDoubleMat4:
         return _glTypeNames->dmat4;
     };
+}
+
+// This isn't an exhaustive checker. It doesn't check for built-in/internal
+// variable names in GLSL, reserved keywords and such.
+static bool
+_IsIdentiferGLSLCompatible(std::string const& in)
+{
+    char const *p = in.c_str();
+
+    // Leading non-alpha characters are not allowed.
+    if (*p && !isalpha(*p)) {
+        return false;
+    }
+    // Characters must be in [_a-zA-Z0-9]
+    while (*p) {
+        if (isalnum(*p)) {
+            p++;
+        } else {
+            // _ is allowed, but __ isn't
+            if (*p == '_' && *(p-1) != '_') {
+                // checking the last character is safe here, because of the
+                // earlier check for leading non-alpha characters.
+                p++;
+            } else {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+TfToken
+HdStGLConversions::GetGLSLIdentifier(TfToken const& identifier)
+{
+    std::string const& in = identifier.GetString();
+    // Avoid allocating a string and constructing a token for the general case,
+    // wherein identifers conform to the naming rules.
+    if (_IsIdentiferGLSLCompatible(in)) {
+        return identifier;
+    }
+
+    // Name-mangling rules:
+    // https://www.khronos.org/registry/OpenGL/specs/gl/GLSLangSpec.4.60.pdf
+    // We choose to specifically disallow:
+    // 1) Leading non-alpha characters: GLSL allows leading underscores, but we
+    //    choose to reserve them for internal use.
+    // 2) Consecutive underscores: To avoid unintended GLSL behaviors.
+    std::string result;
+    result.reserve(in.size());
+    char const *p = in.c_str();
+
+    // Skip leading non-alpha characters.
+    while (*p && !isalpha(*p)) {
+        ++p;
+    }
+    for (; *p; ++p) {
+        bool isValidChar = isalnum(*p) || (*p == '_');
+        if (!isValidChar) {
+            // Replace characters not in [_a-zA-Z0-9] with _, unless the last
+            // character  added was also _.
+            // Calling back() is safe here because the first character is either
+            // alpha-numeric or null, as guaranteed by the while loop above.
+            if (result.back() != '_') {
+                result.push_back('_');
+            }
+        } else if (*p == '_' && result.back() == '_') {
+            // no-op to skip consecutive _
+        } else {
+            result.push_back(*p);
+        }
+    }
+
+    if (result.empty()) {
+        TF_CODING_ERROR("Invalid identifier '%s' could not be name-mangled",
+                        identifier.GetText());
+        return identifier;
+    }
+
+    return TfToken(result);
 }
 
 PXR_NAMESPACE_CLOSE_SCOPE

@@ -43,6 +43,7 @@
 #include "pxr/base/gf/vec4d.h"
 #include "pxr/base/gf/vec4f.h"
 #include "pxr/base/tf/debug.h"
+#include "pxr/base/tf/diagnostic.h"
 #include "pxr/base/tf/envSetting.h"
 #include "pxr/base/tf/getenv.h"
 #include "pxr/base/tf/instantiateSingleton.h"
@@ -67,11 +68,15 @@
 #include <maya/MDrawContext.h>
 #include <maya/MDrawData.h>
 #include <maya/MDrawRequest.h>
+#include <maya/MEventMessage.h>
 #include <maya/MFileIO.h>
 #include <maya/MFrameContext.h>
 #include <maya/MGlobal.h>
 #include <maya/MMatrix.h>
+#include <maya/MObject.h>
+#include <maya/MObjectHandle.h>
 #include <maya/MSceneMessage.h>
+#include <maya/MSelectInfo.h>
 #include <maya/MSelectionContext.h>
 #include <maya/MStatus.h>
 #include <maya/MString.h>
@@ -80,6 +85,7 @@
 #include <maya/MViewport2Renderer.h>
 
 #include <utility>
+#include <vector>
 
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -314,7 +320,7 @@ void
 UsdMayaGLBatchRenderer::Reset()
 {
     if (UsdMayaGLBatchRenderer::CurrentlyExists()) {
-        MGlobal::displayInfo("Resetting USD Batch Renderer");
+        TF_STATUS("Resetting USD Batch Renderer");
         UsdMayaGLBatchRenderer::DeleteInstance();
     }
 
@@ -383,11 +389,29 @@ UsdMayaGLBatchRenderer::_OnMayaEndRenderCallback(
     }
 }
 
+/* static */
+void
+UsdMayaGLBatchRenderer::_OnSoftSelectOptionsChangedCallback(void* clientData)
+{
+    auto batchRenderer = static_cast<UsdMayaGLBatchRenderer*>(clientData);
+    int commandResult;
+    // -sse == -softSelectEnabled
+    MGlobal::executeCommand("softSelect -q -sse", commandResult);
+    if (!commandResult) {
+        batchRenderer->_objectSoftSelectEnabled = false;
+        return;
+    }
+    // -ssf == -softSelectFalloff
+    MGlobal::executeCommand("softSelect -q -ssf", commandResult);
+    // fallbackMode 3 == object mode
+    batchRenderer->_objectSoftSelectEnabled = (commandResult == 3);
+}
+
 UsdMayaGLBatchRenderer::UsdMayaGLBatchRenderer() :
-        _lastRenderFrameStamp(0u),
-        _lastSelectionFrameStamp(0u),
-        _legacyRenderPending(false),
-        _legacySelectionPending(false)
+        _isSelectionPending(false),
+        _objectSoftSelectEnabled(false),
+        _softSelectOptionsCallbackId(0),
+        _selectResultsKey(GfMatrix4d(0.0), GfMatrix4d(0.0), false)
 {
     _viewport2UsesLegacySelection = TfGetenvBool("MAYA_VP2_USE_VP1_SELECTION",
                                                  false);
@@ -411,7 +435,8 @@ UsdMayaGLBatchRenderer::UsdMayaGLBatchRenderer() :
         TfStringPrintf("%s_%s",
                        _tokens->BatchRendererRootName.GetText(),
                        _tokens->LegacyViewport.GetText())));
-    _legacyViewportRprimCollection.SetReprName(HdTokens->refined);
+    _legacyViewportRprimCollection.SetReprSelector(
+        HdReprSelector(HdReprTokens->refined));
     _legacyViewportRprimCollection.SetRootPath(_legacyViewportPrefix);
     _legacyViewportRprimCollection.SetRenderTags(renderTags);
     _renderIndex->GetChangeTracker().AddCollection(
@@ -421,7 +446,8 @@ UsdMayaGLBatchRenderer::UsdMayaGLBatchRenderer() :
         TfStringPrintf("%s_%s",
                        _tokens->BatchRendererRootName.GetText(),
                        _tokens->Viewport2.GetText())));
-    _viewport2RprimCollection.SetReprName(HdTokens->refined);
+    _viewport2RprimCollection.SetReprSelector(
+        HdReprSelector(HdReprTokens->refined));
     _viewport2RprimCollection.SetRootPath(_viewport2Prefix);
     _viewport2RprimCollection.SetRenderTags(renderTags);
     _renderIndex->GetChangeTracker().AddCollection(
@@ -455,7 +481,7 @@ UsdMayaGLBatchRenderer::UsdMayaGLBatchRenderer() :
 
     MHWRender::MRenderer* renderer = MHWRender::MRenderer::theRenderer();
     if (!renderer) {
-        MGlobal::displayError("Viewport 2.0 renderer not initialized.");
+        TF_RUNTIME_ERROR("Viewport 2.0 renderer not initialized.");
     } else {
         // Note that we do not ever remove this notification handler. Maya
         // ensures that only one handler will be registered for a given name
@@ -466,6 +492,18 @@ UsdMayaGLBatchRenderer::UsdMayaGLBatchRenderer() :
             MHWRender::MPassContext::kEndRenderSemantic,
             nullptr);
     }
+
+    // We call _OnSoftSelectOptionsChangedCallback manually once, to initalize
+    // _objectSoftSelectEnabled; because of this, it's setup is slightly
+    // different - since we're calling from within the constructor, we don't
+    // use CurrentlyExists()/GetInstance(), but instead pass this as clientData;
+    // this also means we should clean up the callback in the destructor.
+    _OnSoftSelectOptionsChangedCallback(this);
+    _softSelectOptionsCallbackId =
+        MEventMessage::addEventCallback(
+                "softSelectOptionsChanged",
+                _OnSoftSelectOptionsChangedCallback,
+                this);
 }
 
 /* virtual */
@@ -474,6 +512,12 @@ UsdMayaGLBatchRenderer::~UsdMayaGLBatchRenderer()
     _selectionTracker.reset();
     _intersector.reset();
     _taskDelegate.reset();
+
+    // We remove the softSelectOptionsChanged callback because it's passed
+    // a this pointer, while others aren't.  We do that, instead of just
+    // using CurrentlyExists()/GetInstance() because we call it within the
+    // constructor
+    MMessage::removeCallback(_softSelectOptionsCallbackId);
 }
 
 const UsdMayaGLSoftSelectHelper&
@@ -564,7 +608,8 @@ UsdMayaGLBatchRenderer::Draw(const MDrawRequest& request, M3dView& view)
 
     const PxrMayaHdUserData* hdUserData =
         static_cast<const PxrMayaHdUserData*>(drawData.geometry());
-    if (!hdUserData) {
+    if (!hdUserData || (!hdUserData->drawShape && !hdUserData->boundingBox)) {
+        // Bail out as soon as possible if there's nothing to be drawn.
         return;
     }
 
@@ -589,14 +634,19 @@ UsdMayaGLBatchRenderer::Draw(const MDrawRequest& request, M3dView& view)
         glDisable(GL_FRAMEBUFFER_SRGB_EXT);
     }
 
-    if (hdUserData->drawShape && _UpdateLegacyRenderPending(false)) {
+    if (hdUserData->drawShape) {
         GfMatrix4d worldToViewMatrix;
         _GetWorldToViewMatrix(view, &worldToViewMatrix);
 
         GfVec4d viewport;
         _GetViewport(view, &viewport);
 
-        _RenderBatches(nullptr, worldToViewMatrix, projectionMatrix, viewport);
+        _RenderBatches(
+                /* vp2Context */ nullptr,
+                &view,
+                worldToViewMatrix,
+                projectionMatrix,
+                viewport);
     }
 
     // Clean up the user data.
@@ -610,15 +660,16 @@ UsdMayaGLBatchRenderer::Draw(
 {
     // Viewport 2.0 implementation.
 
-    const MHWRender::MRenderer* theRenderer =
-        MHWRender::MRenderer::theRenderer();
-    if (!theRenderer || !theRenderer->drawAPIIsOpenGL()) {
+    const PxrMayaHdUserData* hdUserData =
+        dynamic_cast<const PxrMayaHdUserData*>(userData);
+    if (!hdUserData || (!hdUserData->drawShape && !hdUserData->boundingBox)) {
+        // Bail out as soon as possible if there's nothing to be drawn.
         return;
     }
 
-    const PxrMayaHdUserData* hdUserData =
-        dynamic_cast<const PxrMayaHdUserData*>(userData);
-    if (!hdUserData) {
+    const MHWRender::MRenderer* theRenderer =
+        MHWRender::MRenderer::theRenderer();
+    if (!theRenderer || !theRenderer->drawAPIIsOpenGL()) {
         return;
     }
 
@@ -638,26 +689,42 @@ UsdMayaGLBatchRenderer::Draw(
                                         projectionMat);
     }
 
-    const MHWRender::MPassContext& passContext = context.getPassContext();
-    const MString& passId = passContext.passIdentifier();
+    if (hdUserData->drawShape) {
+        // Check whether this draw call is for a selection pass. If it is, we
+        // do *not* actually perform any drawing, but instead just mark a
+        // selection as pending so we know to re-compute selection when the
+        // next pick attempt is made.
+        // Note that Draw() calls for contexts with the "selectionPass"
+        // semantic are only made from draw overrides that do *not* implement
+        // user selection (i.e. those that do not override, or return false
+        // from, wantUserSelection()). The draw override for pxrHdImagingShape
+        // will likely be the only one of these where that is the case.
+        const MHWRender::MPassContext& passContext = context.getPassContext();
+        const MStringArray& passSemantics = passContext.passSemantics();
 
-    const auto inserted = _drawnMayaRenderPasses.insert(passId.asChar());
-    if (!inserted.second) {
-        // We've already done a Hydra draw for this Maya render pass, so we
-        // don't do another one.
-        return;
-    }
+        for (unsigned int i = 0u; i < passSemantics.length(); ++i) {
+            if (passSemantics[i] == MHWRender::MPassContext::kSelectionPassSemantic) {
+                _UpdateIsSelectionPending(true);
+                return;
+            }
+        }
 
-    const MUint64 frameStamp = context.getFrameStamp();
-
-    if (hdUserData->drawShape && _UpdateRenderFrameStamp(frameStamp)) {
         GfMatrix4d worldToViewMatrix;
         _GetWorldToViewMatrix(context, &worldToViewMatrix);
 
         GfVec4d viewport;
         _GetViewport(context, &viewport);
 
-        _RenderBatches(&context, worldToViewMatrix, projectionMatrix, viewport);
+        M3dView view;
+        const bool hasView =
+            px_vp20Utils::GetViewFromDrawContext(context, view);
+
+        _RenderBatches(
+                &context,
+                hasView ? &view : nullptr,
+                worldToViewMatrix,
+                projectionMatrix,
+                viewport);
     }
 }
 
@@ -680,12 +747,10 @@ void UsdMayaGLBatchRenderer::DrawCustomCollection(
     _Render(viewMatrix, projectionMatrix, viewport, items);
 }
 
-bool
+const HdxIntersector::HitSet*
 UsdMayaGLBatchRenderer::TestIntersection(
         const PxrMayaHdShapeAdapter* shapeAdapter,
-        M3dView& view,
-        const bool singleSelection,
-        GfVec3f* hitPoint)
+        MSelectInfo& selectInfo)
 {
     // Legacy viewport implementation.
     //
@@ -695,6 +760,8 @@ UsdMayaGLBatchRenderer::TestIntersection(
     // viewport-based selection method, we compute the selection against the
     // Viewport 2.0 shape adapter buckets rather than the legacy buckets, since
     // we want to compute selection against what's actually being rendered.
+
+    M3dView view = selectInfo.view();
 
     bool useViewport2Buckets = false;
     SdfPath shapeAdapterDelegateId = shapeAdapter->GetDelegateID();
@@ -724,74 +791,74 @@ UsdMayaGLBatchRenderer::TestIntersection(
     // setup, or with no shape adapters registered.
     if (!_renderIndex || bucketsMap.empty()) {
         _selectResults.clear();
-        return false;
+        return nullptr;
     }
 
-    GfMatrix4d viewMatrix;
-    GfMatrix4d projectionMatrix;
-    px_LegacyViewportUtils::GetViewSelectionMatrices(view,
-                                                     &viewMatrix,
-                                                     &projectionMatrix);
+    if (_UpdateIsSelectionPending(false)) {
+        if (TfDebug::IsEnabled(PXRUSDMAYAGL_BATCHED_SELECTION)) {
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+                "Computing batched selection for %s\n",
+                useViewport2Buckets ?
+                    "Viewport 2.0 using legacy viewport selection" :
+                    "legacy viewport");
+        }
 
-    // In the legacy viewport, selection occurs in the local space of SOME
-    // object, but we need the view matrix in world space to correctly consider
-    // all nodes. Applying localToWorldSpace removes the local space we happen
-    // to be in.
-    const GfMatrix4d localToWorldSpace(shapeAdapter->GetRootXform().GetInverse());
-    viewMatrix = localToWorldSpace * viewMatrix;
+        GfMatrix4d viewMatrix;
+        GfMatrix4d projectionMatrix;
+        px_LegacyViewportUtils::GetSelectionMatrices(
+            selectInfo,
+            viewMatrix,
+            projectionMatrix);
 
-    if (_UpdateLegacySelectionPending(false)) {
         _ComputeSelection(bucketsMap,
+                          &view,
                           viewMatrix,
                           projectionMatrix,
-                          singleSelection);
+                          selectInfo.singleSelection());
     }
 
-    const HdxIntersector::Hit* hitInfo =
+    const HdxIntersector::HitSet* const hitSet =
         TfMapLookupPtr(_selectResults, shapeAdapterDelegateId);
-    if (!hitInfo) {
+    if (!hitSet || hitSet->empty()) {
         if (_selectResults.empty()) {
             // If nothing was selected previously AND nothing is selected now,
             // Maya does not refresh the viewport. This would be fine, except
             // that we need to make sure we're ready to respond to another
             // selection. Maya may be calling select() on many shapes in
-            // series, so we cannot mark a legacy selection pending here or we
-            // will end up re-computing the selection on every call. Instead we
+            // series, so we cannot mark a selection pending here or we will
+            // end up re-computing the selection on every call. Instead we
             // simply schedule a refresh of the viewport, at the end of which
-            // the end render callback will be invoked and we'll mark a legacy
+            // the end render callback will be invoked and we'll mark a
             // selection pending then.
-            // This is not an issue with Viewport 2.0, since in that case we
-            // have the draw context's frame stamp to uniquely identify the
-            // selection operation.
             view.scheduleRefresh();
         }
 
-        return false;
+        return nullptr;
     }
 
-    if (hitPoint) {
-        *hitPoint = hitInfo->worldSpaceHitPoint;
+    TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+        "    FOUND %zu HIT(s)\n", hitSet->size());
+    if (TfDebug::IsEnabled(PXRUSDMAYAGL_BATCHED_SELECTION)) {
+        for (const HdxIntersector::Hit& hit : *hitSet) {
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+                "        HIT:\n"
+                "            delegateId: %s\n"
+                "            objectId  : %s\n"
+                "            ndcDepth  : %f\n",
+                hit.delegateId.GetText(),
+                hit.objectId.GetText(),
+                hit.ndcDepth);
+        }
     }
 
-    TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-        "FOUND HIT:\n"
-        "    delegateId: %s\n"
-        "    objectId  : %s\n"
-        "    ndcDepth  : %f\n",
-        hitInfo->delegateId.GetText(),
-        hitInfo->objectId.GetText(),
-        hitInfo->ndcDepth);
-
-    return true;
+    return hitSet;
 }
 
-bool
+const HdxIntersector::HitSet*
 UsdMayaGLBatchRenderer::TestIntersection(
         const PxrMayaHdShapeAdapter* shapeAdapter,
-        const MHWRender::MSelectionInfo& selectInfo,
-        const MHWRender::MDrawContext& context,
-        const bool singleSelection,
-        GfVec3f* hitPoint)
+        const MHWRender::MSelectionInfo& selectionInfo,
+        const MHWRender::MDrawContext& context)
 {
     // Viewport 2.0 implementation.
 
@@ -799,45 +866,85 @@ UsdMayaGLBatchRenderer::TestIntersection(
     // setup, or with no shape adapters registered.
     if (!_renderIndex || _shapeAdapterBuckets.empty()) {
         _selectResults.clear();
-        return false;
+        return nullptr;
     }
 
     GfMatrix4d viewMatrix;
     GfMatrix4d projectionMatrix;
-    if (!px_vp20Utils::GetSelectionMatrices(selectInfo,
+    if (!px_vp20Utils::GetSelectionMatrices(selectionInfo,
                                             context,
                                             viewMatrix,
                                             projectionMatrix)) {
-        return false;
+        return nullptr;
     }
 
-    if (_UpdateSelectionFrameStamp(context.getFrameStamp())) {
+    const bool wasSelectionPending = _UpdateIsSelectionPending(false);
+
+    const bool singleSelection = selectionInfo.singleSelection();
+
+    // Typically, we rely on the _isSelectionPending state to determine if we can
+    // re-use the previously computed select results.  However, there are cases
+    // (e.g. Pre-selection hilighting) where we call userSelect without a new
+    // draw call (which typically resets the _isSelectionPending).
+    //
+    // In these cases, we look at the projectionMatrix for the selection as well
+    // to see if the selection needs to be re-computed.
+    const _SelectResultsKey key = std::make_tuple(
+            viewMatrix, projectionMatrix, singleSelection);
+    const bool newSelKey = key != _selectResultsKey;
+
+    const bool needToRecomputeSelection = wasSelectionPending || newSelKey;
+    if (needToRecomputeSelection) {
+        if (TfDebug::IsEnabled(PXRUSDMAYAGL_BATCHED_SELECTION)) {
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+                "Computing batched selection for Viewport 2.0\n");
+
+            const MUint64 frameStamp = context.getFrameStamp();
+            const MHWRender::MPassContext& passContext = context.getPassContext();
+            const MString& passId = passContext.passIdentifier();
+            const MStringArray& passSemantics = passContext.passSemantics();
+
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+                "    frameStamp: %s, passIdentifier: %s, passSemantics: %s\n",
+                TfStringify<MUint64>(frameStamp).c_str(),
+                passId.asChar(),
+                TfStringify<MStringArray>(passSemantics).c_str());
+        }
+
+        M3dView view;
+        const bool hasView = px_vp20Utils::GetViewFromDrawContext(context,
+                                                                  view);
+
         _ComputeSelection(_shapeAdapterBuckets,
+                          hasView ? &view : nullptr,
                           viewMatrix,
                           projectionMatrix,
                           singleSelection);
+        _selectResultsKey = key;
     }
 
-    const HdxIntersector::Hit* hitInfo =
+    const HdxIntersector::HitSet* const hitSet =
         TfMapLookupPtr(_selectResults, shapeAdapter->GetDelegateID());
-    if (!hitInfo) {
-        return false;
+    if (!hitSet || hitSet->empty()) {
+        return nullptr;
     }
 
-    if (hitPoint) {
-        *hitPoint = hitInfo->worldSpaceHitPoint;
+    TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+        "    FOUND %zu HIT(s)\n", hitSet->size());
+    if (TfDebug::IsEnabled(PXRUSDMAYAGL_BATCHED_SELECTION)) {
+        for (const HdxIntersector::Hit& hit : *hitSet) {
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+                "        HIT:\n"
+                "            delegateId: %s\n"
+                "            objectId  : %s\n"
+                "            ndcDepth  : %f\n",
+                hit.delegateId.GetText(),
+                hit.objectId.GetText(),
+                hit.ndcDepth);
+        }
     }
 
-    TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-        "FOUND HIT:\n"
-        "    delegateId: %s\n"
-        "    objectId  : %s\n"
-        "    ndcDepth  : %f\n",
-        hitInfo->delegateId.GetText(),
-        hitInfo->objectId.GetText(),
-        hitInfo->ndcDepth);
-
-    return true;
+    return hitSet;
 }
 
 bool
@@ -845,7 +952,7 @@ UsdMayaGLBatchRenderer::TestIntersectionCustomCollection(
         const HdRprimCollection& collection,
         const GfMatrix4d& viewMatrix,
         const GfMatrix4d& projectionMatrix,
-        GfVec3d* hitPoint)
+        HdxIntersector::Result* outResult)
 {
     // Custom collection implementation.
     // Differs from viewport implementations in that it doesn't rely on
@@ -859,20 +966,47 @@ UsdMayaGLBatchRenderer::TestIntersectionCustomCollection(
     params.projectionMatrix = projectionMatrix;
     params.alphaThreshold = 0.1f;
 
-    HdxIntersector::HitSet hits;
-    if (_TestIntersection(collection, params, true, &hits)) {
-        if (hitPoint) {
-            *hitPoint = hits.begin()->worldSpaceHitPoint;
-        }
-        return true;
+    return _TestIntersection(collection, params, outResult);
+}
+
+int
+UsdMayaGLBatchRenderer::GetAbsoluteInstanceIndexForHit(
+        const HdxIntersector::Hit& hit) const
+{
+    int ret = -1;
+    if (auto delegate = _renderIndex->GetSceneDelegateForRprim(hit.objectId)) {
+        delegate->GetPathForInstanceIndex(
+            hit.objectId,
+            hit.instanceIndex,
+            &ret);
+    }
+    return ret;
+}
+
+/* static */
+const HdxIntersector::Hit*
+UsdMayaGLBatchRenderer::GetNearestHit(
+        const HdxIntersector::HitSet* const hitSet)
+{
+    if (!hitSet || hitSet->empty()) {
+        return nullptr;
     }
 
-    return false;
+    const HdxIntersector::Hit* minHit = &(*hitSet->begin());
+
+    for (const auto& hit : *hitSet) {
+        if (hit < *minHit) {
+            minHit = &hit;
+        }
+    }
+
+    return minHit;
 }
 
 HdRprimCollectionVector
 UsdMayaGLBatchRenderer::_GetIntersectionRprimCollections(
         _ShapeAdapterBucketsMap& bucketsMap,
+        const MSelectionList& isolatedObjects,
         const bool useDepthSelection) const
 {
     HdRprimCollectionVector rprimCollections;
@@ -889,7 +1023,7 @@ UsdMayaGLBatchRenderer::_GetIntersectionRprimCollections(
         _ShapeAdapterSet& shapeAdapters = iter.second.second;
 
         for (PxrMayaHdShapeAdapter* shapeAdapter : shapeAdapters) {
-            shapeAdapter->UpdateVisibility();
+            shapeAdapter->UpdateVisibility(isolatedObjects);
 
             isViewport2 = shapeAdapter->IsViewport2();
 
@@ -918,14 +1052,11 @@ UsdMayaGLBatchRenderer::_GetIntersectionRprimCollections(
 
 bool
 UsdMayaGLBatchRenderer::_TestIntersection(
-    const HdRprimCollection& rprimCollection,
-    HdxIntersector::Params queryParams,
-    const bool singleSelection,
-    HdxIntersector::HitSet* outHitSet)
+        const HdRprimCollection& rprimCollection,
+        HdxIntersector::Params queryParams,
+        HdxIntersector::Result* result)
 {
     queryParams.renderTags = rprimCollection.GetRenderTags();
-
-    HdxIntersector::Result result;
 
     glPushAttrib(GL_VIEWPORT_BIT |
                  GL_ENABLE_BIT |
@@ -937,34 +1068,27 @@ UsdMayaGLBatchRenderer::_TestIntersection(
     const bool r = _intersector->Query(queryParams,
                                        rprimCollection,
                                        &_hdEngine,
-                                       &result);
+                                       result);
     glPopAttrib();
-    if (!r) {
-        return false;
-    }
-
-    if (singleSelection) {
-        HdxIntersector::Hit hit;
-        if (!result.ResolveNearest(&hit)) {
-            return false;
-        }
-
-        outHitSet->insert(hit);
-    }
-    else if (!result.ResolveUnique(outHitSet)) {
-        return false;
-    }
-
-    return true;
+    return r;
 }
 
 void
 UsdMayaGLBatchRenderer::_ComputeSelection(
         _ShapeAdapterBucketsMap& bucketsMap,
+        const M3dView* view3d,
         const GfMatrix4d& viewMatrix,
         const GfMatrix4d& projectionMatrix,
         const bool singleSelection)
 {
+    // Figure out Maya's isolate for this viewport.
+    MSelectionList isolatedObjects;
+#if MAYA_API_VERSION >= 201700
+    if (view3d && view3d->viewIsFiltered()) {
+        view3d->filteredObjectList(isolatedObjects);
+    }
+#endif
+
     // If the enable depth selection env setting has not been turned on, then
     // we can optimize area/marquee selections by handling collections
     // similarly to a single selection, where we test intersections against the
@@ -973,10 +1097,11 @@ UsdMayaGLBatchRenderer::_ComputeSelection(
         (!singleSelection && TfGetEnvSetting(PXRMAYAHD_ENABLE_DEPTH_SELECTION));
 
     const HdRprimCollectionVector rprimCollections =
-        _GetIntersectionRprimCollections(bucketsMap, useDepthSelection);
+        _GetIntersectionRprimCollections(
+            bucketsMap, isolatedObjects, useDepthSelection);
 
-    TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-        "____________ SELECTION STAGE START ______________ "
+    TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+        "    ____________ SELECTION STAGE START ______________ "
         "(singleSelection = %s, %zu collection(s))\n",
         singleSelection ? "true" : "false",
         rprimCollections.size());
@@ -994,91 +1119,75 @@ UsdMayaGLBatchRenderer::_ComputeSelection(
     _selectResults.clear();
 
     for (const HdRprimCollection& rprimCollection : rprimCollections) {
-        TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-            "--- Intersection Testing with collection: %s\n",
+        TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+            "    --- Intersection Testing with collection: %s\n",
             rprimCollection.GetName().GetText());
 
+        HdxIntersector::Result result;
+        if (!_TestIntersection(rprimCollection, qparams, &result)) {
+            continue;
+        }
+
         HdxIntersector::HitSet hits;
-        if (!_TestIntersection(
-                rprimCollection, qparams, singleSelection, &hits)) {
+        if (singleSelection) {
+            HdxIntersector::Hit hit;
+            if (!result.ResolveNearestToCenter(&hit)) {
+                continue;
+            }
+
+            hits.insert(hit);
+        }
+        else if (!result.ResolveUnique(&hits)) {
             continue;
         }
 
         for (const HdxIntersector::Hit& hit : hits) {
-            auto itIfExists =
-                _selectResults.insert(
-                    std::make_pair(hit.delegateId, hit));
+            const auto itIfExists =
+                _selectResults.emplace(
+                    std::make_pair(hit.delegateId,
+                                   HdxIntersector::HitSet({hit})));
 
-            const bool &inserted = itIfExists.second;
-            if (inserted) {
-                continue;
+            const bool& inserted = itIfExists.second;
+            if (!inserted) {
+                _selectResults[hit.delegateId].insert(hit);
             }
-
-            HdxIntersector::Hit& existingHit = itIfExists.first->second;
-            if (hit.ndcDepth < existingHit.ndcDepth) {
-                existingHit = hit;
-            }
-        }
-    }
-
-    if (singleSelection && _selectResults.size() > 1u) {
-        TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-            "!!! multiple singleSel hits found: %zu\n",
-            _selectResults.size());
-
-        auto minIt = _selectResults.begin();
-        for (auto curIt = minIt; curIt != _selectResults.end(); ++curIt) {
-            const HdxIntersector::Hit& curHit = curIt->second;
-            const HdxIntersector::Hit& minHit = minIt->second;
-            if (curHit.ndcDepth < minHit.ndcDepth) {
-                minIt = curIt;
-            }
-        }
-
-        if (minIt != _selectResults.begin()) {
-            _selectResults.erase(_selectResults.begin(), minIt);
-        }
-        ++minIt;
-        if (minIt != _selectResults.end()) {
-            _selectResults.erase(minIt, _selectResults.end());
         }
     }
 
     // Populate the Hydra selection from the selection results.
-    HdxSelectionSharedPtr selection(new HdxSelection);
+    HdSelectionSharedPtr selection(new HdSelection);
 
-    const HdxSelectionHighlightMode selectionMode =
-        HdxSelectionHighlightModeSelect;
+    const HdSelection::HighlightMode selectionMode =
+        HdSelection::HighlightModeSelect;
 
-    for (const auto& selectPair : _selectResults) {
-        const SdfPath& path = selectPair.first;
-        const HdxIntersector::Hit& hit = selectPair.second;
+    for (const auto& delegateHits : _selectResults) {
+        const HdxIntersector::HitSet& hitSet = delegateHits.second;
 
-        TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-            "NEW HIT          : %s\n"
-            "    delegateId   : %s\n"
-            "    objectId     : %s\n"
-            "    instanceIndex: %d\n"
-            "    ndcDepth     : %f\n",
-            path.GetText(),
-            hit.delegateId.GetText(),
-            hit.objectId.GetText(),
-            hit.instanceIndex,
-            hit.ndcDepth);
+        for (const HdxIntersector::Hit& hit : hitSet) {
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+                "    NEW HIT\n"
+                "        delegateId   : %s\n"
+                "        objectId     : %s\n"
+                "        instanceIndex: %d\n"
+                "        ndcDepth     : %f\n",
+                hit.delegateId.GetText(),
+                hit.objectId.GetText(),
+                hit.instanceIndex,
+                hit.ndcDepth);
 
-        if (!hit.instancerId.IsEmpty()) {
-            VtIntArray instanceIndices;
-            instanceIndices.push_back(hit.instanceIndex);
-            selection->AddInstance(selectionMode, hit.objectId, instanceIndices);
-        } else {
-            selection->AddRprim(selectionMode, hit.objectId);
+            if (!hit.instancerId.IsEmpty()) {
+                const VtIntArray instanceIndices(1, hit.instanceIndex);
+                selection->AddInstance(selectionMode, hit.objectId, instanceIndices);
+            } else {
+                selection->AddRprim(selectionMode, hit.objectId);
+            }
         }
     }
 
     _selectionTracker->SetSelection(selection);
 
-    TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-        "^^^^^^^^^^^^ SELECTION STAGE FINISH ^^^^^^^^^^^^^\n");
+    TF_DEBUG(PXRUSDMAYAGL_BATCHED_SELECTION).Msg(
+        "    ^^^^^^^^^^^^ SELECTION STAGE FINISH ^^^^^^^^^^^^^\n");
 }
 
 void
@@ -1098,6 +1207,28 @@ UsdMayaGLBatchRenderer::_Render(
                  GL_POLYGON_BIT |
                  GL_DEPTH_BUFFER_BIT |
                  GL_VIEWPORT_BIT);
+
+    // XXX: When Maya is using OpenGL Core Profile as the rendering engine (in
+    // either compatibility or strict mode), batch renders like those done in
+    // the "Render View" window or through the ogsRender command do not
+    // properly track uniform buffer binding state. This was causing issues
+    // where the first batch render performed would look correct, but then all
+    // subsequent renders done in that Maya session would be completely black
+    // (no alpha), even if the frame contained only Maya-native geometry or if
+    // a new scene was created/opened.
+    //
+    // To avoid this problem, we need to save and restore Maya's bindings
+    // across Hydra calls. We try not to bog down performance by saving and
+    // restoring *all* GL_MAX_UNIFORM_BUFFER_BINDINGS possible bindings, so
+    // instead we only do just enough to avoid issues. Empirically, the
+    // problematic binding has been the material binding at index 4.
+    static constexpr size_t _UNIFORM_BINDINGS_TO_SAVE = 5u;
+    std::vector<GLint> uniformBufferBindings(_UNIFORM_BINDINGS_TO_SAVE, 0);
+    for (size_t i = 0u; i < uniformBufferBindings.size(); ++i) {
+        glGetIntegeri_v(GL_UNIFORM_BUFFER_BINDING,
+                        (GLuint)i,
+                        &uniformBufferBindings[i]);
+    }
 
     // hydra orients all geometry during topological processing so that
     // front faces have ccw winding. We disable culling because culling
@@ -1130,8 +1261,8 @@ UsdMayaGLBatchRenderer::_Render(
 
         const HdRprimCollectionVector& rprimCollections = iter.second;
 
-        TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-            "*** renderBucket, parameters hash: %zu, bucket size %zu\n",
+        TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+            "    *** renderBucket, parameters hash: %zu, bucket size %zu\n",
             paramsHash,
             rprimCollections.size());
 
@@ -1148,6 +1279,13 @@ UsdMayaGLBatchRenderer::_Render(
 
     glDisable(GL_FRAMEBUFFER_SRGB_EXT);
 
+    // XXX: Restore Maya's uniform buffer binding state. See above for details.
+    for (size_t i = 0u; i < uniformBufferBindings.size(); ++i) {
+        glBindBufferBase(GL_UNIFORM_BUFFER,
+                         (GLuint)i,
+                         uniformBufferBindings[i]);
+    }
+
     glPopAttrib(); // GL_LIGHTING_BIT | GL_ENABLE_BIT | GL_POLYGON_BIT |
                    // GL_DEPTH_BUFFER_BIT | GL_VIEWPORT_BIT
 }
@@ -1155,6 +1293,7 @@ UsdMayaGLBatchRenderer::_Render(
 void
 UsdMayaGLBatchRenderer::_RenderBatches(
         const MHWRender::MDrawContext* vp2Context,
+        const M3dView* view3d,
         const GfMatrix4d& worldToViewMatrix,
         const GfMatrix4d& projectionMatrix,
         const GfVec4d& viewport)
@@ -1167,8 +1306,35 @@ UsdMayaGLBatchRenderer::_RenderBatches(
         return;
     }
 
-    TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-        "____________ RENDER STAGE START ______________ (%zu buckets)\n",
+    if (TfDebug::IsEnabled(PXRUSDMAYAGL_BATCHED_DRAWING)) {
+        TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+            "Drawing batches for %s\n",
+            bool(vp2Context) ? "Viewport 2.0" : "legacy viewport");
+
+        if (vp2Context) {
+            const MUint64 frameStamp = vp2Context->getFrameStamp();
+            const MHWRender::MPassContext& passContext = vp2Context->getPassContext();
+            const MString& passId = passContext.passIdentifier();
+            const MStringArray& passSemantics = passContext.passSemantics();
+
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+                "    frameStamp: %s, passIdentifier: %s, passSemantics: %s\n",
+                TfStringify<MUint64>(frameStamp).c_str(),
+                passId.asChar(),
+                TfStringify<MStringArray>(passSemantics).c_str());
+        }
+    }
+
+    // Figure out Maya's isolate for this viewport.
+    MSelectionList isolatedObjects;
+#if MAYA_API_VERSION >= 201700
+    if (view3d && view3d->viewIsFiltered()) {
+        view3d->filteredObjectList(isolatedObjects);
+    }
+#endif
+
+    TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+        "    ____________ RENDER STAGE START ______________ (%zu buckets)\n",
         bucketsMap.size());
 
     // A new display refresh signifies that the cached selection data is no
@@ -1180,6 +1346,7 @@ UsdMayaGLBatchRenderer::_RenderBatches(
     // re-populate it.
     _softSelectHelper.Reset();
 
+    bool itemsVisible = false;
     std::vector<_RenderItem> items;
     for (const auto& iter : bucketsMap) {
         const PxrMayaHdRenderParams& params = iter.second.first;
@@ -1187,12 +1354,20 @@ UsdMayaGLBatchRenderer::_RenderBatches(
 
         HdRprimCollectionVector rprimCollections;
         for (PxrMayaHdShapeAdapter* shapeAdapter : shapeAdapters) {
-            shapeAdapter->UpdateVisibility();
+            shapeAdapter->UpdateVisibility(isolatedObjects);
+            itemsVisible |= shapeAdapter->IsVisible();
 
             rprimCollections.push_back(shapeAdapter->GetRprimCollection());
         }
 
         items.push_back(std::make_pair(params, std::move(rprimCollections)));
+    }
+
+    if (!itemsVisible) {
+        TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+            "    *** No objects visible.\n"
+            "    ^^^^^^^^^^^^ RENDER STAGE FINISH ^^^^^^^^^^^^^\n");
+        return;
     }
 
     // Update lighting depending on VP2/Legacy.
@@ -1239,71 +1414,40 @@ UsdMayaGLBatchRenderer::_RenderBatches(
         _MayaRenderDidEnd(nullptr);
     }
 
-    TF_DEBUG(PXRUSDMAYAGL_QUEUE_INFO).Msg(
-        "^^^^^^^^^^^^ RENDER STAGE FINISH ^^^^^^^^^^^^^\n");
+    TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+        "    ^^^^^^^^^^^^ RENDER STAGE FINISH ^^^^^^^^^^^^^\n");
 }
 
 bool
-UsdMayaGLBatchRenderer::_UpdateRenderFrameStamp(const MUint64 frameStamp)
+UsdMayaGLBatchRenderer::_UpdateIsSelectionPending(const bool isPending)
 {
-    if (_lastRenderFrameStamp == frameStamp) {
+    if (_isSelectionPending == isPending) {
         return false;
     }
 
-    _lastRenderFrameStamp = frameStamp;
+    _isSelectionPending = isPending;
 
     return true;
 }
 
-bool
-UsdMayaGLBatchRenderer::_UpdateSelectionFrameStamp(const MUint64 frameStamp)
+void
+UsdMayaGLBatchRenderer::StartBatchingFrameDiagnostics()
 {
-    if (_lastSelectionFrameStamp == frameStamp) {
-        return false;
+    if (!_sharedDiagBatchCtx) {
+        _sharedDiagBatchCtx.reset(new UsdMayaDiagnosticBatchContext());
     }
-
-    _lastSelectionFrameStamp = frameStamp;
-
-    return true;
-}
-
-bool
-UsdMayaGLBatchRenderer::_UpdateLegacyRenderPending(const bool isPending)
-{
-    if (_legacyRenderPending == isPending) {
-        return false;
-    }
-
-    _legacyRenderPending = isPending;
-
-    return true;
-}
-
-bool
-UsdMayaGLBatchRenderer::_UpdateLegacySelectionPending(const bool isPending)
-{
-    if (_legacySelectionPending == isPending) {
-        return false;
-    }
-
-    _legacySelectionPending = isPending;
-
-    return true;
 }
 
 void
 UsdMayaGLBatchRenderer::_MayaRenderDidEnd(
         const MHWRender::MDrawContext* /* context */)
 {
-    // Note that we mark a legacy selection as pending regardless of which
-    // viewport renderer is active. This is to ensure that selection works
-    // correctly in case the MAYA_VP2_USE_VP1_SELECTION environment variable is
-    // being used, in which case even though Viewport 2.0 (MPxDrawOverrides)
-    // will be doing the drawing, the legacy viewport (MPxSurfaceShapeUIs) will
-    // be handling selection.
-    _UpdateLegacySelectionPending(true);
+    // Completing a viewport render invalidates any previous selection
+    // computation we may have done, so mark a new one as pending.
+    _UpdateIsSelectionPending(true);
 
-    _drawnMayaRenderPasses.clear();
+    // End any diagnostics batching.
+    _sharedDiagBatchCtx.reset();
 }
 
 

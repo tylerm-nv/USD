@@ -71,21 +71,22 @@ HdStBasisCurves::~HdStBasisCurves()
 }
 
 void
-HdStBasisCurves::Sync(HdSceneDelegate* delegate,
-                      HdRenderParam*   renderParam,
-                      HdDirtyBits*     dirtyBits,
-                      TfToken const&   reprName,
-                      bool             forcedRepr)
+HdStBasisCurves::Sync(HdSceneDelegate      *delegate,
+                      HdRenderParam        *renderParam,
+                      HdDirtyBits          *dirtyBits,
+                      HdReprSelector const &reprSelector,
+                      bool                  forcedRepr)
 {
     TF_UNUSED(renderParam);
 
-    HdRprim::_Sync(delegate,
-                  reprName,
-                  forcedRepr,
-                  dirtyBits);
+    if (*dirtyBits & HdChangeTracker::DirtyMaterialId) {
+        _SetMaterialId(delegate->GetRenderIndex().GetChangeTracker(),
+                       delegate->GetMaterialId(GetId()));
+    }
 
-    TfToken calcReprName = _GetReprName(reprName, forcedRepr);
-    _UpdateRepr(delegate, calcReprName, dirtyBits);
+    HdReprSelector calcReprSelector = 
+            _GetReprSelector(reprSelector, forcedRepr);
+    _UpdateRepr(delegate, calcReprSelector, dirtyBits);
 
     *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
 }
@@ -105,7 +106,10 @@ HdStBasisCurves::_UpdateDrawItem(HdSceneDelegate *sceneDelegate,
     _UpdateVisibility(sceneDelegate, dirtyBits);
 
     /* CONSTANT PRIMVARS, TRANSFORM AND EXTENT */
-    _PopulateConstantPrimvars(sceneDelegate, drawItem, dirtyBits);
+    HdPrimvarDescriptorVector constantPrimvars =
+        GetPrimvarDescriptors(sceneDelegate, HdInterpolationConstant);
+    _PopulateConstantPrimvars(sceneDelegate, drawItem, dirtyBits,
+            constantPrimvars);
 
     /* INSTANCE PRIMVARS */
     if (!GetInstancerId().IsEmpty()) {
@@ -121,7 +125,7 @@ HdStBasisCurves::_UpdateDrawItem(HdSceneDelegate *sceneDelegate,
     // XXX: _PopulateTopology should be split into two phase
     //      for scene dirtybits and for repr dirtybits.
     if (*dirtyBits & (HdChangeTracker::DirtyTopology
-                    | HdChangeTracker::DirtyRefineLevel
+                    | HdChangeTracker::DirtyDisplayStyle
                     | DirtyIndices
                     | DirtyHullIndices)) {
         _PopulateTopology(sceneDelegate, drawItem, dirtyBits, desc);
@@ -241,7 +245,7 @@ HdStBasisCurves::_UpdateDrawItemGeometricShader(
     drawItem->SetGeometricShader(geomShader);
 
     // The batches need to be validated and rebuilt if necessary.
-    renderIndex.GetChangeTracker().MarkShaderBindingsDirty();
+    renderIndex.GetChangeTracker().MarkBatchesDirty();
 }
 
 HdDirtyBits
@@ -257,17 +261,17 @@ HdStBasisCurves::_PropagateDirtyBits(HdDirtyBits bits) const
 }
 
 void
-HdStBasisCurves::_InitRepr(TfToken const &reprName,
+HdStBasisCurves::_InitRepr(HdReprSelector const &reprToken,
                         HdDirtyBits *dirtyBits)
 {
     _ReprVector::iterator it = std::find_if(_reprs.begin(), _reprs.end(),
-                                            _ReprComparator(reprName));
+                                            _ReprComparator(reprToken));
     bool isNew = it == _reprs.end();
     if (isNew) {
-        _BasisCurvesReprConfig::DescArray descs = _GetReprDesc(reprName);
+        _BasisCurvesReprConfig::DescArray descs = _GetReprDesc(reprToken);
 
         // add new repr
-        _reprs.emplace_back(reprName, boost::make_shared<HdRepr>());
+        _reprs.emplace_back(reprToken, boost::make_shared<HdRepr>());
         HdReprSharedPtr &repr = _reprs.back().second;
 
         *dirtyBits |= HdChangeTracker::NewRepr;
@@ -302,13 +306,13 @@ HdStBasisCurves::_InitRepr(TfToken const &reprName,
 
 void
 HdStBasisCurves::_UpdateRepr(HdSceneDelegate *sceneDelegate,
-                             TfToken const &reprName,
+                             HdReprSelector const &reprToken,
                              HdDirtyBits *dirtyBits)
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
 
-    HdReprSharedPtr const &curRepr = _GetRepr(reprName);
+    HdReprSharedPtr const &curRepr = _GetRepr(reprToken);
     if (!curRepr) {
         return;
     }
@@ -320,7 +324,7 @@ HdStBasisCurves::_UpdateRepr(HdSceneDelegate *sceneDelegate,
 
     if (TfDebug::IsEnabled(HD_RPRIM_UPDATED)) {
         std::cout << "HdStBasisCurves::_UpdateRepr " << GetId()
-                  << " Repr = " << reprName << "\n";
+                  << " Repr = " << reprToken << "\n";
         HdChangeTracker::DumpDirtyBits(*dirtyBits);
     }
 
@@ -332,13 +336,14 @@ HdStBasisCurves::_UpdateRepr(HdSceneDelegate *sceneDelegate,
     }
 
     bool needsSetGeometricShader = false;
-    if (*dirtyBits & (HdChangeTracker::DirtyRefineLevel |
+    if (*dirtyBits & (HdChangeTracker::DirtyDisplayStyle |
                       HdChangeTracker::DirtyMaterialId |
                       HdChangeTracker::NewRepr)) {
         needsSetGeometricShader = true;
     }
 
-    _BasisCurvesReprConfig::DescArray const &reprDescs = _GetReprDesc(reprName);
+    _BasisCurvesReprConfig::DescArray const &reprDescs = 
+        _GetReprDesc(reprToken);
 
     int drawItemIndex = 0;
     for (size_t descIdx = 0; descIdx < reprDescs.size(); ++descIdx) {
@@ -409,13 +414,13 @@ HdStBasisCurves::_PopulateTopology(HdSceneDelegate *sceneDelegate,
         boost::static_pointer_cast<HdStResourceRegistry>(
         sceneDelegate->GetRenderIndex().GetResourceRegistry());
 
-    if (*dirtyBits & HdChangeTracker::DirtyRefineLevel) {
-        _refineLevel = GetRefineLevel(sceneDelegate);
+    if (*dirtyBits & HdChangeTracker::DirtyDisplayStyle) {
+        _refineLevel = GetDisplayStyle(sceneDelegate).refineLevel;
     }
 
     // XXX: is it safe to get topology even if it's not dirty?
     if (HdChangeTracker::IsTopologyDirty(*dirtyBits, id) ||
-        HdChangeTracker::IsRefineLevelDirty(*dirtyBits, id)) {
+        HdChangeTracker::IsDisplayStyleDirty(*dirtyBits, id)) {
 
 
         const HdBasisCurvesTopology &srcTopology =
@@ -487,9 +492,7 @@ HdStBasisCurves::_PopulateTopology(HdSceneDelegate *sceneDelegate,
             sources.push_back(_topology->GetIndexBuilderComputation(
                 !_SupportsRefinement(_refineLevel)));
 
-            TF_FOR_ALL(it, sources) {
-                (*it)->AddBufferSpecs(&bufferSpecs);
-            }
+            HdBufferSpec::GetBufferSpecs(sources, &bufferSpecs);
 
             // allocate new range
             HdBufferArrayRangeSharedPtr range
@@ -627,9 +630,9 @@ HdStBasisCurves::_PopulateVertexPrimvars(HdSceneDelegate *sceneDelegate,
 
         // new buffer specs
         HdBufferSpecVector bufferSpecs;
-        HdBufferSpec::AddBufferSpecs(&bufferSpecs, sources);
-        HdBufferSpec::AddBufferSpecs(&bufferSpecs, reserveOnlySources);
-        HdBufferSpec::AddBufferSpecs(&bufferSpecs, computations);
+        HdBufferSpec::GetBufferSpecs(sources, &bufferSpecs);
+        HdBufferSpec::GetBufferSpecs(reserveOnlySources, &bufferSpecs);
+        HdBufferSpec::GetBufferSpecs(computations, &bufferSpecs);
 
         HdBufferArrayRangeSharedPtr range =
             resourceRegistry->AllocateNonUniformBufferArrayRange(
@@ -694,9 +697,8 @@ HdStBasisCurves::_PopulateElementPrimvars(HdSceneDelegate *sceneDelegate,
     if (!drawItem->GetElementPrimvarRange() ||
         !drawItem->GetElementPrimvarRange()->IsValid()) {
         HdBufferSpecVector bufferSpecs;
-        TF_FOR_ALL(it, sources) {
-            (*it)->AddBufferSpecs(&bufferSpecs);
-        }
+        HdBufferSpec::GetBufferSpecs(sources, &bufferSpecs);
+
         HdBufferArrayRangeSharedPtr range =
             resourceRegistry->AllocateNonUniformBufferArrayRange(
                 HdTokens->primvar, bufferSpecs);
@@ -765,7 +767,7 @@ HdStBasisCurves::_SupportsUserNormals(HdStDrawItem* drawItem){
 }
 
 HdDirtyBits
-HdStBasisCurves::_GetInitialDirtyBits() const
+HdStBasisCurves::GetInitialDirtyBitsMask() const
 {
     HdDirtyBits mask = HdChangeTracker::Clean
         | HdChangeTracker::InitRepr
@@ -775,7 +777,7 @@ HdStBasisCurves::_GetInitialDirtyBits() const
         | HdChangeTracker::DirtyPoints
         | HdChangeTracker::DirtyPrimID
         | HdChangeTracker::DirtyPrimvar
-        | HdChangeTracker::DirtyRefineLevel
+        | HdChangeTracker::DirtyDisplayStyle
         | HdChangeTracker::DirtyRepr
         | HdChangeTracker::DirtyMaterialId
         | HdChangeTracker::DirtyTopology

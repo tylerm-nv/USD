@@ -11,14 +11,13 @@ pxr_library(usdImaging
         vt
         work
         hd
-        hdx
         pxOsd
         sdf
         usd
         usdGeom
         usdLux
-        usdRi
         usdShade
+        usdVol
         ar
         ${Boost_PYTHON_LIBRARY}
         ${PYTHON_LIBRARY}
@@ -31,20 +30,24 @@ pxr_library(usdImaging
 
     PUBLIC_CLASSES
         adapterRegistry
+        collectionCache
         debugCodes
         delegate
         indexProxy
         inheritedCache
         instancerContext
         tokens
-        unitTestHelper
         valueCache
         basisCurvesAdapter
         capsuleAdapter
         coneAdapter
         cubeAdapter
         cylinderAdapter
+        cylinderLightAdapter
+        diskLightAdapter
+        distantLightAdapter
         domeLightAdapter
+        fieldAdapter
         gprimAdapter
         instanceAdapter
         lightAdapter
@@ -57,9 +60,11 @@ pxr_library(usdImaging
         rectLightAdapter
         sphereAdapter
         sphereLightAdapter
+        volumeAdapter
 
     PUBLIC_HEADERS
         api.h
+        unitTestHelper.h
         version.h
 
     RESOURCE_FILES

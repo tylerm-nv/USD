@@ -32,6 +32,11 @@ def _findExe(name):
     cmd = find_executable(name)
     if cmd:
         return cmd
+    else:
+        cmd = find_executable(name, path=os.path.abspath(os.path.dirname(sys.argv[0])))
+        if cmd:
+            return cmd
+    
     if isWindows:
         # find_executable under Windows only returns *.EXE files
         # so we need to traverse PATH.
@@ -165,10 +170,28 @@ def main():
         sys.exit("Error: Cannot set read only(-n) and force " 
                  " write(-f) together.")
 
-    if not os.path.isfile(usdFileName): 
-        sys.exit("Error: USD file doesn't exist")
+    from pxr import Ar
+    resolvedPath = Ar.GetResolver().Resolve(usdFileName)
+    if not resolvedPath:
+        sys.exit("Error: Cannot find file %s" % usdFileName)
 
-    if not (os.access(usdFileName, os.W_OK) or readOnly or forceWrite):
+    # Layers in packages cannot be written using the Sdf API.
+    from pxr import Ar, Sdf
+    (package, packaged) = Ar.SplitPackageRelativePathOuter(resolvedPath)
+
+    extension = Sdf.FileFormat.GetFileExtension(package)
+    fileFormat = Sdf.FileFormat.FindByExtension(extension)
+    if not fileFormat:
+        sys.exit("Error: Unknown file format")
+        
+    if fileFormat.IsPackage():
+        print("Warning: Edits cannot be saved to layers in %s files. "
+              "Starting in no-effect mode." % extension)
+        readOnly = True
+        forceWrite = False
+
+    writable = os.path.isfile(usdFileName) and os.access(usdFileName, os.W_OK)
+    if not (writable or readOnly or forceWrite):
         sys.exit("Error: File isn't writable, and "
                  "readOnly(-n)/forceWrite(-f) haven't been marked.")
 

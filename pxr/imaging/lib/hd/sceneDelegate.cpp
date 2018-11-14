@@ -75,7 +75,7 @@ HdSceneDelegate::IsEnabled(TfToken const& option) const
 
 /*virtual*/
 TfToken
-HdSceneDelegate::GetRenderTag(SdfPath const& id, TfToken const& reprName)
+HdSceneDelegate::GetRenderTag(SdfPath const& id)
 {
     return HdTokens->geometry;
 }
@@ -163,10 +163,10 @@ HdSceneDelegate::GetShadingStyle(SdfPath const &id)
 }
 
 /*virtual*/
-int
-HdSceneDelegate::GetRefineLevel(SdfPath const& id)
+HdDisplayStyle
+HdSceneDelegate::GetDisplayStyle(SdfPath const& id)
 {
-    return 0;
+    return HdDisplayStyle();
 }
 
 /*virtual*/
@@ -192,10 +192,17 @@ HdSceneDelegate::SamplePrimvar(SdfPath const& id, TfToken const& key,
 }
 
 /*virtual*/
-TfToken
-HdSceneDelegate::GetReprName(SdfPath const &id)
+HdReprSelector
+HdSceneDelegate::GetReprSelector(SdfPath const &id)
 {
-    return TfToken();
+    return HdReprSelector();
+}
+
+/*virtual*/
+VtArray<TfToken>
+HdSceneDelegate::GetCategories(SdfPath const& id)
+{
+    return VtArray<TfToken>();
 }
 
 // -----------------------------------------------------------------------//
@@ -252,6 +259,13 @@ HdSceneDelegate::GetPathForInstanceIndex(const SdfPath &protoPrimPath,
 // -----------------------------------------------------------------------//
 
 /*virtual*/
+SdfPath 
+HdSceneDelegate::GetMaterialId(SdfPath const &rprimId)
+{
+    return SdfPath();
+}
+
+/*virtual*/
 std::string
 HdSceneDelegate::GetSurfaceShaderSource(SdfPath const &materialId)
 {
@@ -294,6 +308,13 @@ HdSceneDelegate::GetMaterialPrimvars(SdfPath const &materialId)
     return TfTokenVector();
 }
 
+/* virtual */
+VtDictionary
+HdSceneDelegate::GetMaterialMetadata(SdfPath const &materialId)
+{
+    return VtDictionary();
+}
+
 
 // -----------------------------------------------------------------------//
 /// \name Texture Aspects
@@ -311,6 +332,17 @@ HdTextureResourceSharedPtr
 HdSceneDelegate::GetTextureResource(SdfPath const& textureId)
 {
     return HdTextureResourceSharedPtr();
+}
+
+// -----------------------------------------------------------------------//
+/// \name Renderbuffer Aspects
+// -----------------------------------------------------------------------//
+
+/*virtual*/
+HdRenderBufferDescriptor
+HdSceneDelegate::GetRenderBufferDescriptor(SdfPath const& id)
+{
+    return HdRenderBufferDescriptor();
 }
 
 // -----------------------------------------------------------------------//
@@ -334,6 +366,17 @@ std::vector<GfVec4d>
 HdSceneDelegate::GetClipPlanes(SdfPath const& cameraId)
 {
     return std::vector<GfVec4d>();
+}
+
+// -----------------------------------------------------------------------//
+/// \name Volume Aspects
+// -----------------------------------------------------------------------//
+
+/*virtual*/
+HdVolumeFieldDescriptorVector
+HdSceneDelegate::GetVolumeFieldDescriptors(SdfPath const &volumeId)
+{
+    return HdVolumeFieldDescriptorVector();
 }
 
 // -----------------------------------------------------------------------//

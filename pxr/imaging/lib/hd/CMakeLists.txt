@@ -20,6 +20,7 @@ pxr_library(hd
         ${TBB_INCLUDE_DIRS}
 
     PUBLIC_CLASSES
+        aov
         basisCurves
         basisCurvesTopology
         binding
@@ -39,11 +40,14 @@ pxr_library(hd
         drawingCoord
         drawItem
         engine
+        enums
         extCompCpuComputation
         extCompInputSource
         extCompPrimvarBufferSource
         extComputation
         extComputationContext
+        field
+        flatNormals
         geomSubset
         instancer
         instanceRegistry
@@ -58,10 +62,12 @@ pxr_library(hd
         points
         primGather
         primTypeIndex
+        renderBuffer
         renderDelegate
         renderIndex
         renderPass
         renderPassState
+        renderThread
         repr
         resource
         resourceRegistry
@@ -70,6 +76,7 @@ pxr_library(hd
         rprimSharedData
         sceneDelegate
         sceneExtCompInputSource
+        selection
         smoothNormals
         sortedIds                   
         sprim
@@ -86,11 +93,11 @@ pxr_library(hd
         unitTestNullRenderDelegate
         unitTestNullRenderPass
         vertexAdjacency
+	volume
         vtBufferSource
 
     PUBLIC_HEADERS
         api.h
-        enums.h
         version.h
 
     PRIVATE_CLASSES

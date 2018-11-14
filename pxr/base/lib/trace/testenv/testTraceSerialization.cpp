@@ -27,6 +27,8 @@
 #include "pxr/base/trace/serialization.h"
 
 #include <fstream>
+#include <iostream>
+#include <sstream>
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
@@ -50,7 +52,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         counterEvent.SetTimeStamp(2*ms + timeStampOffset);
-        events->EmplaceBack(counterEvent);
+        events->EmplaceBack(std::move(counterEvent));
     }
 
     events->EmplaceBack(
@@ -60,7 +62,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
         TestCategory
     );
     events->EmplaceBack(
-        TraceEvent::Begin,
+        TraceEvent::End,
         events->CacheKey("Inner Scope 2"),
         4*ms + timeStampOffset,
         TestCategory
@@ -75,7 +77,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         dataEvent.SetTimeStamp(5*ms+timeStampOffset);
-        events->EmplaceBack(dataEvent);
+        events->EmplaceBack(std::move(dataEvent));
     }
     {
         int data = -2;
@@ -86,7 +88,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         dataEvent.SetTimeStamp(6*ms+timeStampOffset);
-        events->EmplaceBack(dataEvent);
+        events->EmplaceBack(std::move(dataEvent));
     }
     {
         uint64_t data = ~0;
@@ -97,7 +99,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         dataEvent.SetTimeStamp(7*ms+timeStampOffset);
-        events->EmplaceBack(dataEvent);
+        events->EmplaceBack(std::move(dataEvent));
     }
     {
         double data = 1.5;
@@ -108,7 +110,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         dataEvent.SetTimeStamp(8*ms+timeStampOffset);
-        events->EmplaceBack(dataEvent);
+        events->EmplaceBack(std::move(dataEvent));
     }
     {
         std::string data = "String Data";
@@ -119,7 +121,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         dataEvent.SetTimeStamp(9*ms+timeStampOffset);
-        events->EmplaceBack(dataEvent);
+        events->EmplaceBack(std::move(dataEvent));
     }
 
     static constexpr TraceStaticKeyData keyInner("InnerScope");
@@ -137,7 +139,7 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         counterEvent.SetTimeStamp(11*ms + timeStampOffset);
-        events->EmplaceBack(counterEvent);
+        events->EmplaceBack(std::move(counterEvent));
     }
     {
         TraceEvent counterEvent(
@@ -147,24 +149,83 @@ CreateTestEvents(TraceEvent::TimeStamp timeStampOffset)
             TraceCategory::Default
         );
         counterEvent.SetTimeStamp(12*ms + timeStampOffset);
-        events->EmplaceBack(counterEvent);
+        events->EmplaceBack(std::move(counterEvent));
     }
     static constexpr TraceStaticKeyData keyOuter("OuterScope");
     events->EmplaceBack(TraceEvent::Timespan, keyOuter,
         0 + timeStampOffset,
         13*ms + timeStampOffset,
         TraceCategory::Default);
+
+    events->EmplaceBack(
+        TraceEvent::Marker,
+        events->CacheKey("Test Marker 1"),
+        4*ms + timeStampOffset,
+        TraceCategory::Default
+    );
+
+    events->EmplaceBack(
+        TraceEvent::Marker,
+        events->CacheKey("Test Marker 2"),
+        5*ms + timeStampOffset,
+        TraceCategory::Default
+    );
     return events;
 }
 
-static TraceCollection
-CreateTestCollection()
+static std::unique_ptr<TraceCollection>
+CreateTestCollection(float startTimeSec=0.0)
 {
-    TraceCollection collection;
-    collection.AddToCollection(TraceThreadId("MainThread"), CreateTestEvents(0));
-    collection.AddToCollection(TraceThreadId("Thread 1"), 
-        CreateTestEvents(ArchSecondsToTicks(0.001)));
+    std::unique_ptr<TraceCollection> collection(new TraceCollection);
+    collection->AddToCollection(
+        TraceThreadId("MainThread"),
+        CreateTestEvents(ArchSecondsToTicks(startTimeSec)));
+    collection->AddToCollection(TraceThreadId("Thread 1"), 
+        CreateTestEvents(ArchSecondsToTicks(startTimeSec + 0.001)));
     return collection;
+}
+
+static void
+_TestSerialization(
+    const std::vector<std::shared_ptr<TraceCollection>>& testCols,
+    std::string fileName)
+{
+    std::stringstream test;
+    bool written = false;
+    if (testCols.size() == 1 ) {
+        written = TraceSerialization::Write(test, testCols[0]);
+    } else {
+        written = TraceSerialization::Write(test, testCols);
+    }
+    TF_AXIOM(written);
+
+    // Write out the file
+    {
+        std::ofstream ostream(fileName);
+        ostream << test.str();
+    }
+    // Read a collection from the file just written
+    std::shared_ptr<TraceCollection> collection;
+    {
+        std::ifstream istream(fileName);
+        collection = TraceSerialization::Read(istream);
+        TF_AXIOM(collection);
+    }
+
+    std::string stringRepr = test.str();
+
+    std::stringstream test2;
+    bool written2 = TraceSerialization::Write(test2, collection);
+    TF_AXIOM(written2);
+
+    std::string stringRepr2 = test2.str();
+
+    // This comparison might be too strict.
+    if (stringRepr != stringRepr2) {
+        std::cout << "Written:\n" << stringRepr << "\n";
+        std::cout << "Reconstruction:\n" << stringRepr2 << "\n";
+    }
+    TF_AXIOM(stringRepr == stringRepr2);
 }
 
 int
@@ -173,32 +234,14 @@ main(int argc, char *argv[])
     TraceCategory::GetInstance().RegisterCategory(
         TestCategory, "Test Category");
 
-    TraceCollection testCol = CreateTestCollection();
-    std::stringstream test;
-    bool written = TraceSerialization::Write(test, testCol);
-    TF_AXIOM(written);
+    std::vector<std::shared_ptr<TraceCollection>> collections;
+    std::cout << "Testing single collection\n";
+    collections.emplace_back(CreateTestCollection());
+    _TestSerialization(collections, "trace.json");
+    std::cout << " PASSED\n";
 
-    // Write out the file
-    {
-        std::ofstream ostream("trace.json");
-        ostream << test.str();
-    }
-    // Read a collection from the file just written
-    std::unique_ptr<TraceCollection> collection;
-    {
-        std::ifstream istream("trace.json");
-        collection = TraceSerialization::Read(istream);
-        TF_AXIOM(collection);
-    }
-
-    std::string stringRepr = test.str();
-
-    std::stringstream test2;
-    bool written2 = TraceSerialization::Write(test2, *collection);
-    TF_AXIOM(written2);
-
-    std::string stringRepr2 = test2.str();
-
-    // This comparison might be too strict.
-    TF_AXIOM(stringRepr == stringRepr2);
+    std::cout << "Testing multiple collections\n";
+    collections.emplace_back(CreateTestCollection(20.0/1000.0));
+    _TestSerialization(collections, "trace2.json");
+    std::cout << " PASSED\n";
 }

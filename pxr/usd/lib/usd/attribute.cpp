@@ -364,6 +364,10 @@ UsdAttribute::_Create(const SdfValueTypeName& typeName, bool custom,
     return _CreateSpec(typeName, custom, variability);
 }
 
+
+ARCH_PRAGMA_PUSH
+ARCH_PRAGMA_INSTANTIATION_AFTER_SPECIALIZATION
+
 // Explicitly instantiate templated getters for all Sdf value
 // types.
 #define _INSTANTIATE_GET(r, unused, elem)                               \
@@ -375,6 +379,7 @@ UsdAttribute::_Create(const SdfValueTypeName& typeName, bool custom,
 BOOST_PP_SEQ_FOR_EACH(_INSTANTIATE_GET, ~, SDF_VALUE_TYPES)
 #undef _INSTANTIATE_GET
 
+ARCH_PRAGMA_POP
 
 SdfPath
 UsdAttribute::_GetPathForAuthoring(const SdfPath &path,
@@ -619,7 +624,7 @@ UsdAttribute::GetConnections(SdfPathVector *sources) const
     if (!isClean) {
         stage->_ReportErrors(
             pcpErrors, otherErrors,
-            TfStringPrintf("Getting connections for attribute <%s>",
+            TfStringPrintf("getting connections for attribute <%s>",
                            GetPath().GetText()));
     }
 

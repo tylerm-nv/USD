@@ -114,7 +114,7 @@ public:
             return 0;
         }
 
-        virtual int GetNumElements() const {
+        virtual size_t GetNumElements() const {
             return _numElements;
         }
 
@@ -143,7 +143,7 @@ public:
             out << "Hd_NullStrategy::_BufferArray\n";
         }
 
-        virtual void AddBufferSpecs(HdBufferSpecVector *bufferSpecs) const {
+        virtual void GetBufferSpecs(HdBufferSpecVector *bufferSpecs) const {
         }
 
         virtual const void *_GetAggregation() const {
@@ -152,7 +152,7 @@ public:
 
     private:
         _BufferArray * _bufferArray;
-        int _numElements;
+        size_t _numElements;
     };
 
 
@@ -211,14 +211,14 @@ public:
     virtual void Sync(HdSceneDelegate* delegate,
                       HdRenderParam*   renderParam,
                       HdDirtyBits*     dirtyBits,
-                      TfToken const&   reprName,
+                      HdReprSelector const& reprSelector,
                       bool             forcedRepr) override
     {
         *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
     }
 
 
-    virtual HdDirtyBits _GetInitialDirtyBits() const override
+    virtual HdDirtyBits GetInitialDirtyBitsMask() const override
     {
         // Set all bits except the varying flag
         return  (HdChangeTracker::AllSceneDirtyBits) &
@@ -230,19 +230,19 @@ public:
         return bits;
     }
 
-    virtual void _InitRepr(TfToken const &reprName,
+    virtual void _InitRepr(HdReprSelector const &reprSelector,
                            HdDirtyBits *dirtyBits) override
     {
         _ReprVector::iterator it = std::find_if(_reprs.begin(), _reprs.end(),
-                                                _ReprComparator(reprName));
+                                                _ReprComparator(reprSelector));
         if (it == _reprs.end()) {
-            _reprs.emplace_back(reprName, HdReprSharedPtr());
+            _reprs.emplace_back(reprSelector, HdReprSharedPtr());
         }
     }
 
 protected:
     virtual void _UpdateRepr(HdSceneDelegate *sceneDelegate,
-                             TfToken const &reprName,
+                             HdReprSelector const &reprSelector,
                              HdDirtyBits *dirtyBits) override  {
     }
 
@@ -263,10 +263,6 @@ public:
     {
         *dirtyBits = HdMaterial::Clean;
     };
-
-    virtual VtValue Get(TfToken const &token) const override {
-        return VtValue();
-    }
 
     virtual HdDirtyBits GetInitialDirtyBitsMask() const override {
         return HdMaterial::AllDirty;

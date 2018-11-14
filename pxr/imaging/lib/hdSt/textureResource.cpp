@@ -37,93 +37,45 @@ HdStTextureResource::~HdStTextureResource()
     // nothing
 }
 
-HdStSimpleTextureResource::HdStSimpleTextureResource(
-    GlfTextureHandleRefPtr const &textureHandle, bool isPtex):
-        HdStSimpleTextureResource(textureHandle, isPtex, 
-        /*wrapS*/ HdWrapUseMetaDict, /*wrapT*/ HdWrapUseMetaDict, 
-        /*minFilter*/ HdMinFilterNearestMipmapLinear, 
-        /*magFilter*/ HdMagFilterLinear)
-{
-}
 
 HdStSimpleTextureResource::HdStSimpleTextureResource(
-    GlfTextureHandleRefPtr const &textureHandle, bool isPtex, 
-        HdWrap wrapS, HdWrap wrapT, 
-        HdMinFilter minFilter, HdMagFilter magFilter)
-            : _textureHandle(textureHandle)
-            , _texture(textureHandle->GetTexture())
-            , _borderColor(0.0,0.0,0.0,0.0)
-            , _maxAnisotropy(16.0)
-            , _sampler(0)
-            , _isPtex(isPtex)
+                                    GlfTextureHandleRefPtr const &textureHandle,
+                                    bool isPtex,
+                                    HdWrap wrapS,
+                                    HdWrap wrapT,
+                                    HdMinFilter minFilter,
+                                    HdMagFilter magFilter,
+                                    size_t memoryRequest)
+ : HdStTextureResource()
+ , _textureHandle(textureHandle)
+ , _texture()
+ , _borderColor(0.0,0.0,0.0,0.0)
+ , _maxAnisotropy(16.0)
+ , _sampler(0)
+ , _isPtex(isPtex)
+ , _memoryRequest(memoryRequest)
+ , _wrapS(wrapS)
+ , _wrapT(wrapT)
+ , _minFilter(minFilter)
+ , _magFilter(magFilter)
 {
-    if (!glGenSamplers) { // GL initialization guard for headless unit test
-        return;
-    }
+    // In cases of upstream errors, texture handle can be null.
+    if (_textureHandle) {
+        _texture = _textureHandle->GetTexture();
 
-    // When we are not using Ptex we will use samplers,
-    // that includes both, bindless textures and no-bindless textures
-    if (!_isPtex) {
-        // If the HdStSimpleTextureResource defines a wrap mode it will 
-        // use it, otherwise it gives an opportunity to the texture to define
-        // its own wrap mode. The fallback value is always HdWrapRepeat
-        GLenum fwrapS = HdStGLConversions::GetWrap(wrapS);
-        GLenum fwrapT = HdStGLConversions::GetWrap(wrapT);
-        VtDictionary txInfo = _texture->GetTextureInfo();
-
-        if (wrapS == HdWrapUseMetaDict && 
-            VtDictionaryIsHolding<GLuint>(txInfo, "wrapModeS")) {
-            fwrapS = VtDictionaryGet<GLuint>(txInfo, "wrapModeS");
-        }
-
-        if (wrapT == HdWrapUseMetaDict && 
-            VtDictionaryIsHolding<GLuint>(txInfo, "wrapModeT")) {
-            fwrapT = VtDictionaryGet<GLuint>(txInfo, "wrapModeT");
-        }
-
-        GLenum fminFilter = HdStGLConversions::GetMinFilter(minFilter);
-        GLenum fmagFilter = HdStGLConversions::GetMagFilter(magFilter);
-        if (!_texture->IsMinFilterSupported(fminFilter)) {
-            fminFilter = GL_NEAREST;
-        }
-        if (!_texture->IsMagFilterSupported(fmagFilter)) {
-            fmagFilter = GL_NEAREST;
-        }
-
-        glGenSamplers(1, &_sampler);
-        glSamplerParameteri(_sampler, GL_TEXTURE_WRAP_S, fwrapS);
-        glSamplerParameteri(_sampler, GL_TEXTURE_WRAP_T, fwrapT);
-        glSamplerParameteri(_sampler, GL_TEXTURE_MIN_FILTER, fminFilter);
-        glSamplerParameteri(_sampler, GL_TEXTURE_MAG_FILTER, fmagFilter);
-        glSamplerParameterf(_sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, 
-            _maxAnisotropy);
-        glSamplerParameterfv(_sampler, GL_TEXTURE_BORDER_COLOR, 
-            _borderColor.GetArray());
-    }
-
-    bool bindlessTexture = 
-        GlfContextCaps::GetInstance().bindlessTextureEnabled;
-    if (bindlessTexture) {
-        size_t handle = GetTexelsTextureHandle();
-        if (handle) {
-            if (!glIsTextureHandleResidentNV(handle)) {
-                glMakeTextureHandleResidentNV(handle);
-            }
-        }
-
-        if (_isPtex) {
-            handle = GetLayoutTextureHandle();
-            if (handle) {
-                if (!glIsTextureHandleResidentNV(handle)) {
-                    glMakeTextureHandleResidentNV(handle);
-                }
-            }
-        }
+        // Unconditionally add the memory request, before the early function
+        // exit so that the destructor doesn't need to figure out if the request
+        // was added or not.
+        _textureHandle->AddMemoryRequest(_memoryRequest);
     }
 }
 
 HdStSimpleTextureResource::~HdStSimpleTextureResource() 
 { 
+    if (_textureHandle) {
+        _textureHandle->DeleteMemoryRequest(_memoryRequest);
+    }
+
     if (!_isPtex) {
         if (!glDeleteSamplers) { // GL initialization guard for headless unit test
             return;
@@ -141,7 +93,13 @@ GLuint HdStSimpleTextureResource::GetTexelsTextureId()
 {
     if (_isPtex) {
 #ifdef PXR_PTEX_SUPPORT_ENABLED
-        return TfDynamic_cast<GlfPtexTextureRefPtr>(_texture)->GetTexelsTextureName();
+        GlfPtexTextureRefPtr ptexTexture =
+                                 TfDynamic_cast<GlfPtexTextureRefPtr>(_texture);
+
+        if (ptexTexture) {
+            return ptexTexture->GetTexelsTextureName();
+        }
+        return 0;
 #else
         TF_CODING_ERROR("Ptex support is disabled.  "
             "This code path should be unreachable");
@@ -149,35 +107,119 @@ GLuint HdStSimpleTextureResource::GetTexelsTextureId()
 #endif
     }
 
-    return TfDynamic_cast<GlfBaseTextureRefPtr>(_texture)->GetGlTextureName();
+    GlfBaseTextureRefPtr baseTexture =
+                             TfDynamic_cast<GlfBaseTextureRefPtr>(_texture);
+
+    if (baseTexture) {
+        return baseTexture->GetGlTextureName();
+    }
+    return 0;
 }
 
 GLuint HdStSimpleTextureResource::GetTexelsSamplerId() 
 {
+    if (!TF_VERIFY(!_isPtex)) {
+        return 0;
+    }
+
+    // Check for headless test
+    if (glGenSamplers == nullptr) {
+        return 0;
+    }
+
+    // Lazy sampler creation.
+    if (_sampler == 0) {
+        // If the HdStSimpleTextureResource defines a wrap mode it will
+        // use it, otherwise it gives an opportunity to the texture to define
+        // its own wrap mode. The fallback value is always HdWrapRepeat
+        GLenum fwrapS = HdStGLConversions::GetWrap(_wrapS);
+        GLenum fwrapT = HdStGLConversions::GetWrap(_wrapT);
+        GLenum fminFilter = HdStGLConversions::GetMinFilter(_minFilter);
+        GLenum fmagFilter = HdStGLConversions::GetMagFilter(_magFilter);
+
+        if (_texture) {
+            VtDictionary txInfo = _texture->GetTextureInfo(true);
+
+            if ((_wrapS == HdWrapUseMetadata || _wrapS == HdWrapLegacy) &&
+                VtDictionaryIsHolding<GLuint>(txInfo, "wrapModeS")) {
+                fwrapS = VtDictionaryGet<GLuint>(txInfo, "wrapModeS");
+            }
+
+            if ((_wrapT == HdWrapUseMetadata || _wrapT == HdWrapLegacy) &&
+                VtDictionaryIsHolding<GLuint>(txInfo, "wrapModeT")) {
+                fwrapT = VtDictionaryGet<GLuint>(txInfo, "wrapModeT");
+            }
+
+            if (!_texture->IsMinFilterSupported(fminFilter)) {
+                fminFilter = GL_NEAREST;
+            }
+
+            if (!_texture->IsMagFilterSupported(fmagFilter)) {
+                fmagFilter = GL_NEAREST;
+            }
+        }
+
+        glGenSamplers(1, &_sampler);
+        glSamplerParameteri(_sampler, GL_TEXTURE_WRAP_S, fwrapS);
+        glSamplerParameteri(_sampler, GL_TEXTURE_WRAP_T, fwrapT);
+        glSamplerParameteri(_sampler, GL_TEXTURE_MIN_FILTER, fminFilter);
+        glSamplerParameteri(_sampler, GL_TEXTURE_MAG_FILTER, fmagFilter);
+        glSamplerParameterf(_sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+            _maxAnisotropy);
+        glSamplerParameterfv(_sampler, GL_TEXTURE_BORDER_COLOR,
+            _borderColor.GetArray());
+    }
+
+
     return _sampler;
 }
 
 GLuint64EXT HdStSimpleTextureResource::GetTexelsTextureHandle() 
 { 
     GLuint textureId = GetTexelsTextureId();
-    GLuint samplerId = GetTexelsSamplerId();
 
     if (!TF_VERIFY(glGetTextureHandleARB) ||
         !TF_VERIFY(glGetTextureSamplerHandleARB)) {
         return 0;
     }
 
-    if (_isPtex) {
-        return textureId ? glGetTextureHandleARB(textureId) : 0;
-    } 
+    if (textureId == 0) {
+        return 0;
+    }
 
-    return textureId ? glGetTextureSamplerHandleARB(textureId, samplerId) : 0;
+    GLuint64EXT handle = 0;
+    if (_isPtex) {
+        handle = glGetTextureHandleARB(textureId);
+    } else {
+        GLuint samplerId = GetTexelsSamplerId();
+        handle = glGetTextureSamplerHandleARB(textureId, samplerId);
+    }
+
+    if (handle == 0) {
+        return 0;
+    }
+
+    bool bindlessTexture =
+        GlfContextCaps::GetInstance().bindlessTextureEnabled;
+    if (bindlessTexture) {
+        if (!glIsTextureHandleResidentNV(handle)) {
+            glMakeTextureHandleResidentNV(handle);
+        }
+    }
+
+    return handle;
 }
 
 GLuint HdStSimpleTextureResource::GetLayoutTextureId() 
 {
 #ifdef PXR_PTEX_SUPPORT_ENABLED
-    return TfDynamic_cast<GlfPtexTextureRefPtr>(_texture)->GetLayoutTextureName();
+    GlfPtexTextureRefPtr ptexTexture =
+                                 TfDynamic_cast<GlfPtexTextureRefPtr>(_texture);
+
+    if (ptexTexture) {
+        return ptexTexture->GetLayoutTextureName();
+    }
+    return 0;
 #else
     TF_CODING_ERROR("Ptex support is disabled.  "
         "This code path should be unreachable");
@@ -196,13 +238,33 @@ GLuint64EXT HdStSimpleTextureResource::GetLayoutTextureHandle()
     }
 
     GLuint textureId = GetLayoutTextureId();
+    if (textureId == 0) {
+        return 0;
+    }
 
-    return textureId ? glGetTextureHandleARB(textureId) : 0;
+    GLuint64EXT handle = glGetTextureHandleARB(textureId);
+    if (handle == 0) {
+        return 0;
+    }
+
+    bool bindlessTexture =
+        GlfContextCaps::GetInstance().bindlessTextureEnabled;
+    if (bindlessTexture) {
+        if (!glIsTextureHandleResidentNV(handle)) {
+            glMakeTextureHandleResidentNV(handle);
+        }
+    }
+
+    return handle;
 }
 
 size_t HdStSimpleTextureResource::GetMemoryUsed()
 {
-    return _texture->GetMemoryUsed();
+    if (_texture) {
+        return _texture->GetMemoryUsed();
+    } else  {
+        return 0;
+    }
 }
 
 PXR_NAMESPACE_CLOSE_SCOPE

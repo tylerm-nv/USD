@@ -170,7 +170,7 @@ Hdx_UnitTestDelegate::SetRefineLevel(int level)
     _refineLevel = level;
     TF_FOR_ALL (it, _meshes) {
         GetRenderIndex().GetChangeTracker().MarkRprimDirty(
-            it->first, HdChangeTracker::DirtyRefineLevel);
+            it->first, HdChangeTracker::DirtyDisplayStyle);
     }
     TF_FOR_ALL (it, _refineLevels) {
         it->second = level;
@@ -227,7 +227,8 @@ Hdx_UnitTestDelegate::AddLight(SdfPath const &id, GlfSimpleLight const &light)
     cache[HdLightTokens->params] = light;
     cache[HdLightTokens->shadowParams] = shadowParams;
     cache[HdLightTokens->shadowCollection]
-        = HdRprimCollection(HdTokens->geometry, HdTokens->refined);
+        = HdRprimCollection(HdTokens->geometry, 
+                HdReprSelector(HdReprTokens->refined));
 }
 
 void
@@ -264,7 +265,7 @@ Hdx_UnitTestDelegate::AddDrawTarget(SdfPath const &id)
 
     HdStDrawTargetAttachmentDescArray attachments;
     attachments.AddAttachment("color",
-                              HdFormatR8G8B8A8UNorm,
+                              HdFormatUNorm8Vec4,
                               VtValue(GfVec4f(1,1,0,1)),
                               HdWrapRepeat,
                               HdWrapRepeat,
@@ -277,7 +278,8 @@ Hdx_UnitTestDelegate::AddDrawTarget(SdfPath const &id)
     cache[HdStDrawTargetTokens->attachments]     = VtValue(attachments);
     cache[HdStDrawTargetTokens->depthClearValue] = VtValue(1.0f);
     cache[HdStDrawTargetTokens->collection]      =
-        VtValue(HdRprimCollection(HdTokens->geometry, HdTokens->hull));
+        VtValue(HdRprimCollection(HdTokens->geometry, 
+            HdReprSelector(HdReprTokens->hull)));
 
     GetRenderIndex().InsertBprim(HdPrimTypeTokens->texture, this, id);
     _drawTargets[id] = _DrawTarget();
@@ -320,7 +322,8 @@ Hdx_UnitTestDelegate::AddRenderTask(SdfPath const &id)
     _ValueCache &cache = _valueCacheMap[id];
     cache[HdTokens->children] = VtValue(SdfPathVector());
     cache[HdTokens->collection]
-        = HdRprimCollection(HdTokens->geometry, HdTokens->smoothHull);
+        = HdRprimCollection(HdTokens->geometry, 
+            HdReprSelector(HdReprTokens->smoothHull));
 }
 
 void
@@ -648,17 +651,17 @@ Hdx_UnitTestDelegate::SetRefineLevel(SdfPath const &id, int level)
 {
     _refineLevels[id] = level;
     GetRenderIndex().GetChangeTracker().MarkRprimDirty(
-        id, HdChangeTracker::DirtyRefineLevel);
+        id, HdChangeTracker::DirtyDisplayStyle);
 }
 
-TfToken
-Hdx_UnitTestDelegate::GetReprName(SdfPath const &id)
+HdReprSelector
+Hdx_UnitTestDelegate::GetReprSelector(SdfPath const &id)
 {
     if (_meshes.find(id) != _meshes.end()) {
-        return _meshes[id].reprName;
+        return HdReprSelector(_meshes[id].reprName);
     }
 
-    return TfToken();
+    return HdReprSelector();
 }
 
 void
@@ -743,11 +746,6 @@ Hdx_UnitTestDelegate::Get(SdfPath const& id, TfToken const& key)
         if (_instancers.find(id) != _instancers.end()) {
             return VtValue(_instancers[id].translate);
         }
-    } else if (key == HdShaderTokens->material) {
-        SdfPath materialId;
-        TfMapLookup(_materialBindings, id, &materialId);
-
-        return VtValue(materialId);
     }
     return VtValue();
 }
@@ -792,13 +790,14 @@ Hdx_UnitTestDelegate::GetInstancerTransform(SdfPath const& instancerId,
     return GfMatrix4d(1);
 }
 
-int
-Hdx_UnitTestDelegate::GetRefineLevel(SdfPath const& id)
+/*virtual*/
+HdDisplayStyle
+Hdx_UnitTestDelegate::GetDisplayStyle(SdfPath const& id)
 {
     if (_refineLevels.find(id) != _refineLevels.end()) {
-        return _refineLevels[id];
+        return HdDisplayStyle(_refineLevels[id]);
     }
-    return _refineLevel;
+    return HdDisplayStyle(_refineLevel);
 }
 
 HdPrimvarDescriptorVector
@@ -841,6 +840,15 @@ Hdx_UnitTestDelegate::BindMaterial(SdfPath const &rprimId,
                                  SdfPath const &materialId)
 {
     _materialBindings[rprimId] = materialId;
+}
+
+/*virtual*/ 
+SdfPath 
+Hdx_UnitTestDelegate::GetMaterialId(SdfPath const &rprimId)
+{
+    SdfPath materialId;
+    TfMapLookup(_materialBindings, rprimId, &materialId);
+    return materialId;
 }
 
 /*virtual*/

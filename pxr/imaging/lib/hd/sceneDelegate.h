@@ -33,12 +33,14 @@
 #include "pxr/imaging/hd/materialParam.h"
 #include "pxr/imaging/hd/meshTopology.h"
 #include "pxr/imaging/hd/renderIndex.h"
+#include "pxr/imaging/hd/repr.h"
 #include "pxr/imaging/hd/textureResource.h"
 #include "pxr/imaging/hd/timeSampleArray.h"
 
 #include "pxr/imaging/pxOsd/subdivTags.h"
 
 #include "pxr/base/vt/array.h"
+#include "pxr/base/vt/dictionary.h"
 #include "pxr/base/vt/value.h"
 #include "pxr/usd/sdf/path.h"
 
@@ -64,6 +66,62 @@ struct HdSyncRequestVector {
 
     // The HdChangeTracker::DirtyBits that are set for each Prim.
     std::vector<HdDirtyBits> dirtyBits;
+};
+
+/// \struct HdDisplayStyle
+///
+/// Describes how the geometry of a prim should be displayed.
+///
+struct HdDisplayStyle {
+    /// The prim refine level, in the range [0, 8].
+    int refineLevel;
+    
+    /// Is the prim flat shaded.
+    bool flatShadingEnabled;
+    
+    /// Is the prim displacement shaded.
+    bool displacementEnabled;
+    
+    /// Creates a default DisplayStyle.
+    /// - refineLevel is 0.
+    /// - flatShading is disabled.
+    /// - displacement is enabled.
+    HdDisplayStyle()
+        : refineLevel(0)
+        , flatShadingEnabled(false)
+        , displacementEnabled(true)
+    { }
+    
+    /// Creates a DisplayStyle.
+    /// \param refineLevel_ the refine level to display.
+    ///        Valid range is [0, 8].
+    /// \param flatShading enables flat shading, defaults to false.
+    /// \param displacement enables displacement shading, defaults to false.
+    HdDisplayStyle(int refineLevel_,
+                   bool flatShading = false,
+                   bool displacement = true)
+        : refineLevel(std::max(0, refineLevel_))
+        , flatShadingEnabled(flatShading)
+        , displacementEnabled(displacement)
+    {
+        if (refineLevel_ < 0) {
+            TF_CODING_ERROR("negative refine level is not supported");
+        } else if (refineLevel_ > 8) {
+            TF_CODING_ERROR("refine level > 8 is not supported");
+        }
+    }
+    
+    HdDisplayStyle(HdDisplayStyle const& rhs) = default;
+    ~HdDisplayStyle() = default;
+    
+    bool operator==(HdDisplayStyle const& rhs) const {
+        return refineLevel == rhs.refineLevel
+            && flatShadingEnabled == rhs.flatShadingEnabled
+            && displacementEnabled == rhs.displacementEnabled;
+    }
+    bool operator!=(HdDisplayStyle const& rhs) const {
+        return !(*this == rhs);
+    }
 };
 
 /// \struct HdPrimvarDescriptor
@@ -184,6 +242,44 @@ struct HdExtComputationOutputDescriptor {
 typedef std::vector<HdExtComputationOutputDescriptor>
         HdExtComputationOutputDescriptorVector;
 
+/// \struct HdRenderBufferDescriptor
+///
+/// Describes the allocation structure of a render buffer bprim.
+struct HdRenderBufferDescriptor {
+    GfVec3i dimensions;
+    HdFormat format;
+    bool multiSampled;
+
+    bool operator==(HdRenderBufferDescriptor const& rhs) const {
+        return dimensions == rhs.dimensions &&
+               format == rhs.format && multiSampled == rhs.multiSampled;
+    }
+    bool operator!=(HdRenderBufferDescriptor const& rhs) const {
+        return !(*this == rhs);
+    }
+};
+
+/// \struct HdVolumeFieldDescriptor
+///
+/// Description of a single field related to a volume primitive.
+///
+struct HdVolumeFieldDescriptor {
+    TfToken fieldName;
+    TfToken fieldPrimType;
+    SdfPath fieldId;
+
+    HdVolumeFieldDescriptor() {}
+    HdVolumeFieldDescriptor(
+        TfToken const & fieldName_,
+        TfToken const & fieldPrimType_,
+        SdfPath const & fieldId_)
+    : fieldName(fieldName_), fieldPrimType(fieldPrimType_), fieldId(fieldId_)
+    { }
+};
+
+typedef std::vector<HdVolumeFieldDescriptor>
+	HdVolumeFieldDescriptorVector;
+
 /// \class HdSceneDelegate
 ///
 /// Adapter class providing data exchange with the client scene graph.
@@ -277,20 +373,24 @@ public:
     /// The refinement level indicates how many iterations to apply when
     /// subdividing subdivision surfaces or other refinable primitives.
     HD_API
-    virtual int GetRefineLevel(SdfPath const& id);
-
+    virtual HdDisplayStyle GetDisplayStyle(SdfPath const& id);
+    
     /// Returns a named value.
     HD_API
     virtual VtValue Get(SdfPath const& id, TfToken const& key);
 
     /// Returns the authored repr (if any) for the given prim.
     HD_API
-    virtual TfToken GetReprName(SdfPath const &id);
+    virtual HdReprSelector GetReprSelector(SdfPath const &id);
 
     /// Returns the render tag that will be used to bucket prims during
     /// render pass bucketing.
     HD_API
-    virtual TfToken GetRenderTag(SdfPath const& id, TfToken const& reprName);
+    virtual TfToken GetRenderTag(SdfPath const& id);
+
+    /// Returns the prim categories.
+    HD_API
+    virtual VtArray<TfToken> GetCategories(SdfPath const& id);
 
     // -----------------------------------------------------------------------//
     /// \name Motion samples
@@ -412,6 +512,10 @@ public:
     // -----------------------------------------------------------------------//
     /// \name Material Aspects
     // -----------------------------------------------------------------------//
+    
+    /// Returns the material ID bound to the rprim \p rprimId.
+    HD_API
+    virtual SdfPath GetMaterialId(SdfPath const &rprimId);
 
     /// Returns the surface shader source code for the given material ID.
     HD_API
@@ -440,6 +544,10 @@ public:
     HD_API 
     virtual TfTokenVector GetMaterialPrimvars(SdfPath const &materialId);
 
+    // Returns the metadata dictionary for the given material ID. 
+    HD_API
+    virtual VtDictionary GetMaterialMetadata(SdfPath const &materialId);
+
     // -----------------------------------------------------------------------//
     /// \name Texture Aspects
     // -----------------------------------------------------------------------//
@@ -451,6 +559,14 @@ public:
     /// Returns the texture resource for a given texture ID.
     HD_API
     virtual HdTextureResourceSharedPtr GetTextureResource(SdfPath const& textureId);
+
+    // -----------------------------------------------------------------------//
+    /// \name Renderbuffer Aspects
+    // -----------------------------------------------------------------------//
+
+    /// Returns the allocation descriptor for a given render buffer prim.
+    HD_API
+    virtual HdRenderBufferDescriptor GetRenderBufferDescriptor(SdfPath const& id);
 
     // -----------------------------------------------------------------------//
     /// \name Light Aspects
@@ -469,6 +585,14 @@ public:
     /// orientation.
     HD_API
     virtual std::vector<GfVec4d> GetClipPlanes(SdfPath const& cameraId);
+
+    // -----------------------------------------------------------------------//
+    /// \name Volume Aspects
+    // -----------------------------------------------------------------------//
+
+    HD_API
+    virtual HdVolumeFieldDescriptorVector
+    GetVolumeFieldDescriptors(SdfPath const &volumeId);
 
     // -----------------------------------------------------------------------//
     /// \name ExtComputation Aspects

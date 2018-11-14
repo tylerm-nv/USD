@@ -54,24 +54,25 @@ public:
     virtual ~HdStPoints();
 
     HDST_API
-    virtual void Sync(HdSceneDelegate* delegate,
-                      HdRenderParam*   renderParam,
-                      HdDirtyBits*     dirtyBits,
-                      TfToken const&   reprName,
-                      bool             forcedRepr) override;
+    virtual void Sync(HdSceneDelegate   *delegate,
+                      HdRenderParam     *renderParam,
+                      HdDirtyBits       *dirtyBits,
+                      HdReprSelector const &reprToken,
+                      bool               forcedRepr) override;
+
+    virtual HdDirtyBits GetInitialDirtyBitsMask() const override;
 
 protected:
     virtual void _UpdateRepr(HdSceneDelegate *sceneDelegate,
-                             TfToken const &reprName,
+                             HdReprSelector const &reprToken,
                              HdDirtyBits *dirtyBitsState) override;
 
     void _PopulateVertexPrimvars(HdSceneDelegate *sceneDelegate,
                                  HdStDrawItem *drawItem,
                                  HdDirtyBits *dirtyBitsState);
 
-    virtual HdDirtyBits _GetInitialDirtyBits() const override;
     virtual HdDirtyBits _PropagateDirtyBits(HdDirtyBits bits) const override;
-    virtual void _InitRepr(TfToken const &reprName,
+    virtual void _InitRepr(HdReprSelector const &reprToken,
                            HdDirtyBits *dirtyBits) override;
 
 

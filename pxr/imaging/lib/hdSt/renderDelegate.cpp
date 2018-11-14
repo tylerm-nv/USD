@@ -281,7 +281,6 @@ HdStRenderDelegate::_CreateFallbackMaterialPrim()
     return material;
 }
 
-
 void
 HdStRenderDelegate::CommitResources(HdChangeTracker *tracker)
 {
@@ -302,7 +301,6 @@ HdStRenderDelegate::CommitResources(HdChangeTracker *tracker)
     if (tracker->IsGarbageCollectionNeeded()) {
         _resourceRegistry->GarbageCollect();
         tracker->ClearGarbageCollectionNeeded();
-        tracker->MarkAllCollectionsDirty();
     }
 
     // see bug126621. currently dispatch buffers need to be released
@@ -316,5 +314,16 @@ HdStRenderDelegate::IsSupported()
     return (GlfContextCaps::GetInstance().glVersion >= 400);
 }
 
+TfTokenVector
+HdStRenderDelegate::GetShaderSourceTypes() const
+{
+    return {GlfGLSLFXTokens->glslfx};
+}
+
+TfToken 
+HdStRenderDelegate::GetMaterialNetworkSelector() const
+{
+    return GlfGLSLFXTokens->glslfx;
+}
 
 PXR_NAMESPACE_CLOSE_SCOPE

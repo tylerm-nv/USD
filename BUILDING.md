@@ -2,6 +2,7 @@ Advanced Build Configuration
 ============================
 
 ## Table of Contents
+- [Building With Build Script](#building-with-build-script)
 - [Building With CMake](#building-with-cmake)
 - [Optional Components](#optional-components)
 - [Imaging Plugins](#imaging-plugins)
@@ -11,6 +12,14 @@ Advanced Build Configuration
 - [USD Developer Options](#usd-developer-options)
 - [Optimization Options](#optimization-options)
 - [Linker Options](#linker-options)
+
+## Building With Build Script
+
+The simplest way to build USD is to run the supplied ```build_usd.py``` 
+script. This script will download required dependencies and build 
+and install them along with USD in a given directory. 
+
+See instructions and examples in [README.md](README.md#getting-and-building-the-code).
 
 ## Building With CMake
 
@@ -60,7 +69,7 @@ build USD.
 
 ```cmd.exe
 "C:\Program Files\CMake\bin\cmake.exe"      ^
--G "Visual Studio 14 Win64"                 ^
+-G "Visual Studio 14 2015 Win64"            ^
 -DTBB_ROOT_DIR=C:\path\to\tbb               ^
 -DOPENEXR_LOCATION=C:\path\to\openexr       ^
 -DOPENSUBDIV_ROOT_DIR=C:\path\to\opensubdiv ^
@@ -71,6 +80,8 @@ build USD.
 
 cmake --build . --target install -- /m:%NUMBER_OF_PROCESSORS%
 ```
+
+Note: if you're trying to build with Visual Studio 2017, use the "Visual Studio 15 2017 Win64" generator.
 
 ## Optional Components
 
@@ -88,6 +99,24 @@ Python support in USD refers to:
 
 Support for Python can optionally be disabled by specifying the cmake flag
 ```PXR_ENABLE_PYTHON_SUPPORT=FALSE```.
+
+##### OpenGL and GLEW
+
+Support for OpenGL can optionally be disabled by specifying the cmake flag
+```PXR_ENABLE_GL_SUPPORT=FALSE```.  This will skip components and libraries
+that depend on GL, including:
+- usdview
+- Hydra GL imaging
+- Maya and Katana app plugins
+
+##### OSL (OpenShadingLanguage)
+
+Support for OSL is disabled by default, and can optionally be enabled by
+specifying the cmake flag ```PXR_ENABLE_OSL_SUPPORT=TRUE```.  This will
+enable components and libraries that depend on OSL.
+
+Enabling OSL suport allows the Shader Definition Registry (sdr) to
+parse metadata from OSL shaders.
 
 ##### Documentation
 
@@ -119,12 +148,22 @@ This component provides the USD imaging delegates for Hydra, as well as
 usdview, a standalone native viewer for USD files.
 
 Disable this component by specifying the cmake flag ```PXR_BUILD_USD_IMAGING=FALSE``` when
-invoking cmake. Enabling this component will enable the [Imaging](#imaging)
-component.
+invoking cmake. usdview may also be disabled independently by specifying the cmake flag 
+```PXR_BUILD_USDVIEW=FALSE```.
 
 ## Imaging Plugins
 
 Hydra's rendering functionality can be extended with these optional plugins.
+
+##### OpenImageIO 
+
+This plugin can optionally be enabled by specifying the cmake flag
+```PXR_BUILD_OPENIMAGEIO_PLUGIN=TRUE```. When enabled, OpenImageIO provides 
+broader support for reading and writing different image formats as textures. 
+If OpenImageIO is disabled, imaging by default supports the image formats bmp, 
+jpg, png, tga, and hdr. With OpenImageIO enabled, support extends to exr, tif, 
+zfile, and tx file formats, which allows for the use of more advanced features
+like subimages and mipmaps.
 
 ##### Embree Rendering
 
@@ -197,7 +236,21 @@ when invoking cmake. This plugin is compatible with Houdini 16.0. The additional
 | --------------        | -----------------------------------    | -------   |
 | HOUDINI_ROOT          | The root path to a Houdini SDK install.| 16.0      |
 
+Note that the Houdini plugin is only tested on Linux.
+
 For further information see our additional documentation on the Houdini plugins [here](http://openusd.org/docs/Houdini-USD-Plugins.html).
+
+##### MaterialX Plugin
+
+Enable the [MaterialX](https://github.com/materialx/materialx) plugin in the build
+by specifying the cmake flag ```PXR_BUILD_MATERIALX_PLUGIN=TRUE``` when invoking cmake.
+This plugin is compatible with MaterialX 1.36.0. The additional dependencies that must be supplied when invoking cmake are:
+
+| Dependency Name    | Description                              | Version |
+| ------------------ |----------------------------------------  | ------- |
+| MATERIALX_ROOT     | The root path to a MaterialX SDK install.| 1.36.0  |
+
+For further information see our additional documentation on the MaterialX plugins [here](http://openusd.org/docs/MaterialX-USD-Plugins.html).
 
 ## Tests
 

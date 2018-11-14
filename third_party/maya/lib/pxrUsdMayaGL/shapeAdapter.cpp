@@ -47,6 +47,7 @@
 #include <maya/MFrameContext.h>
 #include <maya/MHWGeometryUtilities.h>
 #include <maya/MPxSurfaceShapeUI.h>
+#include <maya/MSelectionList.h>
 #include <maya/MUserData.h>
 
 
@@ -126,6 +127,8 @@ PxrMayaHdShapeAdapter::Sync(
     // Legacy viewport implementation.
     _isViewport2 = false;
 
+    UsdMayaGLBatchRenderer::GetInstance().StartBatchingFrameDiagnostics();
+
     const unsigned int displayStyle =
         _ToMFrameContextDisplayStyle(legacyDisplayStyle);
     const MHWRender::DisplayStatus displayStatus =
@@ -167,6 +170,8 @@ PxrMayaHdShapeAdapter::Sync(
     // Viewport 2.0 implementation.
     _isViewport2 = true;
 
+    UsdMayaGLBatchRenderer::GetInstance().StartBatchingFrameDiagnostics();
+
     TF_DEBUG(PXRUSDMAYAGL_SHAPE_ADAPTER_LIFECYCLE).Msg(
         "Synchronizing PxrMayaHdShapeAdapter for Viewport 2.0: %p\n",
         this);
@@ -176,7 +181,14 @@ PxrMayaHdShapeAdapter::Sync(
 
 /* virtual */
 bool
-PxrMayaHdShapeAdapter::UpdateVisibility()
+PxrMayaHdShapeAdapter::UpdateVisibility(const MSelectionList&)
+{
+    return false;
+}
+
+/* virtual */
+bool
+PxrMayaHdShapeAdapter::IsVisible() const
 {
     return false;
 }
@@ -189,10 +201,6 @@ PxrMayaHdShapeAdapter::GetMayaUserData(
         const MBoundingBox* boundingBox)
 {
     // Legacy viewport implementation.
-
-    // If we're in this method, we must be prepping for a legacy viewport
-    // render, so mark a legacy render as pending.
-    UsdMayaGLBatchRenderer::GetInstance()._UpdateLegacyRenderPending(true);
 
     // The legacy viewport never has an old MUserData we can reuse.
     MUserData* userData = GetMayaUserData(nullptr, boundingBox);
@@ -231,7 +239,14 @@ PxrMayaHdShapeAdapter::GetMayaUserData(
         newData = new PxrMayaHdUserData();
     }
 
-    newData->drawShape = _drawShape;
+    // Internally, the shape adapter keeps track of whether its shape is being
+    // drawn for managing visibility, but otherwise most Hydra-imaged shapes
+    // should not be drawing themselves. The pxrHdImagingShape will take care
+    // of batching up the drawing of all of the shapes, so we specify in the
+    // Maya user data that the shape should *not* draw by default. The
+    // pxrHdImagingShape bypasses this and sets drawShape to true.
+    // We handle this similarly in GetRenderParams() below.
+    newData->drawShape = false;
 
     if (boundingBox) {
         newData->boundingBox.reset(new MBoundingBox(*boundingBox));
@@ -251,7 +266,14 @@ PxrMayaHdShapeAdapter::GetRenderParams(
         bool* drawBoundingBox) const
 {
     if (drawShape) {
-        *drawShape = _drawShape;
+        // Internally, the shape adapter keeps track of whether its shape is
+        // being drawn for managing visibility, but otherwise most Hydra-imaged
+        // shapes should not be drawing themselves. The pxrHdImagingShape will
+        // take care of batching up the drawing of all of the shapes, so for
+        // the purposes of render params, we set drawShape to false by default.
+        // The pxrHdImagingShape bypasses this and sets drawShape to true.
+        // We handle this similarly in GetMayaUserData() above.
+        *drawShape = false;
     }
 
     if (drawBoundingBox) {
@@ -315,10 +337,13 @@ PxrMayaHdShapeAdapter::_GetWireframeColor(
 
     // Dormant objects may be included in a soft selection.
     if (displayStatus == MHWRender::kDormant) {
-        const UsdMayaGLSoftSelectHelper& softSelectHelper =
-            UsdMayaGLBatchRenderer::GetInstance().GetSoftSelectHelper();
-        useWireframeColor = softSelectHelper.GetFalloffColor(shapeDagPath,
-                                                             mayaWireColor);
+        auto& batchRenderer = UsdMayaGLBatchRenderer::GetInstance();
+        if (batchRenderer.GetObjectSoftSelectEnabled()) {
+            const UsdMayaGLSoftSelectHelper& softSelectHelper =
+                UsdMayaGLBatchRenderer::GetInstance().GetSoftSelectHelper();
+            useWireframeColor = softSelectHelper.GetFalloffColor(shapeDagPath,
+                                                                 mayaWireColor);
+        }
     }
 
     // If the object isn't included in a soft selection, just ask Maya for the
@@ -342,6 +367,69 @@ PxrMayaHdShapeAdapter::_GetWireframeColor(
     }
 
     return useWireframeColor;
+}
+
+/* static */
+bool PxrMayaHdShapeAdapter::_GetVisibility(
+        const MDagPath& dagPath,
+        const MSelectionList& isolatedObjects,
+        bool* visibility)
+{
+    MStatus status;
+    const MHWRender::DisplayStatus displayStatus =
+        MHWRender::MGeometryUtilities::displayStatus(dagPath, &status);
+    if (status != MS::kSuccess) {
+        return false;
+    }
+    if (displayStatus == MHWRender::kInvisible) {
+        *visibility = false;
+        return true;
+    }
+
+    // The displayStatus() method above does not account for things like
+    // display layers, so we also check the shape's dag path for its visibility
+    // state.
+    const bool dagPathIsVisible = dagPath.isVisible(&status);
+    if (status != MS::kSuccess) {
+        return false;
+    }
+    if (!dagPathIsVisible) {
+        *visibility = false;
+        return true;
+    }
+
+    // If non-empty, isolatedObjects contains the "root" isolated objects, so
+    // we'll need to check to see if one of our ancestors was isolated. (The
+    // ancestor check is potentially slow if you're isolating selection in
+    // a very large scene.)
+    // If empty, nothing is being isolated. (You don't pay the cost of any
+    // ancestor checking in this case.)
+    const bool somethingIsolated = !isolatedObjects.isEmpty(&status);
+    if (status != MS::kSuccess) {
+        return false;
+    }
+    if (somethingIsolated) {
+        bool isIsolateVisible = false;
+        MDagPath curPath(dagPath);
+        while (curPath.length()) {
+            const bool hasItem = isolatedObjects.hasItem(
+                    curPath, MObject::kNullObj, &status);
+            if (status != MS::kSuccess) {
+                return false;
+            }
+            if (hasItem) {
+                isIsolateVisible = true;
+                break;
+            }
+            curPath.pop();
+        }
+        *visibility = isIsolateVisible;
+        return true;
+    }
+
+    // Passed all visibility checks.
+    *visibility = true;
+    return true;
 }
 
 PxrMayaHdShapeAdapter::PxrMayaHdShapeAdapter()

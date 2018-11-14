@@ -245,7 +245,8 @@ UsdImagingInstanceAdapter::_Populate(UsdPrim const& prim,
             bool isLeafInstancer;
 
             // Inherited attribute resolution...
-            SdfPath protoMaterialId = primAdapter->GetMaterialId(prim);
+            SdfPath protoMaterialId =
+                primAdapter->GetMaterialId(*iter);
             if (protoMaterialId.IsEmpty()) {
                 protoMaterialId = instanceMaterialId;
             }
@@ -294,7 +295,8 @@ UsdImagingInstanceAdapter::_Populate(UsdPrim const& prim,
             // Ensure that the instance transforms are computed on the first
             // call to UpdateForTime.
             index->MarkInstancerDirty(instancerPath,
-                HdChangeTracker::DirtyPrimvar);
+                HdChangeTracker::DirtyPrimvar |
+                HdChangeTracker::DirtyTransform);
         } else if (nestedInstances.empty()) {
             // if this instance path ends up to have no prims in subtree
             // and not an instance itself , we don't need to track this path
@@ -1650,8 +1652,8 @@ struct UsdImagingInstanceAdapter::_PopulateInstanceSelectionFn
         SdfPath const &instancerPath_,
         SdfPath const &instancePath_,
         VtIntArray const &instanceIndices_,
-        HdxSelectionHighlightMode const& highlightMode_,
-        HdxSelectionSharedPtr const &result_)
+        HdSelection::HighlightMode const& highlightMode_,
+        HdSelectionSharedPtr const &result_)
         : adapter(adapter_)
         , instancerPath(instancerPath_)
         , instancePath(instancePath_)
@@ -1726,18 +1728,18 @@ struct UsdImagingInstanceAdapter::_PopulateInstanceSelectionFn
     SdfPath instancerPath;
     SdfPath instancePath;
     VtIntArray instanceIndices;
-    HdxSelectionHighlightMode highlightMode;
-    HdxSelectionSharedPtr result;
+    HdSelection::HighlightMode highlightMode;
+    HdSelectionSharedPtr result;
     bool found;
 };
 
 /*virtual*/
 bool
 UsdImagingInstanceAdapter::PopulateSelection(
-    HdxSelectionHighlightMode const& highlightMode,
+    HdSelection::HighlightMode const& highlightMode,
     SdfPath const &instancePath,
     VtIntArray const &instanceIndices,
-    HdxSelectionSharedPtr const &result)
+    HdSelectionSharedPtr const &result)
 {
     HD_TRACE_FUNCTION();
 

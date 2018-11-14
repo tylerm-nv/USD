@@ -41,6 +41,10 @@ struct HdBasisCurvesReprDesc {
         : geomStyle(geomStyle)
         {}
 
+    bool IsEmpty() const {
+        return geomStyle == HdBasisCurvesGeomStyleInvalid;
+    }
+    
     HdBasisCurvesGeomStyle geomStyle;
 };
 
@@ -55,7 +59,7 @@ public:
     /// Topology
     ///
     inline HdBasisCurvesTopology  GetBasisCurvesTopology(HdSceneDelegate* delegate) const;
-    inline int                    GetRefineLevel(HdSceneDelegate* delegate)         const;
+    inline HdDisplayStyle         GetDisplayStyle(HdSceneDelegate* delegate)        const;
 
     /// Configure geometric style of drawItems for \p reprName
     HD_API
@@ -75,7 +79,7 @@ protected:
 
     HD_API
     static _BasisCurvesReprConfig::DescArray
-        _GetReprDesc(TfToken const &reprName);
+        _GetReprDesc(HdReprSelector const &reprSelector);
 
 private:
     // Class can not be default constructed or copied.
@@ -92,10 +96,10 @@ HdBasisCurves::GetBasisCurvesTopology(HdSceneDelegate* delegate) const
     return delegate->GetBasisCurvesTopology(GetId());
 }
 
-inline int
-HdBasisCurves::GetRefineLevel(HdSceneDelegate* delegate) const
+inline HdDisplayStyle
+HdBasisCurves::GetDisplayStyle(HdSceneDelegate* delegate) const
 {
-    return delegate->GetRefineLevel(GetId());
+    return delegate->GetDisplayStyle(GetId());
 }
 
 

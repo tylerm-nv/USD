@@ -1,6 +1,12 @@
 set(PXR_PREFIX pxr/imaging)
 set(PXR_PACKAGE hdx)
 
+if (NOT ${PXR_ENABLE_GL_SUPPORT})
+    message(STATUS
+        "Skipping ${PXR_PACKAGE} because PXR_ENABLE_GL_SUPPORT is OFF")
+    return()
+endif()
+
 pxr_library(hdx
     LIBRARIES
         plug
@@ -21,6 +27,8 @@ pxr_library(hdx
         ${GLEW_INCLUDE_DIR}
 
     PUBLIC_CLASSES
+        colorizeTask
+        compositor
         drawTargetRenderPass
         drawTargetTask
         drawTargetResolveTask
@@ -54,11 +62,13 @@ pxr_library(hdx
 
     RESOURCE_FILES
         plugInfo.json
-        shaders/simpleLightingShader.glslfx
+        shaders/fullscreen.glslfx
         shaders/renderPass.glslfx
         shaders/renderPassShader.glslfx
         shaders/renderPassIdShader.glslfx
         shaders/renderPassShadowShader.glslfx
+        shaders/selection.glslfx
+        shaders/simpleLightingShader.glslfx
 )
 
 if (X11_FOUND OR APPLE)

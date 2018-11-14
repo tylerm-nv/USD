@@ -41,6 +41,7 @@
 #endif // PXR_PYTHON_SUPPORT_ENABLED
 
 #include "pxr/base/tf/staticData.h"
+#include "pxr/base/tf/stringUtils.h"
 
 #include <functional>
 #include <iostream>
@@ -114,8 +115,9 @@ TraceCollector::TimeStamp
 TraceCollector::_BeginEvent(const Key& key, TraceCategoryId cat)
 {
     TfAutoMallocTag2 tag("Trace", "TraceCollector::BeginEvent");
-    if (!IsEnabled())
+    if (!IsEnabled()) {
         return 0;
+    }
 
     _PerThreadData *threadData = _GetThreadData();
     return threadData->BeginEvent(key, cat);
@@ -131,6 +133,18 @@ TraceCollector::_EndEvent(const Key& key, TraceCategoryId cat)
 
     _PerThreadData *threadData = _GetThreadData();
     return threadData->EndEvent(key, cat);
+}
+
+TraceCollector::TimeStamp
+TraceCollector::_MarkerEvent(const Key& key, TraceCategoryId cat)
+{
+    TfAutoMallocTag2 tag("Trace", "TraceCollector::MarkerEvent");
+    if (!IsEnabled()) {
+        return 0;
+    }
+
+    _PerThreadData *threadData = _GetThreadData();
+    return threadData->MarkerEvent(key, cat);
 }
 
 void
@@ -157,6 +171,19 @@ TraceCollector::_BeginEventAtTime(const Key& key, double ms, TraceCategoryId cat
 
     _PerThreadData *threadData = _GetThreadData();
     threadData->BeginEventAtTime(key, ms, cat);
+}
+
+void
+TraceCollector::_MarkerEventAtTime(const Key& key, double ms, TraceCategoryId cat)
+{
+    TfAutoMallocTag2 tag("Trace",
+        "TraceCollector::MarkerEventAtTime (key, double)");
+    if (!IsEnabled()) {
+        return;
+    }
+
+    _PerThreadData *threadData = _GetThreadData();
+    threadData->MarkerEventAtTime(key, ms, cat);
 }
 
 void
@@ -285,6 +312,17 @@ TraceCollector::_PerThreadData::EndEvent(const Key& key, TraceCategoryId cat)
     return event.GetTimeStamp();
 }
 
+TraceCollector::TimeStamp
+TraceCollector::_PerThreadData::MarkerEvent(const Key& key, TraceCategoryId cat)
+{
+    TfAutoMallocTag2 tag("Trace", "TraceCollector::_PerThreadData::MarkerEvent");
+    AtomicRef lock(_writing);
+    EventList* events = _events.load(std::memory_order_acquire);
+    const TraceEvent& event =
+        events->EmplaceBack(TraceEvent::Marker, events->CacheKey(key), cat);
+    return event.GetTimeStamp();
+}
+
 void
 TraceCollector::_PerThreadData::BeginEventAtTime(
     const Key& key, double ms, TraceCategoryId cat)
@@ -309,6 +347,19 @@ TraceCollector::_PerThreadData::EndEventAtTime(
         uint64_t(ms * 1000 / double(ArchTicksToSeconds(1000000)));
     EventList* events = _events.load(std::memory_order_acquire);
     events->EmplaceBack(TraceEvent::End, events->CacheKey(key), ts, cat);
+}
+
+void
+TraceCollector::_PerThreadData::MarkerEventAtTime(
+    const Key& key, double ms, TraceCategoryId cat)
+{
+    AtomicRef lock(_writing);
+    TfAutoMallocTag2 tag("Trace", 
+        "TraceCollector::_PerThreadData::MarkerEventAtTime");
+    const TimeStamp ts = 
+        uint64_t(ms * 1000 / double(ArchTicksToSeconds(1000000)));
+    EventList* events = _events.load(std::memory_order_acquire);
+    events->EmplaceBack(TraceEvent::Marker, events->CacheKey(key), ts, cat);
 }
 
 void

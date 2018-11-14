@@ -26,6 +26,7 @@
 
 #include "pxr/pxr.h"
 #include "pxr/imaging/hd/api.h"
+#include "pxr/imaging/hd/aov.h"
 #include "pxr/imaging/hd/changeTracker.h"
 #include "pxr/base/tf/token.h"
 
@@ -271,11 +272,41 @@ public:
     /// Materials
     ///
     ////////////////////////////////////////////////////////////////////////////
+    
     ///
-    /// Returns true if this renderer can deal with full materials.
+    /// Returns a token that indicates material bindings should be used,
+    /// based on the indicated purpose.  The default purpose is
+    /// HdTokens->preview.
     ///
     HD_API
-    virtual bool CanComputeMaterialNetworks() const { return false; }
+    virtual TfToken GetMaterialBindingPurpose() const;
+
+    ///
+    /// Returns a token that can be used to select among multiple
+    /// material network implementations.  The default is empty.
+    ///
+    HD_API
+    virtual TfToken GetMaterialNetworkSelector() const;
+
+    ///
+    /// Returns the ordered list of shader source types that the render delegate 
+    /// supports.
+    /// 
+    HD_API
+    virtual TfTokenVector GetShaderSourceTypes() const;
+
+    ////////////////////////////////////////////////////////////////////////////
+    ///
+    /// AOVs
+    ///
+    ////////////////////////////////////////////////////////////////////////////
+
+    ///
+    /// Returns a default AOV descriptor for the given named AOV, specifying
+    /// things like preferred format.
+    ///
+    HD_API
+    virtual HdAovDescriptor GetDefaultAovDescriptor(TfToken const& name) const;
 
 protected:
     /// This class must be derived from

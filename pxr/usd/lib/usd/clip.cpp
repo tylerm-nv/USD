@@ -1296,6 +1296,10 @@ Usd_Clip::ListTimeSamplesForPath(const SdfAbstractDataSpecId& id) const
 
     std::set<ExternalTime> timeSamples;
 
+    // A clip is active in the time range [startTime, endTime).
+    const GfInterval clipTimeInterval(
+        startTime, endTime, /* minClosed = */ true, /* maxClosed = */ false);
+
     // We need to convert the internal time samples to the external
     // domain using the clip's time mapping. This is tricky because the
     // mapping is many-to-one: multiple external times may map to the
@@ -1307,6 +1311,13 @@ Usd_Clip::ListTimeSamplesForPath(const SdfAbstractDataSpecId& id) const
         for (size_t i = 0; i < times.size() - 1; ++i) {
             const TimeMapping& m1 = times[i];
             const TimeMapping& m2 = times[i+1];
+
+            // Ignore time mappings whose external time domain does not 
+            // intersect the times at which this clip is active.
+            const GfInterval mappingInterval(m1.externalTime, m2.externalTime);
+            if (!mappingInterval.Intersects(clipTimeInterval)) {
+                continue;
+            }
 
             if (m1.internalTime <= t && t <= m2.internalTime) {
                 if (m1.internalTime == m2.internalTime) {

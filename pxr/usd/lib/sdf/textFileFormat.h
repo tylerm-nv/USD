@@ -50,8 +50,6 @@ TF_DECLARE_WEAK_AND_REF_PTRS(SdfLayerBase);
 
 SDF_DECLARE_HANDLES(SdfSpec);
 
-class ArchFile;
-
 /// \class SdfTextFileFormat
 ///
 /// Sdf text file format
@@ -139,8 +137,6 @@ private:
     SDF_API virtual bool _ShouldSkipAnonymousReload() const;
 
     SDF_API virtual bool _IsStreamingLayer(const SdfLayerBase& layer) const;
-
-    bool _CanReadImpl(ArchFile *fp) const;
 
 };
 

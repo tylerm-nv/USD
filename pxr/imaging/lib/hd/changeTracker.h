@@ -64,7 +64,7 @@ public:
         AllDirty                    = ~Varying,
         DirtyPrimID                 = 1 << 2,
         DirtyExtent                 = 1 << 3,
-        DirtyRefineLevel            = 1 << 4,
+        DirtyDisplayStyle           = 1 << 4,
         DirtyPoints                 = 1 << 5,
         DirtyPrimvar                = 1 << 6,
         DirtyMaterialId             = 1 << 7,
@@ -81,11 +81,12 @@ public:
         DirtyRepr                   = 1 << 18,
         DirtyRenderTag              = 1 << 19,
         DirtyComputationPrimvarDesc = 1 << 20,
-        AllSceneDirtyBits           = ((1<<21) - 1),
+        DirtyCategories             = 1 << 21,
+        AllSceneDirtyBits           = ((1<<22) - 1),
 
-        NewRepr                     = 1 << 21,
+        NewRepr                     = 1 << 22,
 
-        CustomBitsBegin             = 1 << 22,
+        CustomBitsBegin             = 1 << 23,
         CustomBitsEnd               = 1 << 30,
     };
 
@@ -167,9 +168,9 @@ public:
     HD_API
     bool IsExtentDirty(SdfPath const& id);
 
-    /// Returns true if the rprim identified by \p id has a dirty refine level.
+    /// Returns true if the rprim identified by \p id has a dirty display style.
     HD_API
-    bool IsRefineLevelDirty(SdfPath const& id);
+    bool IsDisplayStyleDirty(SdfPath const& id);
 
     /// Returns true if the rprim identified by \p id with primvar \p name is
     /// dirty.
@@ -222,9 +223,9 @@ public:
     HD_API
     static bool IsExtentDirty(HdDirtyBits dirtyBits, SdfPath const& id);
 
-    /// Returns true if the dirtyBits has a dirty refine level. id is for perflog.
+    /// Returns true if the dirtyBits has a dirty display style. id is for perflog.
     HD_API
-    static bool IsRefineLevelDirty(HdDirtyBits dirtyBits, SdfPath const& id);
+    static bool IsDisplayStyleDirty(HdDirtyBits dirtyBits, SdfPath const& id);
 
     /// Returns true if the dirtyBits has a dirty subdiv tags. id is for perflog.
     HD_API
@@ -425,6 +426,22 @@ public:
         return _needsGarbageCollection;
     }
 
+    void ClearBprimGarbageCollectionNeeded() {
+        _needsBprimGarbageCollection = false;
+    }
+
+    /// Sets the garbageCollectionNeeded flag.
+    void SetBprimGarbageCollectionNeeded() {
+        _needsBprimGarbageCollection = true;
+    }
+
+    /// Returns true if garbage collection was flagged to be run.
+    /// Currently, this flag only gets set internally when Rprims are removed.
+    bool IsBprimGarbageCollectionNeeded() const {
+        return _needsBprimGarbageCollection;
+    }
+
+
     // ---------------------------------------------------------------------- //
     /// @}
     /// \name RprimCollection Tracking
@@ -464,13 +481,14 @@ public:
         return _changeCount;
     }
 
-    /// Marks all shader bindings dirty (draw batches need to be validated).
+    /// Marks all batches dirty, meaning they need to be validated and
+    /// potentially rebuilt.
     HD_API
-    void MarkShaderBindingsDirty();
+    void MarkBatchesDirty();
 
-    /// Returns the current shader binding version.
+    /// Returns the current batch version.
     HD_API
-    unsigned GetShaderBindingsVersion() const;
+    unsigned GetBatchVersion() const;
 
     /// Returns the current version of the Render Index's RPrim set.
     HD_API
@@ -529,6 +547,7 @@ private:
     // Collection versions / state.
     _CollectionStateMap _collectionState;
     bool _needsGarbageCollection;
+    bool _needsBprimGarbageCollection;
 
     // Provides reverse-association between instancers and the rprims that use
     // them.
@@ -549,8 +568,8 @@ private:
     // Used to detect that visibility changed somewhere in the render index.
     unsigned _visChangeCount;
 
-    // Used to validate shader bindings (to validate draw batches)
-    std::atomic_uint _shaderBindingsVersion;
+    // Used to validate draw batches.
+    std::atomic_uint _batchVersion;
 };
 
 

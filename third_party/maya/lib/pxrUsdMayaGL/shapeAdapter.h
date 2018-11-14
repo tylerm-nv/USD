@@ -91,7 +91,14 @@ class PxrMayaHdShapeAdapter
         /// Returns true if the visibility state was changed, or false
         /// otherwise.
         PXRUSDMAYAGL_API
-        virtual bool UpdateVisibility();
+        virtual bool UpdateVisibility(const MSelectionList& isolatedObjects);
+
+        /// Gets whether the shape adapter's shape is visible.
+        ///
+        /// This should be called after a call to UpdateVisibility() to ensure
+        /// that the returned value is correct. 
+        PXRUSDMAYAGL_API
+        virtual bool IsVisible() const;
 
         /// Get the Maya user data object for drawing in the legacy viewport.
         ///
@@ -203,6 +210,21 @@ class PxrMayaHdShapeAdapter
                 const MDagPath& shapeDagPath,
                 MColor* mayaWireColor);
 
+        /// Helper for computing the viewport visibility of the shape.
+        ///
+        /// Takes into account the visibility attribute on the shape and its
+        /// DAG ancestors, as well as the current \p isolatedObjects for the
+        /// viewport. If \p isolatedObjects is empty, then nothing is filtered,
+        /// but if \p isolatedObjects is non-empty, only the obejcts in the list
+        /// (and their descendants) are visible.
+        ///
+        /// Returns true if computing the visibility was successful, false if
+        /// there was an error. The visibility is returned in \p visibility.
+        static bool _GetVisibility(
+                const MDagPath& dagPath,
+                const MSelectionList& isolatedObjects,
+                bool* visibility);
+
         /// Construct a new uninitialized PxrMayaHdShapeAdapter.
         PXRUSDMAYAGL_API
         PxrMayaHdShapeAdapter();
@@ -227,4 +249,4 @@ class PxrMayaHdShapeAdapter
 PXR_NAMESPACE_CLOSE_SCOPE
 
 
-#endif // PXRUSDMAYAGL_SHAPE_ADAPTER_H
+#endif

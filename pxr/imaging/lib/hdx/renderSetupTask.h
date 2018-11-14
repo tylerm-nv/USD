@@ -29,6 +29,7 @@
 #include "pxr/imaging/hdx/version.h"
 #include "pxr/imaging/hd/task.h"
 #include "pxr/imaging/hd/enums.h"
+#include "pxr/imaging/hd/renderPassState.h"
 
 #include "pxr/base/gf/vec2f.h"
 #include "pxr/base/gf/vec4f.h"
@@ -52,16 +53,26 @@ class HdStRenderPassState;
 /// A task for setting up render pass state (camera, renderpass shader, GL
 /// states).
 ///
+/// HdxRenderTask depends on the output of this task.  Applications can choose
+/// to create a render setup task, and pass it the HdxRenderTaskParams; or they
+/// can pass the HdxRenderTaskParams directly to the render task, which will
+/// create a render setup task internally.  See the HdxRenderTask documentation
+/// for details.
+///
 class HdxRenderSetupTask : public HdSceneTask {
 public:
     HDX_API
     HdxRenderSetupTask(HdSceneDelegate* delegate, SdfPath const& id);
 
-    // compatibility APIs used from HdxRenderTask
+    // APIs used from HdxRenderTask to manage the sync process.
     HDX_API
     void SyncParams(HdxRenderTaskParams const &params);
     HDX_API
     void SyncCamera();
+    HDX_API
+    void SyncAttachments();
+    HDX_API
+    void SyncRenderPassState();
 
     HdRenderPassStateSharedPtr const &GetRenderPassState() const {
         return _renderPassState;
@@ -86,6 +97,7 @@ private:
     GfVec4d _viewport;
     SdfPath _cameraId;
     TfTokenVector _renderTags;
+    HdRenderPassAttachmentVector _attachments;
 
     static HdStShaderCodeSharedPtr _overrideShader;
 
@@ -104,6 +116,8 @@ struct HdxRenderTaskParams : public HdTaskParams
     HdxRenderTaskParams()
         : overrideColor(0.0)
         , wireframeColor(0.0)
+        , maskColor(1.0f, 0.0f, 0.0f, 1.0f)
+        , indicatorColor(0.0f, 1.0f, 0.0f, 1.0f)
         , pointColor(GfVec4f(0,0,0,1))
         , pointSize(3.0)
         , pointSelectedSize(3.0)
@@ -112,7 +126,7 @@ struct HdxRenderTaskParams : public HdTaskParams
         , alphaThreshold(0.0)
         , tessLevel(1.0)
         , drawingRange(0.0, -1.0)
-        , enableHardwareShading(true)
+        , enableSceneMaterials(true)
         , renderTags()
         , depthBiasUseDefault(true)
         , depthBiasEnable(false)
@@ -125,18 +139,22 @@ struct HdxRenderTaskParams : public HdTaskParams
         , stencilFailOp(HdStencilOpKeep)
         , stencilZFailOp(HdStencilOpKeep)
         , stencilZPassOp(HdStencilOpKeep)
+        , stencilEnable(false)
         , cullStyle(HdCullStyleBackUnlessDoubleSided)
         , geomStyle(HdGeomStylePolygons)
         , complexity(HdComplexityLow)
         , hullVisibility(false)
         , surfaceVisibility(true)
+        , attachments()
         , camera()
         , viewport(0.0)
         {}
 
-    // RasterState
+    // XXX: Several of the params below should move to global application state.
     GfVec4f overrideColor;
     GfVec4f wireframeColor;
+    GfVec4f maskColor;
+    GfVec4f indicatorColor;
     GfVec4f pointColor;
     float pointSize;
     float pointSelectedSize;
@@ -145,7 +163,7 @@ struct HdxRenderTaskParams : public HdTaskParams
     float alphaThreshold;
     float tessLevel;
     GfVec2f drawingRange;
-    bool enableHardwareShading;
+    bool enableSceneMaterials;
     TfTokenVector renderTags;
 
     // Depth Bias Raster State
@@ -175,6 +193,11 @@ struct HdxRenderTaskParams : public HdTaskParams
     HdComplexity complexity;
     bool hullVisibility;
     bool surfaceVisibility;
+
+    // Attachments.
+    // XXX: As a transitional API, if this is empty it indicates the renderer
+    // should write color and depth to the GL framebuffer.
+    HdRenderPassAttachmentVector attachments;
 
     // RasterState index objects
     SdfPath camera;

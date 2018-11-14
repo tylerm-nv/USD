@@ -26,6 +26,8 @@
 
 #include "pxr/pxr.h"
 #include "pxr/imaging/hd/renderDelegate.h"
+#include "pxr/imaging/hd/renderThread.h"
+#include "pxr/imaging/hdEmbree/renderer.h"
 
 #include <mutex>
 #include <embree2/rtcore.h>
@@ -184,10 +186,27 @@ public:
     /// This function is called after new scene data is pulled during prim
     /// Sync(), but before any tasks (such as draw tasks) are run, and gives the
     /// render delegate a chance to transfer any invalidated resources to the
-    /// rendering kernel. This class takes the  opportunity to update embree's
-    /// scene acceleration datastructures.
+    /// rendering kernel.
     ///   \param tracker The change tracker passed to prim Sync().
     virtual void CommitResources(HdChangeTracker *tracker) override;
+
+    /// This function tells the scene which material variant to reference.
+    /// Embree doesn't currently use materials but raytraced backends generally
+    /// specify "full".
+    ///   \return A token specifying which material variant this renderer
+    ///           prefers.
+    virtual TfToken GetMaterialBindingPurpose() const override {
+        return HdTokens->full;
+    }
+
+    /// This function returns the default AOV descriptor for a given named AOV.
+    /// This mechanism lets the renderer decide things like what format
+    /// a given AOV will be written as.
+    ///   \param name The name of the AOV whose descriptor we want.
+    ///   \return A descriptor specifying things like what format the AOV
+    ///           output buffer should be.
+    virtual HdAovDescriptor
+        GetDefaultAovDescriptor(TfToken const& name) const override;
 
 private:
     static const TfTokenVector SUPPORTED_RPRIM_TYPES;
@@ -209,9 +228,20 @@ private:
     // Handle for the top-level embree scene, mirroring the Hydra scene.
     RTCScene _rtcScene;
 
+    // A version counter for edits to _scene.
+    std::atomic<int> _sceneVersion;
+
     // A shared HdEmbreeRenderParam object that stores top-level embree state;
     // passed to prims during Sync().
     std::shared_ptr<HdEmbreeRenderParam> _renderParam;
+
+    // A background render thread for running the actual renders in. The
+    // render thread object manages synchronization between the scene data
+    // and the background-threaded renderer.
+    HdRenderThread _renderThread;
+
+    // An embree renderer object, to perform the actual raytracing.
+    HdEmbreeRenderer _renderer;
 
     // A callback that interprets embree error codes and injects them into
     // the hydra logging system.

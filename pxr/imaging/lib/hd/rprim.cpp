@@ -50,8 +50,7 @@ TF_DEFINE_ENV_SETTING(HD_ENABLE_SHARED_VERTEX_PRIMVAR, 1,
 
 HdRprim::HdRprim(SdfPath const& id,
                  SdfPath const& instancerId)
-    : _id(id)
-    , _instancerId(instancerId)
+    : _instancerId(instancerId)
     , _materialId()
     , _sharedData(HdDrawingCoord::DefaultNumSlots,
                   /*hasInstancer=*/(!instancerId.IsEmpty()),
@@ -71,12 +70,12 @@ HdRprim::Finalize(HdRenderParam *renderParam)
 }
 
 const std::vector<HdDrawItem*>*
-HdRprim::GetDrawItems(TfToken const &defaultReprName, bool forced) const
+HdRprim::GetDrawItems(HdReprSelector const &defaultReprSelector, bool forced) const
 {
     // note: GetDrawItems is called at execute phase.
     // All required dirtyBits should have cleaned at this point.
-    TfToken reprName = _GetReprName(defaultReprName, forced);
-    HdReprSharedPtr repr = _GetRepr(reprName);
+    HdReprSelector reprSelector = _GetReprSelector(defaultReprSelector, forced);
+    HdReprSharedPtr repr = _GetRepr(reprSelector);
 
     if (repr) {
         return &repr->GetDrawItems();
@@ -85,63 +84,37 @@ HdRprim::GetDrawItems(TfToken const &defaultReprName, bool forced) const
     }
 }
 
-
 void
-HdRprim::_Sync(HdSceneDelegate* delegate,
-              TfToken const &defaultReprName,
-              bool forced,
-              HdDirtyBits *dirtyBits)
-{
-    HdRenderIndex   &renderIndex   = delegate->GetRenderIndex();
-    HdChangeTracker &changeTracker = renderIndex.GetChangeTracker();
-
-    // Check if the rprim has a new material binding associated to it,
-    // if so, we will request the binding from the delegate and set it up in
-    // this rprim.
-    if (*dirtyBits & HdChangeTracker::DirtyMaterialId) {
-        VtValue materialId = 
-            delegate->Get(GetId(), HdShaderTokens->material);
-
-        if (materialId.IsHolding<SdfPath>()){
-            _SetMaterialId(changeTracker, materialId.Get<SdfPath>());
-        } else {
-            _SetMaterialId(changeTracker, SdfPath());
-        }
-
-        *dirtyBits &= ~HdChangeTracker::DirtyMaterialId;
-    }
-}
-
-void
-HdRprim::_UpdateReprName(HdSceneDelegate* delegate,
-                         HdDirtyBits *dirtyBits)
+HdRprim::_UpdateReprSelector(HdSceneDelegate* delegate,
+                             HdDirtyBits *dirtyBits)
 {
     SdfPath const& id = GetId();
     if (HdChangeTracker::IsReprDirty(*dirtyBits, id)) {
-        _authoredReprName = delegate->GetReprName(id);
+        _authoredReprSelector = delegate->GetReprSelector(id);
         *dirtyBits &= ~HdChangeTracker::DirtyRepr;
     }
 }
 
-TfToken
-HdRprim::_GetReprName(TfToken const &defaultReprName, bool forced) const
+HdReprSelector
+HdRprim::_GetReprSelector(HdReprSelector const &defaultReprSelector, bool forced) const
 {
-    // if not forced, the prim's authored reprname wins.
-    // otherewise we respect defaultReprName (used for shadowmap drawing etc)
-    if (!forced && !_authoredReprName.IsEmpty()) {
-        return _authoredReprName;
+    // if not forced, the prim's authored opinion composites over the
+    // collection's repr, otherwise we respect the collection's repr
+    // (used for shadows)
+    if (!forced) {
+        return _authoredReprSelector.CompositeOver(defaultReprSelector);
     }
-    return defaultReprName;
+    return defaultReprSelector;
 }
 
 HdReprSharedPtr const &
-HdRprim::_GetRepr(TfToken const &reprName) const
+HdRprim::_GetRepr(HdReprSelector const &reprSelector) const
 {
     _ReprVector::const_iterator reprIt =
-        std::find_if(_reprs.begin(), _reprs.end(), _ReprComparator(reprName));
+        std::find_if(_reprs.begin(), _reprs.end(), _ReprComparator(reprSelector));
     if (reprIt == _reprs.end()) {
         TF_CODING_ERROR("_InitRepr() should be called for repr %s on prim %s.",
-                        reprName.GetText(), GetId().GetText());
+                        reprSelector.GetText(), GetId().GetText());
         static const HdReprSharedPtr ERROR_RETURN;
         return ERROR_RETURN;
     }
@@ -203,8 +176,8 @@ HdRprim::PropagateRprimDirtyBits(HdDirtyBits bits)
                                               HdChangeTracker::DirtyNormals : 0;
 
     // when refine level changes, topology becomes dirty.
-    // XXX: can we remove DirtyRefineLevel then?
-    if (bits & HdChangeTracker::DirtyRefineLevel) {
+    // XXX: can we remove DirtyDisplayStyle then?
+    if (bits & HdChangeTracker::DirtyDisplayStyle) {
         bits |=  HdChangeTracker::DirtyTopology;
     }
 
@@ -221,13 +194,13 @@ HdRprim::PropagateRprimDirtyBits(HdDirtyBits bits)
 
 void
 HdRprim::InitRepr(HdSceneDelegate* delegate,
-                  TfToken const &defaultReprName,
+                  HdReprSelector const &defaultReprSelector,
                   bool forced,
                   HdDirtyBits *dirtyBits)
 {
-    _UpdateReprName(delegate, dirtyBits);
-    TfToken reprName = _GetReprName(defaultReprName, forced);
-    _InitRepr(reprName, dirtyBits);
+    _UpdateReprSelector(delegate, dirtyBits);
+    HdReprSelector reprSelector = _GetReprSelector(defaultReprSelector, forced);
+    _InitRepr(reprSelector, dirtyBits);
 
 }
 
@@ -242,9 +215,9 @@ HdRprim::_UpdateVisibility(HdSceneDelegate* delegate,
 
 
 TfToken
-HdRprim::GetRenderTag(HdSceneDelegate* delegate, TfToken const& reprName) const
+HdRprim::GetRenderTag(HdSceneDelegate* delegate) const
 {
-    return delegate->GetRenderTag(_id, reprName);
+    return delegate->GetRenderTag(GetId());
 }
 
 void 
@@ -254,8 +227,9 @@ HdRprim::_SetMaterialId(HdChangeTracker &changeTracker,
     if (_materialId != materialId) {
         _materialId = materialId;
 
-        // The batches need to be verified and rebuilt if necessary.
-        changeTracker.MarkShaderBindingsDirty();
+        // The batches need to be verified and rebuilt, since a changed shader
+        // may change aggregation.
+        changeTracker.MarkBatchesDirty();
     }
 }
 
@@ -272,16 +246,11 @@ HdRprim::SetPrimId(int32_t primId)
     // Don't set DirtyPrimID here, to avoid undesired variability tracking.
 }
 
-HdDirtyBits
-HdRprim::GetInitialDirtyBitsMask() const
-{
-    return _GetInitialDirtyBits();
-}
-
 void
 HdRprim::_PopulateConstantPrimvars(HdSceneDelegate* delegate,
                                    HdDrawItem *drawItem,
-                                   HdDirtyBits *dirtyBits)
+                                   HdDirtyBits *dirtyBits,
+                                   HdPrimvarDescriptorVector const& constantPrimvars)
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
@@ -371,8 +340,6 @@ HdRprim::_PopulateConstantPrimvars(HdSceneDelegate* delegate,
     }
 
     if (HdChangeTracker::IsAnyPrimvarDirty(*dirtyBits, id)) {
-        HdPrimvarDescriptorVector constantPrimvars =
-            delegate->GetPrimvarDescriptors(id, HdInterpolationConstant);
         sources.reserve(sources.size()+constantPrimvars.size());
         for (const HdPrimvarDescriptor& pv: constantPrimvars) {
             if (HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, pv.name)) {
@@ -410,9 +377,7 @@ HdRprim::_PopulateConstantPrimvars(HdSceneDelegate* delegate,
     if (!drawItem->GetConstantPrimvarRange()) {
         // establish a buffer range
         HdBufferSpecVector bufferSpecs;
-        TF_FOR_ALL(srcIt, sources) {
-            (*srcIt)->AddBufferSpecs(&bufferSpecs);
-        }
+        HdBufferSpec::GetBufferSpecs(sources, &bufferSpecs);
 
         HdBufferArrayRangeSharedPtr range =
             resourceRegistry->AllocateShaderStorageBufferArrayRange(
@@ -520,7 +485,7 @@ HdRprim::_ComputeSharedPrimvarId(uint64_t baseId,
     }
 
     HdBufferSpecVector bufferSpecs;
-    HdBufferSpec::AddBufferSpecs(&bufferSpecs, computations);
+    HdBufferSpec::GetBufferSpecs(computations, &bufferSpecs);
     for (HdBufferSpec const &bufferSpec : bufferSpecs) {
         boost::hash_combine(primvarId, bufferSpec.name);
         boost::hash_combine(primvarId, bufferSpec.tupleType.type);

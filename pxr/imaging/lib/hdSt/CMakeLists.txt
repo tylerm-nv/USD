@@ -1,6 +1,12 @@
 set(PXR_PREFIX pxr/imaging)
 set(PXR_PACKAGE hdSt)
 
+if (NOT ${PXR_ENABLE_GL_SUPPORT})
+    message(STATUS
+        "Skipping ${PXR_PACKAGE} because PXR_ENABLE_GL_SUPPORT is OFF")
+    return()
+endif()
+
 if (OPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
     add_definitions(-DOPENSUBDIV_HAS_GLSL_TRANSFORM_FEEDBACK)
 endif()
@@ -42,6 +48,7 @@ pxr_library(hdSt
         extCompGpuComputationResource
         extCompGpuPrimvarBufferSource
         fallbackLightingShader
+        flatNormals
         geometricShader
         glConversions
         glslfxShader
@@ -119,6 +126,7 @@ pxr_library(hdSt
         shaders/renderPass.glslfx
         shaders/renderPassShader.glslfx
         shaders/terminals.glslfx
+        shaders/visibility.glslfx
 )
 
 if (X11_FOUND OR APPLE)

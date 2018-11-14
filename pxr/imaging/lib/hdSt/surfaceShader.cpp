@@ -228,9 +228,7 @@ HdStSurfaceShader::SetBufferSources(HdBufferSourceVector &bufferSources,
     } else {
         // Build the buffer Spec to see if its changed.
         HdBufferSpecVector bufferSpecs;
-        TF_FOR_ALL(srcIt, bufferSources) {
-            (*srcIt)->AddBufferSpecs(&bufferSpecs);
-        }
+        HdBufferSpec::GetBufferSpecs(bufferSources, &bufferSpecs);
 
         if (!_paramArray || _paramSpec != bufferSpecs) {
             _paramSpec = bufferSpecs;
@@ -241,14 +239,14 @@ HdStSurfaceShader::SetBufferSources(HdBufferSourceVector &bufferSources,
                                                   HdTokens->materialParams,
                                                   bufferSpecs);
 
-            if (!TF_VERIFY(range->IsValid())) {
+            if (!range || !TF_VERIFY(range->IsValid())) {
                 _paramArray.reset();
-    } else {
+            } else {
                 _paramArray = range;
             }
         }
 
-        if (_paramArray->IsValid()) {
+        if (_paramArray && _paramArray->IsValid()) {
             resourceRegistry->AddSources(_paramArray, bufferSources);
         }
     }

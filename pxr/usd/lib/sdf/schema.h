@@ -41,6 +41,7 @@
 #include "pxr/base/vt/value.h"
 
 #include <boost/function.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -76,8 +77,11 @@ public:
             const TfToken& name, 
             const VtValue& fallbackValue);
 
+        typedef std::vector< std::pair<TfToken, JsValue> > InfoVec;
+
         SDF_API const TfToken& GetName() const;
         SDF_API const VtValue& GetFallbackValue() const;
+        SDF_API const InfoVec& GetInfo() const;
 
         SDF_API bool IsPlugin() const;
         SDF_API bool IsReadOnly() const;
@@ -129,6 +133,7 @@ public:
         FieldDefinition& Plugin();
         FieldDefinition& Children();
         FieldDefinition& ReadOnly();
+        FieldDefinition& AddInfo(const TfToken& tok, const JsValue& val);
 
         typedef boost::function<
             SdfAllowed(const SdfSchemaBase&, const VtValue&)> Validator;
@@ -143,6 +148,7 @@ public:
         const SdfSchemaBase& _schema;
         TfToken _name;
         VtValue _fallbackValue;
+        InfoVec _info;
 
         bool _isPlugin;
         bool _isReadOnly;
@@ -464,7 +470,8 @@ protected:
 
     /// Registers all metadata fields specified in the given plugins
     /// under the given metadata tag.
-    void _UpdateMetadataFromPlugins(const PlugPluginPtrVector& plugins,
+    const std::vector<const SdfSchemaBase::FieldDefinition *>
+    _UpdateMetadataFromPlugins(const PlugPluginPtrVector& plugins,
                                     const std::string& metadataTag = 
                                         std::string(),
                                     const _DefaultValueFactoryFn& defFactory = 
@@ -511,7 +518,7 @@ private:
         _SpecDefinitionMap;
     _SpecDefinitionMap _specDefinitions;
 
-    boost::scoped_ptr<Sdf_ValueTypeRegistry> _valueTypeRegistry;
+    std::unique_ptr<Sdf_ValueTypeRegistry> _valueTypeRegistry;
     TfTokenVector _requiredFieldNames;
 };
 

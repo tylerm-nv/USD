@@ -75,25 +75,13 @@ TF_DEFINE_PRIVATE_TOKENS(
 
 /* virtual */
 bool
-PxrMayaHdUsdProxyShapeAdapter::UpdateVisibility()
+PxrMayaHdUsdProxyShapeAdapter::UpdateVisibility(
+    const MSelectionList& isolatedObjects)
 {
-    MStatus status;
-    const MHWRender::DisplayStatus displayStatus =
-        MHWRender::MGeometryUtilities::displayStatus(_shapeDagPath, &status);
-    if (status != MS::kSuccess) {
+    bool isVisible;
+    if (!_GetVisibility(_shapeDagPath, isolatedObjects, &isVisible)) {
         return false;
     }
-
-    // The displayStatus() method above does not account for things like
-    // display layers, so we also check the shape's dag path for its visibility
-    // state.
-    const bool dagPathIsVisible = _shapeDagPath.isVisible(&status);
-    if (status != MS::kSuccess) {
-        return false;
-    }
-
-    const bool isVisible =
-        (displayStatus != MHWRender::kInvisible) && dagPathIsVisible;
 
     if (_delegate && _delegate->GetRootVisibility() != isVisible) {
         _delegate->SetRootVisibility(isVisible);
@@ -101,6 +89,13 @@ PxrMayaHdUsdProxyShapeAdapter::UpdateVisibility()
     }
 
     return false;
+}
+
+/* virtual */
+bool
+PxrMayaHdUsdProxyShapeAdapter::IsVisible() const
+{
+    return (_delegate && _delegate->GetRootVisibility());
 }
 
 /* virtual */
@@ -146,16 +141,12 @@ PxrMayaHdUsdProxyShapeAdapter::_Sync(
     UsdTimeCode timeCode;
     bool showGuides;
     bool showRenderGuides;
-    bool tint;
-    GfVec4f tintColor;
     if (!usdProxyShape->GetAllRenderAttributes(&usdPrim,
                                                &excludedPrimPaths,
                                                &refineLevel,
                                                &timeCode,
                                                &showGuides,
-                                               &showRenderGuides,
-                                               &tint,
-                                               &tintColor)) {
+                                               &showRenderGuides)) {
         TF_WARN("Failed to get render attributes for UsdMayaProxyShape.");
         return false;
     }
@@ -181,10 +172,6 @@ PxrMayaHdUsdProxyShapeAdapter::_Sync(
     // Reset _renderParams to the defaults.
     PxrMayaHdRenderParams renderParams;
     _renderParams = renderParams;
-
-    if (tint) {
-        _renderParams.overrideColor = tintColor;
-    }
 
     // XXX Not yet adding ability to turn off display of proxy geometry, but
     // we should at some point, as in usdview.
@@ -239,7 +226,7 @@ PxrMayaHdUsdProxyShapeAdapter::_Sync(
                                                1.0f);
     }
 
-    TfToken reprName;
+    HdReprSelector reprSelector;
 
     // Maya 2015 lacks MHWRender::MFrameContext::DisplayStyle::kFlatShaded for
     // whatever reason...
@@ -252,23 +239,37 @@ PxrMayaHdUsdProxyShapeAdapter::_Sync(
 
     if (flatShaded) {
         if (needsWire) {
-            reprName = HdTokens->wireOnSurf;
+            reprSelector = HdReprSelector(HdReprTokens->wireOnSurf);
         } else {
-            reprName = HdTokens->hull;
+            reprSelector = HdReprSelector(HdReprTokens->hull);
         }
     }
     else if (displayStyle & MHWRender::MFrameContext::DisplayStyle::kGouraudShaded)
     {
         if (needsWire || (displayStyle & MHWRender::MFrameContext::DisplayStyle::kWireFrame)) {
-            reprName = HdTokens->refinedWireOnSurf;
+            reprSelector = HdReprSelector(HdReprTokens->refinedWireOnSurf);
         } else {
-            reprName = HdTokens->refined;
+            reprSelector = HdReprSelector(HdReprTokens->refined);
         }
     }
     else if (displayStyle & MHWRender::MFrameContext::DisplayStyle::kWireFrame)
     {
-        reprName = HdTokens->refinedWire;
+        reprSelector = HdReprSelector(HdReprTokens->refinedWire);
         _renderParams.enableLighting = false;
+    }
+    else if (displayStyle == 128) 
+    {
+        // If you have the uv editor open,  it uses that frame context when
+        // doing prepareForDraw(), and there it has a displayStyle == 128.
+        //
+        // We shouldn't be using this during prepareForDraw() because if
+        // you have multiple viewports, each with different drawStyles,
+        // we'd only get one prepareForDraw.  This sort of state should be
+        // read in Render().
+        //
+        // For now, to prevent it from completely disappearing, we just
+        // treat it similarly to Gouraud shading.
+        reprSelector = HdReprSelector(HdReprTokens->refined);
     }
     else
     {
@@ -279,13 +280,13 @@ PxrMayaHdUsdProxyShapeAdapter::_Sync(
         _delegate->SetRootVisibility(_drawShape);
     }
 
-    if (_rprimCollection.GetReprName() != reprName) {
-        _rprimCollection.SetReprName(reprName);
+    if (_rprimCollection.GetReprSelector() != reprSelector) {
+        _rprimCollection.SetReprSelector(reprSelector);
 
         TF_DEBUG(PXRUSDMAYAGL_SHAPE_ADAPTER_LIFECYCLE).Msg(
-                "    Repr name changed: %s\n"
+                "    Repr selector changed: %s\n"
                 "        Marking collection dirty: %s\n",
-                reprName.GetText(),
+                reprSelector.GetText(),
                 _rprimCollection.GetName().GetText());
 
         _delegate->GetRenderIndex().GetChangeTracker().MarkCollectionDirty(
@@ -339,7 +340,7 @@ PxrMayaHdUsdProxyShapeAdapter::_Init(HdRenderIndex* renderIndex)
     // shapes with different Maya types.
     const TfToken delegateName(
         TfStringPrintf("%s_%zx",
-                       PxrUsdMayaProxyShapeTokens->MayaTypeName.GetText(),
+                       UsdMayaProxyShapeTokens->MayaTypeName.GetText(),
                        shapeHash));
 
     const SdfPath delegateId = delegatePrefix.AppendChild(delegateName);
@@ -390,7 +391,7 @@ PxrMayaHdUsdProxyShapeAdapter::_Init(HdRenderIndex* renderIndex)
         renderIndex->GetChangeTracker().AddCollection(_rprimCollection.GetName());
     }
 
-    _rprimCollection.SetReprName(HdTokens->refined);
+    _rprimCollection.SetReprSelector(HdReprSelector(HdReprTokens->refined));
     _rprimCollection.SetRootPath(delegateId);
 
     return true;

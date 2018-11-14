@@ -32,8 +32,7 @@
 #include "pxr/base/trace/api.h"
 #include "pxr/base/trace/collector.h"
 
-#include <boost/noncopyable.hpp>
-#include <boost/preprocessor/cat.hpp>
+#include "pxr/base/tf/preprocessorUtilsLite.h"
 
 #include <atomic>
 
@@ -54,6 +53,14 @@
 #define TRACE_FUNCTION_SCOPE(name) \
         _TRACE_FUNCTION_SCOPE_INSTANCE( \
             __LINE__, __ARCH_FUNCTION__, __ARCH_PRETTY_FUNCTION__, name)
+
+/// Records a timestamp when constructed, using \a name as the key.
+#define TRACE_MARKER(name) \
+        _TRACE_MARKER_INSTANCE(__LINE__, name)
+
+/// Records a timestamp when constructed, using \a name as the key.
+#define TRACE_MARKER_DYNAMIC(name) \
+        _TRACE_MARKER_DYNAMIC_INSTANCE(__LINE__, name)
 
 /// Records a counter \a delta using the \a name as the counter key. The delta can
 /// be positive or negative. A positive delta will increment the total counter
@@ -129,44 +136,52 @@
 
 #define _TRACE_FUNCTION_INSTANCE(instance, name, prettyName) \
 constexpr static PXR_NS::TraceStaticKeyData \
-    BOOST_PP_CAT(TraceKeyData_, instance)(name, prettyName); \
-PXR_NS::TraceScopeAuto BOOST_PP_CAT(TraceScopeAuto_, instance)(\
-    BOOST_PP_CAT(TraceKeyData_, instance));
+    TF_PP_CAT(TraceKeyData_, instance)(name, prettyName); \
+PXR_NS::TraceScopeAuto TF_PP_CAT(TraceScopeAuto_, instance)(\
+    TF_PP_CAT(TraceKeyData_, instance));
 
 #define _TRACE_SCOPE_INSTANCE(instance, name) \
 constexpr static PXR_NS::TraceStaticKeyData \
-    BOOST_PP_CAT(TraceKeyData_, instance)(name); \
-PXR_NS::TraceScopeAuto BOOST_PP_CAT(TraceScopeAuto_, instance)(\
-    BOOST_PP_CAT(TraceKeyData_, instance));
+    TF_PP_CAT(TraceKeyData_, instance)(name); \
+PXR_NS::TraceScopeAuto TF_PP_CAT(TraceScopeAuto_, instance)(\
+    TF_PP_CAT(TraceKeyData_, instance));
 
 #define _TRACE_FUNCTION_SCOPE_INSTANCE(instance, name, prettyName, scopeName) \
 constexpr static PXR_NS::TraceStaticKeyData \
-    BOOST_PP_CAT(TraceKeyData_, instance)(name, prettyName, scopeName); \
-PXR_NS::TraceScopeAuto BOOST_PP_CAT(TraceScopeAuto_, instance)(\
-    BOOST_PP_CAT(TraceKeyData_, instance));
+    TF_PP_CAT(TraceKeyData_, instance)(name, prettyName, scopeName); \
+PXR_NS::TraceScopeAuto TF_PP_CAT(TraceScopeAuto_, instance)(\
+    TF_PP_CAT(TraceKeyData_, instance));
+
+#define _TRACE_MARKER_INSTANCE(instance, name) \
+constexpr static PXR_NS::TraceStaticKeyData \
+    TF_PP_CAT(TraceKeyData_, instance)(name); \
+    TraceCollector::GetInstance().MarkerEventStatic(TF_PP_CAT(TraceKeyData_, instance));
 
 #define _TRACE_COUNTER_INSTANCE(instance, name, value, isDelta) \
 constexpr static PXR_NS::TraceStaticKeyData \
-    BOOST_PP_CAT(TraceKeyData_, instance)(name); \
+    TF_PP_CAT(TraceKeyData_, instance)(name); \
 static PXR_NS::TraceCounterHolder \
-    BOOST_PP_CAT(TraceCounterHolder_, instance) \
-    (BOOST_PP_CAT(TraceKeyData_, instance)); \
-BOOST_PP_CAT(TraceCounterHolder_, instance).Record(value, isDelta);
+    TF_PP_CAT(TraceCounterHolder_, instance) \
+    (TF_PP_CAT(TraceKeyData_, instance)); \
+TF_PP_CAT(TraceCounterHolder_, instance).Record(value, isDelta);
 
 #define _TRACE_COUNTER_CODE_INSTANCE(instance, name, code, isDelta) \
 static PXR_NS::TraceCounterHolder \
-    BOOST_PP_CAT(TraceCounterHolder_, instance)(name); \
-if (BOOST_PP_CAT(TraceCounterHolder_, instance).IsEnabled()) { \
+    TF_PP_CAT(TraceCounterHolder_, instance)(name); \
+if (TF_PP_CAT(TraceCounterHolder_, instance).IsEnabled()) { \
     double value = 0.0; \
     code \
-    BOOST_PP_CAT(TraceCounterHolder_, instance).RecordDelta(value, isDelta); \
+    TF_PP_CAT(TraceCounterHolder_, instance).RecordDelta(value, isDelta); \
 }
 
 #define _TRACE_FUNCTION_DYNAMIC_INSTANCE(instance, fnName, fnPrettyName, name) \
-PXR_NS::TraceAuto BOOST_PP_CAT(TraceAuto_, instance)(fnName, fnPrettyName, name)
+PXR_NS::TraceAuto TF_PP_CAT(TraceAuto_, instance)(fnName, fnPrettyName, name)
 
 #define _TRACE_SCOPE_DYNAMIC_INSTANCE(instance, str) \
-PXR_NS::TraceAuto BOOST_PP_CAT(TraceAuto_, instance)(str)
+PXR_NS::TraceAuto TF_PP_CAT(TraceAuto_, instance)(str)
+
+#define _TRACE_MARKER_DYNAMIC_INSTANCE(instance, name) \
+    TraceCollector::GetInstance().MarkerEvent(name);
 
 #else // TRACE_DISABLE
 
@@ -175,6 +190,8 @@ PXR_NS::TraceAuto BOOST_PP_CAT(TraceAuto_, instance)(str)
 #define TRACE_SCOPE(name)
 #define TRACE_SCOPE_DYNAMIC(name)
 #define TRACE_FUNCTION_SCOPE(name)
+#define TRACE_MARKER(name)
+#define TRACE_MARKER_DYNAMIC(name)
 
 #endif // TRACE_DISABLE
 
@@ -236,7 +253,7 @@ private:
 /// The TRACE_FUNCTION() macro may be even more convenient in some
 /// circumstances.
 ///
-struct TraceAuto : public boost::noncopyable {
+struct TraceAuto {
     /// Constructor taking function name, pretty function name and a scope name.
     ///
     TraceAuto(const char *funcName, const char *prettyFuncName,
@@ -262,6 +279,16 @@ struct TraceAuto : public boost::noncopyable {
     ///
     explicit TraceAuto(const std::string& key) 
         : TraceAuto(TfToken(key)) {}
+
+    // Non-copyable
+    //
+    TraceAuto(const TraceAuto &) = delete;
+    TraceAuto& operator=(const TraceAuto &) = delete;
+
+    // Non-movable
+    //
+    TraceAuto(TraceAuto &&) = delete;
+    TraceAuto& operator=(TraceAuto &&) = delete;
 
     /// Destructor.
     ///

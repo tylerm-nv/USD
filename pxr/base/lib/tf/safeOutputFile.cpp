@@ -90,12 +90,32 @@ TfSafeOutputFile::Close()
     _targetFileName.clear();
 }
 
+void 
+TfSafeOutputFile::Discard()
+{
+    if (IsOpenForUpdate()) {
+        TF_CODING_ERROR("Invalid output file (failed to open, or opened for "
+                        "update)");
+        return;
+    }
+
+    // Move _tempFileName aside so that Close() will not rename
+    // the temporary file to the final destination.
+    std::string tempFileToRemove;
+    tempFileToRemove.swap(_tempFileName);
+    Close();
+
+    if (!tempFileToRemove.empty()) {
+        TfDeleteFile(tempFileToRemove);
+    }
+}
+
 TfSafeOutputFile
 TfSafeOutputFile::Update(std::string const &fileName, bool overwrite)
 {
     TfSafeOutputFile result;
     result._targetFileName = fileName;
-    ArchFile *file = ArchOpenFile(fileName.c_str(), overwrite ? "w" : "r+");
+    ArchFile *file = ArchOpenFile(fileName.c_str(), overwrite ? "wb" : "rb+");
     if (!file) {
         TF_RUNTIME_ERROR("Unable to open file '%s' for writing",
                          fileName.c_str());
@@ -124,7 +144,7 @@ TfSafeOutputFile::Replace(std::string const &fileName)
     }
 
     // Obtain a FILE *.
-    result._file = ArchOpenFile(tmpFd, "w");
+    result._file = ArchOpenFile(tmpFd, "wb");
     if (!result._file) {
         TF_RUNTIME_ERROR("Unable to obtain writable FILE pointer: %s",
                          ArchStrerror(errno).c_str());

@@ -80,6 +80,12 @@ public:
     /// (Note: Embree resources are released in Finalize()).
     virtual ~HdEmbreeMesh() = default;
 
+    /// Inform the scene graph which state needs to be downloaded in the
+    /// first Sync() call: in this case, topology and points data to build
+    /// the geometry object in the embree scene graph.
+    ///   \return The initial dirty state this mesh wants to query.
+    virtual HdDirtyBits GetInitialDirtyBitsMask() const override;
+
     /// Release any resources this class is holding onto: in this case,
     /// destroy the geometry object in the embree scene graph.
     ///   \param renderParam An HdEmbreeRenderParam object containing top-level
@@ -112,11 +118,11 @@ public:
     ///   \param reprName A specifier for which representation to draw with.
     ///   \param forcedRepr A specifier for how to resolve reprName opinions.
     ///
-    virtual void Sync(HdSceneDelegate* sceneDelegate,
-                      HdRenderParam*   renderParam,
-                      HdDirtyBits*     dirtyBits,
-                      TfToken const&   reprName,
-                      bool             forcedRepr) override;
+    virtual void Sync(HdSceneDelegate   *sceneDelegate,
+                      HdRenderParam     *renderParam,
+                      HdDirtyBits       *dirtyBits,
+                      HdReprSelector const &reprToken,
+                      bool               forcedRepr) override;
 
 protected:
     // Update the named repr object for this Rprim. Repr objects are
@@ -126,13 +132,8 @@ protected:
     // rendered, but HdEmbreeMesh bypasses them for now, so this function is
     // a no-op.
     virtual void _UpdateRepr(HdSceneDelegate *sceneDelegate,
-                             TfToken const &reprName,
+                             HdReprSelector const &reprToken,
                              HdDirtyBits *dirtyBits) override;
-
-    // Inform the scene graph which state needs to be downloaded in the
-    // first Sync() call: in this case, topology and points data to build
-    // the geometry object in the embree scene graph.
-    virtual HdDirtyBits _GetInitialDirtyBits() const override;
 
     // This callback from Rprim gives the prim an opportunity to set
     // additional dirty bits based on those already set.  This is done
@@ -159,7 +160,7 @@ protected:
     // repr is synced.  InitRepr occurs before dirty bit propagation.
     //
     // See HdRprim::InitRepr()
-    virtual void _InitRepr(TfToken const &reprName,
+    virtual void _InitRepr(HdReprSelector const &reprToken,
                            HdDirtyBits *dirtyBits) override;
 
 private:
