@@ -223,11 +223,17 @@ namespace
 
 		ArchFileSysImpl* Find(const char* path) const
 		{
-			auto it = _map.find(path);
-			if(it != _map.end())
-				return it->second;
-			else 
-				return nullptr;
+            for (const auto& pair : _map)
+			{
+				const char* prefix = pair.first.c_str();
+				const size_t prefixLen = pair.first.length();
+				if (strncmp(path, prefix, prefixLen) == 0)
+				{
+					return pair.second;
+				}
+			}
+
+			return nullptr;
 		}
 	};
 }
