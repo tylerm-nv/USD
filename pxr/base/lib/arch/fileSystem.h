@@ -505,6 +505,9 @@ public:
 ARCH_API
 void ArchRegisterFileSysImpl(const char* prefix, ArchFileSysImpl* fileSysImpl);
 
+ARCH_API 
+void ArchUnRegisterFileSysImpl(const char* prefix, ArchFileSysImpl* fileSysImpl);
+
 ARCH_API
 bool ArchCanMakeTmpFile(const char* fileName);
 

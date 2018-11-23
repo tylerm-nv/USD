@@ -185,13 +185,13 @@ namespace
 	};
 
 
-	class ArchFileSysImplRegistry
+		class ArchFileSysImplRegistry
 	{
 		ArchFileSysImplRegistry()
 		{
 		}
 
-		std::vector<std::pair<std::string, ArchFileSysImpl*> > _vec;
+		std::map<std::string, ArchFileSysImpl*> _map;
 
 	public:
 		static ArchFileSysImplRegistry* GetInst()
@@ -202,21 +202,32 @@ namespace
 
 		void Add(const char* prefix, ArchFileSysImpl* fileSysImpl)
 		{
-			_vec.emplace_back(std::make_pair(std::string(prefix), fileSysImpl));
+			_map[prefix] = fileSysImpl;
+		}
+		
+		void Remove(const char* prefix, ArchFileSysImpl* fileSysImpl)
+		{
+			auto it = _map.find(prefix);
+			if(it != _map.end())
+			{
+				if(it->second == fileSysImpl)
+				{
+					_map.erase(it);
+				}
+				else
+				{
+					ARCH_WARNING("ArchFileSysImplRegistry::Remove: FileSystem pointer does not match!");
+				}
+			}
 		}
 
 		ArchFileSysImpl* Find(const char* path) const
 		{
-			for (const auto& pair : _vec)
-			{
-				const char* prefix = pair.first.c_str();
-				const size_t prefixLen = pair.first.length();
-				if (strncmp(path, prefix, prefixLen) == 0)
-				{
-					return pair.second;
-				}
-			}
-			return nullptr;
+			auto it = _map.find(path);
+			if(it != _map.end())
+				return it->second;
+			else 
+				return nullptr;
 		}
 	};
 }
@@ -254,6 +265,11 @@ bool ArchTryIsDir(const std::string& path, bool& result)
 ARCH_API void ArchRegisterFileSysImpl(const char* prefix, ArchFileSysImpl* fileSysImpl)
 {
 	ArchFileSysImplRegistry::GetInst()->Add(prefix, fileSysImpl);
+}
+
+ARCH_API void ArchUnRegisterFileSysImpl(const char* prefix, ArchFileSysImpl* fileSysImpl)
+{
+	ArchFileSysImplRegistry::GetInst()->Remove(prefix, fileSysImpl);
 }
 
 ArchFile* ArchOpenFile(char const* fileName, char const* mode)
