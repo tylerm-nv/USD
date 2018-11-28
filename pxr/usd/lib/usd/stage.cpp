@@ -104,6 +104,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include "stage.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -113,6 +114,8 @@ using std::make_pair;
 using std::map;
 using std::string;
 using std::vector;
+
+#define OMNIVERSE_MUTENESS_CUSTOM_KEY "omni_layer:muteness"
 
 // Definition below under "value resolution".
 // Composes a prim's typeName, with special consideration for __AnyType__.
@@ -432,6 +435,7 @@ UsdStage::UsdStage(const SdfLayerRefPtr& rootLayer,
     , _initialLoadSet(load)
     , _populationMask(mask)
     , _isClosingStage(false)
+    , _isMutingLayers(false)
 {
     if (!TF_VERIFY(_rootLayer))
         return;
@@ -967,6 +971,7 @@ UsdStage::_OpenImpl(InitialLoadSet load, Args const &... args)
         }
     }
     TF_VERIFY(stage);
+    stage->_MuteLayersFromCustomData(stage->GetUsedLayers(false));
     return stage;
 }
 
@@ -3535,11 +3540,14 @@ void
 UsdStage::MuteAndUnmuteLayers(const std::vector<std::string> &muteLayers,
                               const std::vector<std::string> &unmuteLayers)
 {
+    _isMutingLayers = true;
+
     TfAutoMallocTag2 tag("Usd", _mallocTagID);
 
     PcpChanges changes;
     _cache->RequestLayerMuting(muteLayers, unmuteLayers, &changes);
     if (changes.IsEmpty()) {
+        _isMutingLayers = false;
         return;
     }
 
@@ -3551,6 +3559,8 @@ UsdStage::MuteAndUnmuteLayers(const std::vector<std::string> &muteLayers,
 
     UsdNotice::ObjectsChanged(self, &resyncChanges, &infoChanges)
         .Send(self);
+
+    _isMutingLayers = false;
 }
 
 const std::vector<std::string>&
@@ -3975,6 +3985,9 @@ UsdStage::_HandleLayersDidChange(
 
     // Receivers can now refresh their caches... or just dirty them
     UsdNotice::StageContentsChanged(self).Send(self);
+
+    // Check if it's necessary to update muteness from custom data
+    _MuteLayersFromCustomData(n.GetLayers());
 }
 
 void 
@@ -4539,6 +4552,38 @@ UsdStage::_RegisterPerLayerNotices()
 
     // Swap new set into place.
     _layersAndNoticeKeys.swap(newLayersAndNoticeKeys);
+}
+
+void UsdStage::_MuteLayersFromCustomData(const SdfLayerHandleVector& changedLayers)
+{
+    if (!_isMutingLayers) {
+        // Get custom muteness data from root layer as it's holder for all custom data of layers
+        SdfLayerHandle rootLayer = GetRootLayer();
+        VtDictionary rootLayerCustomData = rootLayer->GetCustomLayerData();
+        const VtValue* muteness = rootLayerCustomData.GetValueAtPath(OMNIVERSE_MUTENESS_CUSTOM_KEY);
+        VtDictionary mutenessDict;
+        if (muteness && !muteness->IsEmpty())
+            mutenessDict = muteness->Get<VtDictionary>();
+        std::vector<std::string> mutedLayers;
+        std::vector<std::string> unmutedLayers;
+        for (const auto& layer : changedLayers) {
+            std::string identifier = layer->GetIdentifier();
+            auto iter = mutenessDict.find(identifier);
+            if (iter != mutenessDict.end())
+            {
+                bool muted = iter->second.Get<bool>();
+                if (muted != IsLayerMuted(identifier)) {
+                    if (muted)
+                        mutedLayers.push_back(identifier);
+                    else
+                        unmutedLayers.push_back(identifier);
+                }
+            }
+        }
+
+        if(mutedLayers.size() > 0 || unmutedLayers.size() > 0)
+            MuteAndUnmuteLayers(mutedLayers, unmutedLayers);
+    }
 }
 
 SdfPrimSpecHandle
@@ -7925,4 +7970,3 @@ BOOST_PP_SEQ_FOR_EACH(_INSTANTIATE_GET, ~, SDF_VALUE_TYPES)
 #undef _INSTANTIATE_GET
 
 PXR_NAMESPACE_CLOSE_SCOPE
-

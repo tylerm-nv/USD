@@ -2049,6 +2049,9 @@ private:
 
     void _RegisterPerLayerNotices();
 
+    // The following extension is for omniverse layers
+    void _MuteLayersFromCustomData(const SdfLayerHandleVector&);
+
 private:
 
     // The 'pseudo root' prim.
@@ -2095,6 +2098,9 @@ private:
     UsdStagePopulationMask _populationMask;
     
     bool _isClosingStage;
+
+    // It's in progress of muting/unmuting layers
+    bool _isMutingLayers;
 
     friend class UsdAPISchemaBase;
     friend class UsdAttribute;
