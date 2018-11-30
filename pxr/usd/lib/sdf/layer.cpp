@@ -4153,6 +4153,10 @@ SdfLayer::_WriteToFile(const string & newFileName,
         return false;
     }
 
+	/*
+	NVIDIA-BrianH: The fileFormat may be a special non-disk format, so it
+	doesn't make sense to try to create the directory here. It should be done
+	in the fileFormat itself.
     string layerDir = TfGetPathName(newFileName);
     if (!(layerDir.empty() || TfIsDir(layerDir) || TfMakeDirs(layerDir))) {
         TF_RUNTIME_ERROR(
@@ -4160,6 +4164,7 @@ SdfLayer::_WriteToFile(const string & newFileName,
             layerDir.c_str());
         return false;
     }
+	*/
     
     bool ok = fileFormat->WriteToFile(this, newFileName, comment, args);
 
