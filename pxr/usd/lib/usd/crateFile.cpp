@@ -1941,7 +1941,7 @@ CrateFile::_MmapAsset(char const *assetPath, ArAssetSharedPtr const &asset)
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file), offset, asset->GetSize()));
     if (!mapping->GetMapStart()) {
-		TF_CODING_WARNING("Couldn't map asset '%s'", assetPath);
+		//TF_CODING_WARNING("Couldn't map asset '%s'", assetPath);
         mapping.reset();
     }
     return mapping;
@@ -1954,7 +1954,7 @@ CrateFile::_MmapFile(char const *fileName, ArchFile *file)
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file)));
     if (!mapping->GetMapStart()) {
-		TF_CODING_WARNING("Couldn't map file '%s'", fileName);
+		//TF_CODING_WARNING("Couldn't map file '%s'", fileName);
         mapping.reset();
     }
     return mapping;
