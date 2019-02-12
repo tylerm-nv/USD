@@ -1500,9 +1500,9 @@ public:
     USD_API
     std::vector<UsdPrim> GetMasters() const;
 
-	USD_API
-	bool SetValues(UsdTimeCode time, VtArray<UsdAttribute>& attrs,
-		VtArray<const SdfAbstractDataConstValue *>& newValues);
+    USD_API
+    bool SetValues(UsdTimeCode time, VtArray<UsdAttribute>& attrs,
+        VtArray<const SdfAbstractDataConstValue *>& newValues);
 
 
     /// @}
@@ -1614,11 +1614,11 @@ private:
     bool _SetValue(UsdTimeCode time, const UsdAttribute &attr,
                    const SdfAbstractDataConstValue &newValue);
     
-	template <class T>
+    template <class T>
     bool _SetValueImpl(UsdTimeCode time, const UsdAttribute &attr, const T& value);
-	template <class T>
-	bool _SetValuesImpl(UsdTimeCode time, VtArray<UsdAttribute>& attrs, 
-		               VtArray<const T*>& values);
+    template <class T>
+    bool _SetValuesImpl(UsdTimeCode time, VtArray<UsdAttribute>& attrs, 
+                       VtArray<const T*>& values);
 
     bool _ClearValue(UsdTimeCode time, const UsdAttribute &attr);
 
@@ -2049,8 +2049,23 @@ private:
 
     void _RegisterPerLayerNotices();
 
+    //#nv begin #omniverse
     // The following extension is for omniverse layers
     void _MuteLayersFromCustomData(const SdfLayerHandleVector&);
+    //nv end
+
+//#nv begin #omniverse
+public:
+    // When it's global, the state will be serialized into USD
+    // and will be shared across sessions. When it's local,
+    // the mute state will not be serialized into USD and 
+    // not shared.
+    USD_API
+    void SetMutenessStateScope(bool global);
+
+    USD_API
+    bool IsMutenessStateGlobal() const;
+//nv end
 
 private:
 
@@ -2099,8 +2114,12 @@ private:
     
     bool _isClosingStage;
 
+    //#nv begin #omniverse
     // It's in progress of muting/unmuting layers
     bool _isMutingLayers;
+
+    bool _isGlobalMutenessState;
+    //nv end
 
     friend class UsdAPISchemaBase;
     friend class UsdAttribute;
