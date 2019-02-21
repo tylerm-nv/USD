@@ -31,6 +31,13 @@
 #include "pxr/usdImaging/usdImaging/primAdapter.h"
 #include "pxr/usdImaging/usdImaging/gprimAdapter.h"
 
+//+NV_CHANGE FRZHANG
+#include "pxr/usd/usdSkel/skinningQuery.h"
+#include "pxr/usd/usdSkel/skeletonQuery.h"
+
+#include <boost/unordered_map.hpp>
+//_NV_CHANGE FRZHANG
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 
@@ -116,6 +123,23 @@ private:
             UsdTimeCode time) const;
     void _GetSubdivTags(UsdPrim const& prim, SubdivTags* tags, 
             UsdTimeCode time) const ;
+
+	//+NV_CHANGE FRZHANG
+	void _InitSkinningInfo(UsdPrim const& prim);
+	struct _SkinningData
+	{
+		void ComputeSkinningPoints(UsdPrim const& prim, VtValue* value, UsdTimeCode time) const;
+		UsdSkelSkinningQuery	skinningQuery;
+		UsdSkelSkeletonQuery	skeletonQuery;
+		VtIntArray				jointIndices;
+		VtFloatArray			jointWeights;
+		bool					isSkinningMesh;
+	};
+
+	_SkinningData* _GetSkinningData(const SdfPath& cachePath) const;
+	using _SkinningDataMap = boost::unordered_map<SdfPath, std::shared_ptr<_SkinningData> >;
+	_SkinningDataMap			_skinningDataCache;
+	//-NV_CHANGE FRZHANG
 };
 
 
