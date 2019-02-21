@@ -150,6 +150,13 @@ Hd_SortedIds::Remove(const SdfPath &id)
                 _ids.pop_back();
                 _afterLastDeletePoint = idToRemove - _ids.begin();
                 ++_afterLastDeletePoint;
+// + NV_CHANGE JSHENTU
+                if (_afterLastDeletePoint >= _ids.size())
+                {
+                    // If removing second last element, index will grow out of bound.
+                    _afterLastDeletePoint = INVALID_DELETE_POINT;
+                }
+// - NV_CHANGE JSHENTU
             } else {
                 _ids.pop_back();
                 _afterLastDeletePoint = INVALID_DELETE_POINT;
@@ -161,9 +168,18 @@ Hd_SortedIds::Remove(const SdfPath &id)
 
             if (_ids.size())
             {
+// + NV_CHANGE JSHENTU
+                // idToRemove may already be popped and become invalid iterator.
+                // Triggers "vector iterators incompatible" in debug build.
                 _sortedCount = std::min(_sortedCount,
                     static_cast<size_t>(
-                    (idToRemove - _ids.begin())));
+                        _afterLastDeletePoint == INVALID_DELETE_POINT ? _ids.size() : (idToRemove - _ids.begin())));
+
+                // // Original
+                // _sortedCount = std::min(_sortedCount,
+                //    static_cast<size_t>(
+                //    (idToRemove - _ids.begin())));
+// - NV_CHANGE JSHENTU
             }
         }
     }
