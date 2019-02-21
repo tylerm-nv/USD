@@ -73,16 +73,17 @@ UsdSkelImagingSkeletonAdapter::Populate(
         return SdfPath();
     }
 
-    auto skelData = std::make_shared<_SkelData>();
-    skelData->skelQuery = _skelCache.GetSkelQuery(UsdSkelSkeleton(prim));
+	//+NV_FRZHANG CHANGE : comment out the below code to disable bone mesh rendering.
+    //auto skelData = std::make_shared<_SkelData>();
+    //skelData->skelQuery = _skelCache.GetSkelQuery(UsdSkelSkeleton(prim));
 
-    _skelDataCache[prim.GetPath()] = skelData;
+    //_skelDataCache[prim.GetPath()] = skelData;
 
-    SdfPath instancer = instancerContext ?
-        instancerContext->instancerId : SdfPath();
+    //SdfPath instancer = instancerContext ?
+    //    instancerContext->instancerId : SdfPath();
 
-    index->InsertRprim(HdPrimTypeTokens->mesh, prim.GetPath(),
-                       instancer, prim, shared_from_this());
+    //index->InsertRprim(HdPrimTypeTokens->mesh, prim.GetPath(),
+    //                   instancer, prim, shared_from_this());
     
     return prim.GetPath();
 }

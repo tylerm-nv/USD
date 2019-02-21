@@ -42,6 +42,12 @@
 
 #include "pxr/base/tf/type.h"
 
+//+NV_CHANGE FRZHANG
+#include "pxr/usd/usdSkel/root.h"
+#include "pxr/usd/usdSkel/bindingAPI.h"
+#include "pxr/usd/usdSkel/cache.h"
+//-NV_CHANGE FRZHANG
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 
@@ -86,10 +92,49 @@ UsdImagingMeshAdapter::Populate(UsdPrim const& prim,
                 }
             }
         }
+
+
+		//+NV_CHANGE FRZHANG
+		//Detect if mesh has skel binding to trigge skel mesh update.
+		//Backup the skinningquery skeletonquery, jointindices/weights for acceleratioin
+		_InitSkinningInfo(prim);
+		//-NV_CHANGE FRZHANG
     }
     return _AddRprim(HdPrimTypeTokens->mesh,
                      prim, index, GetMaterialId(prim), instancerContext);
 }
+
+//+NV_CHANGE FRZHANG
+UsdImagingMeshAdapter::_SkinningData*
+UsdImagingMeshAdapter::_GetSkinningData(const SdfPath& cachePath) const
+{
+	auto it = _skinningDataCache.find(cachePath);
+	return it != _skinningDataCache.end() ? it->second.get() : nullptr;
+}
+
+void
+UsdImagingMeshAdapter::_InitSkinningInfo(UsdPrim const& prim)
+{
+	bool isSkinningMesh = prim.HasAPI<UsdSkelBindingAPI>();
+	if (isSkinningMesh)
+	{
+		auto skinningData = std::make_shared<_SkinningData>();
+		_skinningDataCache[prim.GetPath()] = skinningData;
+
+		UsdSkelBindingAPI bindingAPI(prim);
+		pxr::UsdSkelSkeleton skeleton;
+		bindingAPI.GetSkeleton(&skeleton);
+
+		UsdSkelRoot skelRoot = UsdSkelRoot::Find(prim);
+		UsdSkelCache skelCache;
+		skelCache.Populate(skelRoot);
+		skinningData->skinningQuery = skelCache.GetSkinningQuery(prim);
+		skinningData->skeletonQuery = skelCache.GetSkelQuery(skeleton);
+		skinningData->skinningQuery.ComputeJointInfluences(
+			&skinningData->jointIndices, &skinningData->jointWeights);
+	}
+}
+//_NV_CHANGE FRZHANG
 
 
 void
@@ -119,10 +164,19 @@ UsdImagingMeshAdapter::TrackVariability(UsdPrim const& prim,
                timeVaryingBits,
                /*isInherited*/false);
 
-    // Discover time-varying primvars:normals, and if that attribute
-    // doesn't exist also check for time-varying normals.
-    // Only do this for polygonal meshes.
 
+	//+NV_CHANGE FRZHANG
+	_SkinningData* skinningData = _GetSkinningData(cachePath);
+	if(skinningData != nullptr)
+	{
+		printf("variability setting dirty bits for skinning mesh %s\n", prim.GetPath().GetText());
+		(*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
+	}
+	//-NV_CHANGE FRZHANG
+	
+	// Discover time-varying primvars:normals, and if that attribute
+	// doesn't exist also check for time-varying normals.
+	// Only do this for polygonal meshes.
     TfToken schemeToken;
     _GetPtr(prim, UsdGeomTokens->subdivisionScheme,
             UsdTimeCode::EarliestTime(), &schemeToken);
@@ -234,6 +288,7 @@ UsdImagingMeshAdapter::_RemovePrim(SdfPath const& cachePath,
         index->MarkRprimDirty(cachePath.GetParentPath(),
                               HdChangeTracker::DirtyTopology);
     }
+	_skinningDataCache.erase(cachePath);
 }
 
 bool
@@ -271,7 +326,19 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 
     if (requestedBits & HdChangeTracker::DirtyPoints) {
         VtValue& points = valueCache->GetPoints(cachePath);
-        _GetPoints(prim, &points, time);
+		//+NV_CHANGE FRZHANG       
+		_SkinningData* skinningData = _GetSkinningData(cachePath);
+		if(skinningData)
+		{
+			skinningData->ComputeSkinningPoints(prim, &points, time);
+		}
+		else
+		{
+		//-NV_CHANGE FRZHANG
+			_GetPoints(prim, &points, time);
+		//+NV_CHANGE FRZHANG
+		}
+		//-NV_CHANGE FRZHANG
         _MergePrimvar(
             &primvars,
             HdTokens->points,
@@ -398,7 +465,6 @@ UsdImagingMeshAdapter::_GetPoints(UsdPrim const& prim,
     }
 }
 
-
 void
 UsdImagingMeshAdapter::_GetSubdivTags(UsdPrim const& prim,
                                        SubdivTags* tags,
@@ -456,6 +522,32 @@ UsdImagingMeshAdapter::_GetSubdivTags(UsdPrim const& prim,
         _Get<VtFloatArray>(prim, UsdGeomTokens->cornerSharpnesses, time);
     tags->SetCornerWeights(cornerSharpnesses);
 }
+
+//+NV_CHANGE FRZHANG
+void
+UsdImagingMeshAdapter::_SkinningData::ComputeSkinningPoints(UsdPrim const& prim,
+	VtValue* value,
+	UsdTimeCode time) const
+{
+	HD_TRACE_FUNCTION();
+	HF_MALLOC_TAG_FUNCTION();
+
+	VtMatrix4dArray xforms;
+	if (skeletonQuery.ComputeSkinningTransforms(&xforms, time))
+	{
+
+		VtVec3fArray skinningPoints;
+		prim.GetAttribute(UsdGeomTokens->points).Get(&skinningPoints, time);
+		if (skinningQuery.ComputeSkinnedPoints(xforms, jointIndices, jointWeights, &skinningPoints, time))
+		{
+			*value = skinningPoints;
+			return;
+		}
+	}
+
+	*value = VtVec3fArray();
+}
+//-NV_CHANGE FRZHANG
 
 
 PXR_NAMESPACE_CLOSE_SCOPE
