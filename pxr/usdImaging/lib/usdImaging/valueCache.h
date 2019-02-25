@@ -238,8 +238,16 @@ private:
         }
 
         // If we're going to erase the old value, swap to avoid a copy.
-        std::swap(it->second, *value);
-        cache->_deferredDeleteQueue.push(key);
+        //+NV_CHANGE FRZHANG
+		//looks like we do need a copy instead of delete this resource. Hope no side effect.
+#define PERMANENT_CACHE 0
+#if PERMANENT_CACHE
+		*value = it->second;
+#else
+		std::swap(it->second, *value);
+		      cache->_deferredDeleteQueue.push(key);
+#endif
+		//-NV_CHANGE FRZHANg
         return true;
     }
 
