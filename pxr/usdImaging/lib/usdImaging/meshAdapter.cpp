@@ -132,6 +132,9 @@ UsdImagingMeshAdapter::_InitSkinningInfo(UsdPrim const& prim)
 		skinningData->skeletonQuery = skelCache.GetSkelQuery(skeleton);
 		skinningData->skinningQuery.ComputeJointInfluences(
 			&skinningData->jointIndices, &skinningData->jointWeights);
+		skinningData->animTimeInterval = skinningData->skeletonQuery.GetAnimQuery().GetTimeRange();
+		skinningData->lastUpdateTime = -1.0f;
+		//printf("Init SkinningData for %s AnimRange %f -  %f\n", prim.GetPath().GetText(), (float)skinningData->animTimeInterval.GetMin(), (float)skinningData->animTimeInterval.GetMax());
 	}
 }
 //_NV_CHANGE FRZHANG
@@ -527,12 +530,33 @@ UsdImagingMeshAdapter::_GetSubdivTags(UsdPrim const& prim,
 void
 UsdImagingMeshAdapter::_SkinningData::ComputeSkinningPoints(UsdPrim const& prim,
 	VtValue* value,
-	UsdTimeCode time) const
+	UsdTimeCode time)
 {
 	HD_TRACE_FUNCTION();
 	HF_MALLOC_TAG_FUNCTION();
 
 	VtMatrix4dArray xforms;
+
+#define TIME_RANGE_OPTIMIZATION 0
+#if TIME_RANGE_OPTIMIZATION
+	//Time range optimization
+	double desiredUpdateTime = time.GetValue();
+	if (!animTimeInterval.Contains(desiredUpdateTime))
+	{
+		if (desiredUpdateTime < animTimeInterval.GetMin())desiredUpdateTime = animTimeInterval.GetMin();
+		if (desiredUpdateTime > animTimeInterval.GetMax())desiredUpdateTime = animTimeInterval.GetMax();
+	}
+	bool bShouldUpdate = false;
+	bShouldUpdate |= lastUpdateTime < 0;
+	bShouldUpdate |= desiredUpdateTime != lastUpdateTime;
+	lastUpdateTime = desiredUpdateTime;
+	if(!bShouldUpdate)
+	{
+		//printf("skin update for %s at time %f, original data count %d\n", prim.GetPath().GetText(), time.GetValue(), value->GetArraySize());
+		return;
+	}
+#endif
+
 	if (skeletonQuery.ComputeSkinningTransforms(&xforms, time))
 	{
 

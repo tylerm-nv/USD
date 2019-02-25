@@ -128,11 +128,13 @@ private:
 	void _InitSkinningInfo(UsdPrim const& prim);
 	struct _SkinningData
 	{
-		void ComputeSkinningPoints(UsdPrim const& prim, VtValue* value, UsdTimeCode time) const;
+		void ComputeSkinningPoints(UsdPrim const& prim, VtValue* value, UsdTimeCode time);
 		UsdSkelSkinningQuery	skinningQuery;
 		UsdSkelSkeletonQuery	skeletonQuery;
 		VtIntArray				jointIndices;
 		VtFloatArray			jointWeights;
+		GfInterval				animTimeInterval;
+		double					lastUpdateTime;
 		bool					isSkinningMesh;
 	};
 

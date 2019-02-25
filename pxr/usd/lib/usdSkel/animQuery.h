@@ -155,6 +155,12 @@ public:
     USDSKEL_API
     std::string GetDescription() const;
 
+	//+NV_CHANGE FRZHANG
+	//Return the Animatation Range
+	USDSKEL_API
+	GfInterval	GetTimeRange() const;
+	//-NV_CHANGE FRZHANG
+
 private:
     UsdSkelAnimQuery(const UsdSkel_AnimQueryImplRefPtr& impl)
         :  _impl(impl) {}
