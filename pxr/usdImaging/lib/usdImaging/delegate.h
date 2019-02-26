@@ -312,6 +312,15 @@ public:
     virtual GfMatrix4d GetInstancerTransform(SdfPath const &instancerId,
                                              SdfPath const &prototypeId) override;
 
+	//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+	USDIMAGING_API
+	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform);
+	USDIMAGING_API
+	virtual bool GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences);
+	USDIMAGING_API
+	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& skelLocalToWorld);
+	//-NV_CHANGE FRZHANG
+
     // Motion samples
     USDIMAGING_API
     virtual size_t

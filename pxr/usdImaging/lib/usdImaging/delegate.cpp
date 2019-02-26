@@ -2354,6 +2354,50 @@ UsdImagingDelegate::Get(SdfPath const& id, TfToken const& key)
     return value;
 }
 
+//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+/*virtual*/
+bool UsdImagingDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform)
+{
+	SdfPath usdPath = GetPathForUsd(id);
+	if (_valueCache.ExtractPoints(usdPath, &restPoints) 
+		&& _valueCache.ExtractGeomBindXform(usdPath, &geomBindXform) )
+	{
+		return true;
+	}
+	return HdSceneDelegate::GetSkinningBindingValues(id, restPoints, geomBindXform);
+}
+
+/*virtual*/
+bool
+UsdImagingDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences)
+{
+	SdfPath usdPath = GetPathForUsd(id);
+	if (_valueCache.ExtractJointIndices(usdPath, &jointIndices) 
+		&& _valueCache.ExtractJointWeights(usdPath, &jointWeights)
+		&& _valueCache.ExtractNumInfluencesPerPoint(usdPath, &numInfluencesPerPoint)
+		&& _valueCache.ExtractHasConstantInfluences(usdPath, &hasConstantInfluences)
+		)
+	{
+		return true;
+	}
+	return HdSceneDelegate::GetSkinningBlendValues(id, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences);
+}
+
+/*virtual*/
+bool
+UsdImagingDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& skelLocalToWorld)
+{
+	SdfPath usdPath = GetPathForUsd(id);
+	if (_valueCache.ExtractSkinningXforms(usdPath, &skinningXform)
+		&& _valueCache.ExtractSkelLocalToWorld(usdPath, &skelLocalToWorld)
+		)
+	{
+		return true;
+	}
+	return HdSceneDelegate::GetSkelAnimXformValues(id, skinningXform, skelLocalToWorld);
+}
+//-NV_CHANGE FRZHANG
+
 /*virtual*/
 size_t
 UsdImagingDelegate::SamplePrimvar(SdfPath const& id, TfToken const& key,

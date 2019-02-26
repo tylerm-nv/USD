@@ -109,6 +109,11 @@ public:
                                       SdfPath const& cachePath,
                                       UsdImagingIndexProxy* index) override;
 
+	//+NV_CHANGE FRZHANG
+	USDIMAGING_API
+	static const bool USE_NV_GPUSKINNING = false;
+	//-NV_CHANGE FRZHANG
+
 protected:
     USDIMAGING_API
     virtual void _RemovePrim(SdfPath const& cachePath,
@@ -129,6 +134,10 @@ private:
 	struct _SkinningData
 	{
 		void ComputeSkinningPoints(UsdPrim const& prim, VtValue* value, UsdTimeCode time);
+		bool GetBlendValues(VtValue* jointIndices, VtValue* jointWeights, int* numInfluencesPerPoint, bool* hasConstantInfluences, UsdTimeCode time = 0.0);
+		bool GetBindXform(GfMatrix4d* geomBindXform, UsdTimeCode time = 0.0);
+		bool ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* skelLocalToWorld, UsdTimeCode time);
+
 		UsdSkelSkinningQuery	skinningQuery;
 		UsdSkelSkeletonQuery	skeletonQuery;
 		VtIntArray				jointIndices;
