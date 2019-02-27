@@ -352,11 +352,6 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 				int& numInfluencesPerPoint = valueCache->GetNumInfluencesPerPoint(cachePath);
 				bool& hasConstantInfluences = valueCache->GetHasConstantInfluences(cachePath);
 				skinningData->GetBlendValues(&jointIndices, &jointWeights, &numInfluencesPerPoint, &hasConstantInfluences);
-				_MergePrimvar(
-					&primvars,
-					HdTokens->skinningBinding,
-					HdInterpolationFaceVarying,
-					HdPrimvarRoleTokens->skinningBinding);
 			}
 			else
 			{
@@ -371,12 +366,13 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 			_GetPoints(prim, &points, time);
 		//+NV_CHANGE FRZHANG
 		}
+		_MergePrimvar(
+			&primvars,
+			HdTokens->points,
+			HdInterpolationVertex,
+			HdPrimvarRoleTokens->point);
 		//-NV_CHANGE FRZHANG
-        _MergePrimvar(
-            &primvars,
-            HdTokens->points,
-            HdInterpolationVertex,
-            HdPrimvarRoleTokens->point);
+
     }
 
     if (requestedBits & HdChangeTracker::DirtyNormals) {
@@ -423,11 +419,6 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 			VtValue& skinningXforms = valueCache->GetSkinningXforms(cachePath);
 			GfMatrix4d& skelLocalToWorld = valueCache->GetSkelLocalToWorld(cachePath);
 			skinningData->ComputeSkelAnimValues(&skinningXforms, &skelLocalToWorld,time);
-			_MergePrimvar(
-				&primvars,
-				HdTokens->skelAnimXforms,
-				HdInterpolationInstance,
-				HdPrimvarRoleTokens->skelAnimXforms);
 		}
 	}
 	//-NV_CHANGE FRZHANG

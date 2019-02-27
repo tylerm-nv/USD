@@ -88,8 +88,8 @@ public:
 
         CustomBitsBegin             = 1 << 23,
 		//+NV_CHANGE FRZHANG
-		NV_DirtySkinningBinding = 1 << 24,
-		NV_DirtySkinningXform = 1 << 25,
+		NV_DirtySkinningBinding		= 1 << 24,
+		NV_DirtySkinningXform		= 1 << 25,
 		//-NV_CHANGE FRZHANG
         CustomBitsEnd               = 1 << 30,
     };
@@ -294,9 +294,11 @@ public:
 
 	//+NV_CHANGE FRZHANG
 	// Return true if blend & bind data is dirty;
+	HD_API
 	static bool IsSkinningBindingDirty(HdDirtyBits dirtyBits, SdfPath const &id);
 	// Return true if skel Anim info is dirty;
-	static bool IsSkelAnimBindingDirty(HdDirtyBits dirtyBits, SdfPath const &id);
+	HD_API
+	static bool IsSkelAnimXformDirty(HdDirtyBits dirtyBits, SdfPath const &id);
 	//-NV_CHANGE FRZHANG
 
     // ---------------------------------------------------------------------- //
