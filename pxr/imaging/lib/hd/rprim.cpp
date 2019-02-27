@@ -130,6 +130,13 @@ HdRprim::PropagateRprimDirtyBits(HdDirtyBits bits)
                  HdChangeTracker::DirtyPrimvar);
     }
 
+	//+NV_FRZHANG CHANGE
+	if (bits & (HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyTopology))
+	{
+		bits |= HdChangeTracker::NV_DirtySkinningBinding;
+		bits |= HdChangeTracker::NV_DirtySkelAnimXform;
+	}
+
     // Let subclasses propagate bits
     return _PropagateDirtyBits(bits);
 }

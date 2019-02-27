@@ -668,7 +668,7 @@ HdChangeTracker::IsSkinningBindingDirty(HdDirtyBits dirtyBits, SdfPath const &id
 bool
 HdChangeTracker::IsSkelAnimXformDirty(HdDirtyBits dirtyBits, SdfPath const &id)
 {
-	bool isDirty = (dirtyBits & NV_DirtySkinningXform) != 0;
+	bool isDirty = (dirtyBits & NV_DirtySkelAnimXform) != 0;
 	return isDirty;
 }
 //-NV_CHANGE FRZHANG

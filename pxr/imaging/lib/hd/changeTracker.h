@@ -89,7 +89,7 @@ public:
         CustomBitsBegin             = 1 << 23,
 		//+NV_CHANGE FRZHANG
 		NV_DirtySkinningBinding		= 1 << 24,
-		NV_DirtySkinningXform		= 1 << 25,
+		NV_DirtySkelAnimXform		= 1 << 25,
 		//-NV_CHANGE FRZHANG
         CustomBitsEnd               = 1 << 30,
     };
