@@ -339,7 +339,12 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 		_SkinningData* skinningData = _GetSkinningData(cachePath);
 		if(skinningData)
 		{
-			if (!UsdImagingMeshAdapter::USE_NV_GPUSKINNING)
+			if (UsdImagingMeshAdapter::USE_NV_GPUSKINNING)
+			{
+				VtValue& points = valueCache->GetPoints(cachePath);
+				_GetPoints(prim, &points, time);
+			}
+			else
 			{
 				//skinningQuery's CPU skinning
 				VtValue& points = valueCache->GetPoints(cachePath);
