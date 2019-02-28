@@ -660,7 +660,7 @@ HdChangeTracker::IsReprDirty(HdDirtyBits dirtyBits, SdfPath const &id)
 bool
 HdChangeTracker::IsSkinningBindingDirty(HdDirtyBits dirtyBits, SdfPath const &id)
 {
-	bool isDirty = (dirtyBits & (DirtyPoints | NV_DirtySkinningBinding)) != 0;
+	bool isDirty = (dirtyBits & NV_DirtySkinningBinding) != 0;
 	return isDirty;
 }
 

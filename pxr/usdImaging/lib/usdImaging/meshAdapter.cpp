@@ -409,11 +409,10 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 			_SkinningData* skinningData = _GetSkinningData(cachePath);
 			if (skinningData)
 			{
-				VtValue& points = valueCache->GetPoints(cachePath);
 				GfMatrix4d& geomBindXform = valueCache->GetGeomBindXform(cachePath);
 				skinningData->GetBindXform(&geomBindXform, time);
 				VtValue& restPoints = valueCache->GetRestPoints(cachePath);
-				restPoints = points;
+				_GetPoints(prim, &restPoints, time);
 				VtValue& jointIndices = valueCache->GetJointIndices(cachePath);
 				VtValue& jointWeights = valueCache->GetJointWeights(cachePath);
 				int& numInfluencesPerPoint = valueCache->GetNumInfluencesPerPoint(cachePath);
@@ -426,8 +425,9 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 			if (skinningData)
 			{
 				VtValue& skinningXforms = valueCache->GetSkinningXforms(cachePath);
+				GfMatrix4d& primWorldToLocal = valueCache->GetPrimWorldToLocal(cachePath);
 				GfMatrix4d& skelLocalToWorld = valueCache->GetSkelLocalToWorld(cachePath);
-				skinningData->ComputeSkelAnimValues(&skinningXforms, &skelLocalToWorld, time);
+				skinningData->ComputeSkelAnimValues(&skinningXforms, & primWorldToLocal, &skelLocalToWorld, time);
 			}
 		}
 	}
@@ -633,14 +633,14 @@ UsdImagingMeshAdapter::_SkinningData::GetBlendValues(VtValue* jointIndices, VtVa
 		*jointIndices = ji;
 		*jointWeights = jw;
 		*numInfluencesPerPoint = skinningQuery.GetNumInfluencesPerComponent();
-		//hasConstantInfluences = skinningQuery.IsRigidlyDeformed();
-		*hasConstantInfluences = true;
+		*hasConstantInfluences = skinningQuery.IsRigidlyDeformed();
+		//*hasConstantInfluences = false;
 		return true;
 	}
 	*jointIndices = VtIntArray();
 	*jointWeights = VtFloatArray();
 	*numInfluencesPerPoint = 0;
-	*hasConstantInfluences = true;
+	*hasConstantInfluences = false;
 	return false;
 }
 
@@ -654,18 +654,21 @@ UsdImagingMeshAdapter::_SkinningData::GetBindXform(GfMatrix4d* geomBindXform, Us
 
 
 bool
-UsdImagingMeshAdapter::_SkinningData::ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* skelLocalToWorld, UsdTimeCode time)
+UsdImagingMeshAdapter::_SkinningData::ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* primWorldToLocal, GfMatrix4d* skelLocalToWorld, UsdTimeCode time)
 {
 	VtMatrix4dArray xforms;
 	if (skeletonQuery.ComputeSkinningTransforms(&xforms, time))
 	{
 		*skinningXform = xforms;
 		UsdGeomXformCache xformCache(time);
+		UsdPrim const& prim = skinningQuery.GetPrim();
+		*primWorldToLocal = xformCache.GetLocalToWorldTransform(prim).GetInverse();
 		UsdPrim const& skelPrim = skeletonQuery.GetPrim();
 		*skelLocalToWorld =
 			xformCache.GetLocalToWorldTransform(skelPrim);
 		return true;
 	}
+	*primWorldToLocal = GfMatrix4d(1);
 	*skinningXform = VtMatrix4dArray();
 	*skelLocalToWorld = GfMatrix4d(1);
 	return false;

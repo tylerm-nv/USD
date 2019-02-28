@@ -136,7 +136,7 @@ private:
 		void ComputeSkinningPoints(UsdPrim const& prim, VtValue* value, UsdTimeCode time);
 		bool GetBlendValues(VtValue* jointIndices, VtValue* jointWeights, int* numInfluencesPerPoint, bool* hasConstantInfluences, UsdTimeCode time = 0.0);
 		bool GetBindXform(GfMatrix4d* geomBindXform, UsdTimeCode time = 0.0);
-		bool ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* skelLocalToWorld, UsdTimeCode time);
+		bool ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* primWorldToLocal, GfMatrix4d* skelLocalToWorld, UsdTimeCode time);
 
 		UsdSkelSkinningQuery	skinningQuery;
 		UsdSkelSkeletonQuery	skeletonQuery;

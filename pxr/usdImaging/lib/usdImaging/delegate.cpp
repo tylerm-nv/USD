@@ -2359,7 +2359,7 @@ UsdImagingDelegate::Get(SdfPath const& id, TfToken const& key)
 bool UsdImagingDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform)
 {
 	SdfPath usdPath = GetPathForUsd(id);
-	if (_valueCache.ExtractPoints(usdPath, &restPoints) 
+	if (_valueCache.ExtractRestPoints(usdPath, &restPoints) 
 		&& _valueCache.ExtractGeomBindXform(usdPath, &geomBindXform) )
 	{
 		return true;
