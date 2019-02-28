@@ -614,6 +614,21 @@ UsdImagingMeshAdapter::_SkinningData::ComputeSkinningPoints(UsdPrim const& prim,
 		prim.GetAttribute(UsdGeomTokens->points).Get(&skinningPoints, time);
 		if (skinningQuery.ComputeSkinnedPoints(xforms, jointIndices, jointWeights, &skinningPoints, time))
 		{
+			UsdGeomXformCache xfCache;
+			xfCache.SetTime(time);
+			GfMatrix4d gprimLocalToWorld =
+				xfCache.GetLocalToWorldTransform(prim);
+
+			GfMatrix4d skelLocalToWorld =
+				xfCache.GetLocalToWorldTransform(skeletonQuery.GetPrim());
+
+			GfMatrix4d skelToGprimXf =
+				skelLocalToWorld * gprimLocalToWorld.GetInverse();
+
+			for (auto& pt : skinningPoints) {
+				pt = skelToGprimXf.Transform(pt);
+			}
+
 			*value = skinningPoints;
 			return;
 		}
