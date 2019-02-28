@@ -318,7 +318,7 @@ public:
 	USDIMAGING_API
 	virtual bool GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences);
 	USDIMAGING_API
-	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& skelLocalToWorld);
+	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld);
 	//-NV_CHANGE FRZHANG
 
     // Motion samples

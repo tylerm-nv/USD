@@ -2385,16 +2385,17 @@ UsdImagingDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndi
 
 /*virtual*/
 bool
-UsdImagingDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& skelLocalToWorld)
+UsdImagingDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld)
 {
 	SdfPath usdPath = GetPathForUsd(id);
 	if (_valueCache.ExtractSkinningXforms(usdPath, &skinningXform)
+		&& _valueCache.ExtractPrimWorldToLocal(usdPath, &primWorldToLocal)
 		&& _valueCache.ExtractSkelLocalToWorld(usdPath, &skelLocalToWorld)
 		)
 	{
 		return true;
 	}
-	return HdSceneDelegate::GetSkelAnimXformValues(id, skinningXform, skelLocalToWorld);
+	return HdSceneDelegate::GetSkelAnimXformValues(id, skinningXform, primWorldToLocal, skelLocalToWorld);
 }
 //-NV_CHANGE FRZHANG
 

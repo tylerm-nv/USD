@@ -247,9 +247,10 @@ HdSceneDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices
 
 /*virtual*/
 bool
-HdSceneDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& skelLocalToWorld)
+HdSceneDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld)
 {
 	skinningXform = VtMatrix4dArray();
+	primWorldToLocal = GfMatrix4d(1);
 	skelLocalToWorld = GfMatrix4d(1);
 	return false;
 }
