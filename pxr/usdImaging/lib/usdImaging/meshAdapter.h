@@ -111,7 +111,7 @@ public:
 
 	//+NV_CHANGE FRZHANG
 	USDIMAGING_API
-	static const bool USE_NV_GPUSKINNING = false;
+	static const bool USE_NV_GPUSKINNING = true;
 	//-NV_CHANGE FRZHANG
 
 protected:
