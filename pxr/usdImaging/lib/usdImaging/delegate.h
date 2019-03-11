@@ -313,6 +313,13 @@ public:
                                              SdfPath const &prototypeId) override;
 
 	//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+	/// NV_Edit
+	/// provide direct access to value cache.
+	/// CAUTION!!! please don't use this function is you have no idea about what is valueCache.
+	USDIMAGING_API
+	const UsdImagingValueCache& ValueCache() const { return _valueCache; }
+
+
 	USDIMAGING_API
 	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform);
 	USDIMAGING_API
