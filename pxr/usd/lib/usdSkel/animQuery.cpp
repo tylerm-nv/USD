@@ -150,4 +150,21 @@ UsdSkelAnimQuery::GetDescription() const
 }
 
 
+//+NV_CHANGE FRZHANG
+GfInterval
+UsdSkelAnimQuery::GetTimeRange() const
+{
+	if (_impl)
+	{
+		std::vector<double> times;
+		_impl->GetJointTransformTimeSamples(GfInterval(0.0, FLT_MAX, true, false), &times);
+		if (times.size() > 0)
+		{
+			return GfInterval(times[0], times[times.size() - 1], true, true);
+		}
+	}
+	return GfInterval();
+}
+//-NV_CHANGE FRZHANG
+
 PXR_NAMESPACE_CLOSE_SCOPE

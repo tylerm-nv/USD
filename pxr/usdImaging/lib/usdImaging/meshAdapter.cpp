@@ -132,6 +132,9 @@ UsdImagingMeshAdapter::_InitSkinningInfo(UsdPrim const& prim)
 		skinningData->skeletonQuery = skelCache.GetSkelQuery(skeleton);
 		skinningData->skinningQuery.ComputeJointInfluences(
 			&skinningData->jointIndices, &skinningData->jointWeights);
+		skinningData->animTimeInterval = skinningData->skeletonQuery.GetAnimQuery().GetTimeRange();
+		skinningData->lastUpdateTime = -1.0f;
+		//printf("Init SkinningData for %s AnimRange %f -  %f\n", prim.GetPath().GetText(), (float)skinningData->animTimeInterval.GetMin(), (float)skinningData->animTimeInterval.GetMax());
 	}
 }
 //_NV_CHANGE FRZHANG
@@ -169,8 +172,15 @@ UsdImagingMeshAdapter::TrackVariability(UsdPrim const& prim,
 	_SkinningData* skinningData = _GetSkinningData(cachePath);
 	if(skinningData != nullptr)
 	{
-		printf("variability setting dirty bits for skinning mesh %s\n", prim.GetPath().GetText());
-		(*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
+		//printf("variability setting dirty bits for skinning mesh %s\n", prim.GetPath().GetText());
+		if (UsdImagingMeshAdapter::USE_NV_GPUSKINNING)
+		{
+			(*timeVaryingBits) |= HdChangeTracker::NV_DirtySkelAnimXform;
+		}
+		else
+		{
+			(*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
+		}
 	}
 	//-NV_CHANGE FRZHANG
 	
@@ -325,25 +335,36 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
     }
 
     if (requestedBits & HdChangeTracker::DirtyPoints) {
-        VtValue& points = valueCache->GetPoints(cachePath);
 		//+NV_CHANGE FRZHANG       
 		_SkinningData* skinningData = _GetSkinningData(cachePath);
 		if(skinningData)
 		{
-			skinningData->ComputeSkinningPoints(prim, &points, time);
+			if (UsdImagingMeshAdapter::USE_NV_GPUSKINNING)
+			{
+				VtValue& points = valueCache->GetPoints(cachePath);
+				_GetPoints(prim, &points, time);
+			}
+			else
+			{
+				//skinningQuery's CPU skinning
+				VtValue& points = valueCache->GetPoints(cachePath);
+				skinningData->ComputeSkinningPoints(prim, &points, time);
+			}
 		}
 		else
 		{
 		//-NV_CHANGE FRZHANG
+			VtValue& points = valueCache->GetPoints(cachePath);
 			_GetPoints(prim, &points, time);
 		//+NV_CHANGE FRZHANG
 		}
+		_MergePrimvar(
+			&primvars,
+			HdTokens->points,
+			HdInterpolationVertex,
+			HdPrimvarRoleTokens->point);
 		//-NV_CHANGE FRZHANG
-        _MergePrimvar(
-            &primvars,
-            HdTokens->points,
-            HdInterpolationVertex,
-            HdPrimvarRoleTokens->point);
+
     }
 
     if (requestedBits & HdChangeTracker::DirtyNormals) {
@@ -379,6 +400,38 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
             _GetSubdivTags(prim, &tags, time);
         }
     }
+
+
+	//+NV_CHANGE FRZHANG 
+	if(UsdImagingMeshAdapter::USE_NV_GPUSKINNING)
+	{
+		if (requestedBits & HdChangeTracker::NV_DirtySkinningBinding) {
+			_SkinningData* skinningData = _GetSkinningData(cachePath);
+			if (skinningData)
+			{
+				GfMatrix4d& geomBindXform = valueCache->GetGeomBindXform(cachePath);
+				skinningData->GetBindXform(&geomBindXform, time);
+				VtValue& restPoints = valueCache->GetRestPoints(cachePath);
+				_GetPoints(prim, &restPoints, time);
+				VtValue& jointIndices = valueCache->GetJointIndices(cachePath);
+				VtValue& jointWeights = valueCache->GetJointWeights(cachePath);
+				int& numInfluencesPerPoint = valueCache->GetNumInfluencesPerPoint(cachePath);
+				bool& hasConstantInfluences = valueCache->GetHasConstantInfluences(cachePath);
+				skinningData->GetBlendValues(&jointIndices, &jointWeights, &numInfluencesPerPoint, &hasConstantInfluences);
+			}
+		}
+		if (requestedBits & HdChangeTracker::NV_DirtySkelAnimXform) {
+			_SkinningData* skinningData = _GetSkinningData(cachePath);
+			if (skinningData)
+			{
+				VtValue& skinningXforms = valueCache->GetSkinningXforms(cachePath);
+				GfMatrix4d& primWorldToLocal = valueCache->GetPrimWorldToLocal(cachePath);
+				GfMatrix4d& skelLocalToWorld = valueCache->GetSkelLocalToWorld(cachePath);
+				skinningData->ComputeSkelAnimValues(&skinningXforms, & primWorldToLocal, &skelLocalToWorld, time);
+			}
+		}
+	}
+	//-NV_CHANGE FRZHANG
 }
 
 HdDirtyBits
@@ -527,12 +580,33 @@ UsdImagingMeshAdapter::_GetSubdivTags(UsdPrim const& prim,
 void
 UsdImagingMeshAdapter::_SkinningData::ComputeSkinningPoints(UsdPrim const& prim,
 	VtValue* value,
-	UsdTimeCode time) const
+	UsdTimeCode time)
 {
 	HD_TRACE_FUNCTION();
 	HF_MALLOC_TAG_FUNCTION();
 
 	VtMatrix4dArray xforms;
+
+#define TIME_RANGE_OPTIMIZATION 0
+#if TIME_RANGE_OPTIMIZATION
+	//Time range optimization
+	double desiredUpdateTime = time.GetValue();
+	if (!animTimeInterval.Contains(desiredUpdateTime))
+	{
+		if (desiredUpdateTime < animTimeInterval.GetMin())desiredUpdateTime = animTimeInterval.GetMin();
+		if (desiredUpdateTime > animTimeInterval.GetMax())desiredUpdateTime = animTimeInterval.GetMax();
+	}
+	bool bShouldUpdate = false;
+	bShouldUpdate |= lastUpdateTime < 0;
+	bShouldUpdate |= desiredUpdateTime != lastUpdateTime;
+	lastUpdateTime = desiredUpdateTime;
+	if(!bShouldUpdate)
+	{
+		//printf("skin update for %s at time %f, original data count %d\n", prim.GetPath().GetText(), time.GetValue(), value->GetArraySize());
+		return;
+	}
+#endif
+
 	if (skeletonQuery.ComputeSkinningTransforms(&xforms, time))
 	{
 
@@ -540,12 +614,79 @@ UsdImagingMeshAdapter::_SkinningData::ComputeSkinningPoints(UsdPrim const& prim,
 		prim.GetAttribute(UsdGeomTokens->points).Get(&skinningPoints, time);
 		if (skinningQuery.ComputeSkinnedPoints(xforms, jointIndices, jointWeights, &skinningPoints, time))
 		{
+			UsdGeomXformCache xfCache;
+			xfCache.SetTime(time);
+			GfMatrix4d gprimLocalToWorld =
+				xfCache.GetLocalToWorldTransform(prim);
+
+			GfMatrix4d skelLocalToWorld =
+				xfCache.GetLocalToWorldTransform(skeletonQuery.GetPrim());
+
+			GfMatrix4d skelToGprimXf =
+				skelLocalToWorld * gprimLocalToWorld.GetInverse();
+
+			for (auto& pt : skinningPoints) {
+				pt = skelToGprimXf.Transform(pt);
+			}
+
 			*value = skinningPoints;
 			return;
 		}
 	}
 
 	*value = VtVec3fArray();
+}
+
+
+bool
+UsdImagingMeshAdapter::_SkinningData::GetBlendValues(VtValue* jointIndices, VtValue* jointWeights, int* numInfluencesPerPoint, bool* hasConstantInfluences, UsdTimeCode time)
+{
+	VtIntArray ji;
+	VtFloatArray jw;
+	if (skinningQuery.ComputeJointInfluences(&ji, &jw, time))
+	{
+		*jointIndices = ji;
+		*jointWeights = jw;
+		*numInfluencesPerPoint = skinningQuery.GetNumInfluencesPerComponent();
+		*hasConstantInfluences = skinningQuery.IsRigidlyDeformed();
+		//*hasConstantInfluences = false;
+		return true;
+	}
+	*jointIndices = VtIntArray();
+	*jointWeights = VtFloatArray();
+	*numInfluencesPerPoint = 0;
+	*hasConstantInfluences = false;
+	return false;
+}
+
+
+bool
+UsdImagingMeshAdapter::_SkinningData::GetBindXform(GfMatrix4d* geomBindXform, UsdTimeCode time)
+{
+	*geomBindXform = skinningQuery.GetGeomBindTransform(time);
+	return true;
+}
+
+
+bool
+UsdImagingMeshAdapter::_SkinningData::ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* primWorldToLocal, GfMatrix4d* skelLocalToWorld, UsdTimeCode time)
+{
+	VtMatrix4dArray xforms;
+	if (skeletonQuery.ComputeSkinningTransforms(&xforms, time))
+	{
+		*skinningXform = xforms;
+		UsdGeomXformCache xformCache(time);
+		UsdPrim const& prim = skinningQuery.GetPrim();
+		*primWorldToLocal = xformCache.GetLocalToWorldTransform(prim).GetInverse();
+		UsdPrim const& skelPrim = skeletonQuery.GetPrim();
+		*skelLocalToWorld =
+			xformCache.GetLocalToWorldTransform(skelPrim);
+		return true;
+	}
+	*primWorldToLocal = GfMatrix4d(1);
+	*skinningXform = VtMatrix4dArray();
+	*skelLocalToWorld = GfMatrix4d(1);
+	return false;
 }
 //-NV_CHANGE FRZHANG
 

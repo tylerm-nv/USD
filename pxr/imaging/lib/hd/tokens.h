@@ -82,6 +82,10 @@ PXR_NAMESPACE_OPEN_SCOPE
     (materialParams)                            \
     (nonperiodic)                               \
     (normals)                                   \
+	/*NV_CHANGE FRZHANG*/						\
+	(skinningBinding)							\
+	(skelAnimXforms)							\
+	/*_NV_CHANGE FRZHANG*/						\
     (params)                                    \
     (patchParam)                                \
     (periodic)                                  \

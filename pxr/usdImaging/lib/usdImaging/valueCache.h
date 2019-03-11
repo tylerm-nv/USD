@@ -148,6 +148,46 @@ public:
             static TfToken attr("normals");
             return Key(path, attr);
         }
+		//+NV_CHANGE FRZHANG : NV GPU Skinning
+		//skinned prim keys
+		static Key RestPoints(SdfPath const& path) {
+			static TfToken attr("restPoints");
+			return Key(path, attr);
+		}
+		static Key GeomBindXform(SdfPath const& path) {
+			static TfToken attr("geomBindXform");
+			return Key(path, attr);
+		}
+		static Key JointIndices(SdfPath const& path) {
+			static TfToken attr("jointIndices");
+			return Key(path, attr);
+		}
+		static Key JointWeights(SdfPath const& path) {
+			static TfToken attr("jointWeights");
+			return Key(path, attr);
+		}
+		static Key NumInfluencesPerPoint(SdfPath const& path) {
+			static TfToken attr("numInfluencesPerPoint");
+			return Key(path, attr);
+		}
+		static Key HasConstantInfluences(SdfPath const& path) {
+			static TfToken attr("hasConstantInfluences");
+			return Key(path, attr);
+		}
+		static Key PrimWorldToLocal(SdfPath const& path) {
+			static TfToken attr("primWorldToLocal");
+			return Key(path, attr);
+		}
+		//skeleton prim keys
+		static Key SkinningXforms(SdfPath const& path) {
+			static TfToken attr("skinningXforms");
+			return Key(path, attr);
+		}
+		static Key SkelLocalToWorld(SdfPath const& path) {
+			static TfToken attr("skelLocalToWorld");
+			return Key(path, attr);
+		}
+		//-NV_CHANGE FRZHANG
         static Key MaterialId(SdfPath const& path) {
             static TfToken attr("materialId");
             return Key(path, attr);
@@ -238,8 +278,16 @@ private:
         }
 
         // If we're going to erase the old value, swap to avoid a copy.
-        std::swap(it->second, *value);
-        cache->_deferredDeleteQueue.push(key);
+        //+NV_CHANGE FRZHANG
+		//looks like we do need a copy instead of delete this resource. Hope no side effect.
+#define PERMANENT_CACHE 0
+#if PERMANENT_CACHE
+		*value = it->second;
+#else
+		std::swap(it->second, *value);
+		      cache->_deferredDeleteQueue.push(key);
+#endif
+		//-NV_CHANGE FRZHANg
         return true;
     }
 
@@ -315,6 +363,17 @@ public:
         _Erase<VtValue>(Key::Points(path));
         _Erase<VtValue>(Key::Widths(path));
         _Erase<VtValue>(Key::Normals(path));
+		//+NV_CHANGE FRZHANG : NV GPU Skinning
+		_Erase<VtValue>(Key::RestPoints(path));
+		_Erase<GfMatrix4d>(Key::GeomBindXform(path));
+		_Erase<VtValue>(Key::JointIndices(path));
+		_Erase<VtValue>(Key::JointWeights(path));
+		_Erase<int>(Key::NumInfluencesPerPoint(path));
+		_Erase<bool>(Key::HasConstantInfluences(path));
+		_Erase<GfMatrix4d>(Key::PrimWorldToLocal(path));
+		_Erase<VtValue>(Key::SkinningXforms(path));
+		_Erase<GfMatrix4d>(Key::SkelLocalToWorld(path));
+		//-NV_CHANGE FRZHANG
         _Erase<VtValue>(Key::MaterialId(path));
         _Erase<VtValue>(Key::MaterialPrimvars(path));
         _Erase<VtValue>(Key::MaterialResource(path));
@@ -387,6 +446,35 @@ public:
     VtValue& GetNormals(SdfPath const& path) const {
         return _Get<VtValue>(Key::Normals(path));
     }
+	//+NV_CHANGE FRZHANG : NV GPU Skinning
+	VtValue& GetRestPoints(SdfPath const& path) const {
+		return _Get<VtValue>(Key::RestPoints(path));
+	}
+	GfMatrix4d& GetGeomBindXform(SdfPath const& path) const {
+		return _Get<GfMatrix4d>(Key::GeomBindXform(path));
+	}
+	VtValue& GetJointIndices(SdfPath const& path) const {
+		return _Get<VtValue>(Key::JointIndices(path));
+	}
+	VtValue& GetJointWeights(SdfPath const& path) const {
+		return _Get<VtValue>(Key::JointWeights(path));
+	}
+	int& GetNumInfluencesPerPoint(SdfPath const& path) const {
+		return _Get<int>(Key::NumInfluencesPerPoint(path));
+	}
+	bool& GetHasConstantInfluences(SdfPath const& path) const {
+		return _Get<bool>(Key::HasConstantInfluences(path));
+	}
+	GfMatrix4d& GetPrimWorldToLocal(SdfPath const& path) const {
+		return _Get<GfMatrix4d>(Key::PrimWorldToLocal(path));
+	}
+	VtValue& GetSkinningXforms(SdfPath const& path) const {
+		return _Get<VtValue>(Key::SkinningXforms(path));
+	}
+	GfMatrix4d& GetSkelLocalToWorld(SdfPath const& path) const {
+		return _Get<GfMatrix4d>(Key::SkelLocalToWorld(path));
+	}
+	//-NV_CHANGE FRZHANG
     VtValue& GetPrimvar(SdfPath const& path, TfToken const& name) const {
         return _Get<VtValue>(Key(path, name));
     }
@@ -464,6 +552,35 @@ public:
     bool FindNormals(SdfPath const& path, VtValue* value) const {
         return _Find(Key::Normals(path), value);
     }
+	//+NV_CHANGE FRZHANG : NV GPU Skinning
+	bool FindRestPoints(SdfPath const& path, VtValue* value) const {
+		return _Find(Key::RestPoints(path), value);
+	}
+	bool FindGeomBindXform(SdfPath const& path, GfMatrix4d* value) const {
+		return _Find(Key::GeomBindXform(path), value);
+	}
+	bool FindJointIndices(SdfPath const& path, VtValue* value) const {
+		return _Find(Key::JointIndices(path), value);
+	}
+	bool FindJointWeights(SdfPath const& path, VtValue* value) const {
+		return _Find(Key::JointWeights(path), value);
+	}
+	bool FindNumInfluencesPerPoint(SdfPath const& path, int* value) const {
+		return _Find(Key::NumInfluencesPerPoint(path), value);
+	}
+	bool FindHasConstantInfluences(SdfPath const& path, bool* value) const {
+		return _Find(Key::HasConstantInfluences(path), value);
+	}
+	bool FindPrimWorldToLocal(SdfPath const& path, GfMatrix4d* value) const {
+		return _Find(Key::PrimWorldToLocal(path), value);
+	}
+	bool FindSkinningXforms(SdfPath const& path, VtValue* value) const {
+		return _Find(Key::SkinningXforms(path), value);
+	}
+	bool FindSkelLocalToWorld(SdfPath const& path, GfMatrix4d* value) const {
+		return _Find(Key::SkelLocalToWorld(path), value);
+	}
+	//-NV_CHANGE FRZHANG
     bool FindMaterialId(SdfPath const& path, SdfPath* value) const {
         return _Find(Key::MaterialId(path), value);
     }
@@ -535,6 +652,35 @@ public:
     bool ExtractNormals(SdfPath const& path, VtValue* value) {
         return _Extract(Key::Normals(path), value);
     }
+	//+NV_CHANGE FRZHANG : NV GPU Skinning
+	bool ExtractRestPoints(SdfPath const& path, VtValue* value) {
+		return _Extract(Key::RestPoints(path), value);
+	}
+	bool ExtractGeomBindXform(SdfPath const& path, GfMatrix4d* value) {
+		return _Extract(Key::GeomBindXform(path), value);
+	}
+	bool ExtractJointIndices(SdfPath const& path, VtValue* value) {
+		return _Extract(Key::JointIndices(path), value);
+	}
+	bool ExtractJointWeights(SdfPath const& path, VtValue* value) {
+		return _Extract(Key::JointWeights(path), value);
+	}
+	bool ExtractNumInfluencesPerPoint(SdfPath const& path, int* value) {
+		return _Extract(Key::NumInfluencesPerPoint(path), value);
+	}
+	bool ExtractHasConstantInfluences(SdfPath const& path, bool* value) {
+		return _Extract(Key::HasConstantInfluences(path), value);
+	}
+	bool ExtractPrimWorldToLocal(SdfPath const& path, GfMatrix4d* value) {
+		return _Extract(Key::PrimWorldToLocal(path), value);
+	}
+	bool ExtractSkinningXforms(SdfPath const& path, VtValue* value) {
+		return _Extract(Key::SkinningXforms(path), value);
+	}
+	bool ExtractSkelLocalToWorld(SdfPath const& path, GfMatrix4d* value) {
+		return _Extract(Key::SkelLocalToWorld(path), value);
+	}
+	//-NV_CHANGE FRZHANG
     bool ExtractMaterialId(SdfPath const& path, SdfPath* value) {
         return _Extract(Key::MaterialId(path), value);
     }
@@ -568,6 +714,9 @@ public:
     void GarbageCollect()
     {
         _GarbageCollect(_boolCache);
+		//+NV_CHANGE FRZHANG
+		_GarbageCollect(_intCache);
+		//-NV_CHANGE FRZHANG
         _GarbageCollect(_tokenCache);
         _GarbageCollect(_rangeCache);
         _GarbageCollect(_cullStyleCache);
@@ -588,6 +737,11 @@ private:
     // visible, doubleSided
     typedef _TypedCache<bool> _BoolCache;
     mutable _BoolCache _boolCache;
+
+	//+NV_CHANGE FRZHANG
+	typedef _TypedCache<int> _IntCache;
+	mutable _IntCache _intCache;
+	//-NV_CHANGE FRZHANG
 
     // purpose
     typedef _TypedCache<TfToken> _TokenCache;
@@ -633,6 +787,11 @@ private:
     void _GetCache(_BoolCache **cache) const {
         *cache = &_boolCache;
     }
+	//+NV_CHANGE FRZHANG
+	void _GetCache(_IntCache **cache) const {
+		*cache = &_intCache;
+	}
+	//_NV_CHANGE
     void _GetCache(_TokenCache **cache) const {
         *cache = &_tokenCache;
     }
