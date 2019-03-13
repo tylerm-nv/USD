@@ -74,14 +74,11 @@ public:
         }
 
         bool operator == (const const_iterator& other) const {
-			// Only compare _inner when the _outer actually match.
-			// Debug will assert otherwise (VC14) since they are
-			// not from the same container.
-			return _outer == other._outer &&
-				(_innerExists && other._innerExists) ?
-				(_inner == other._inner) :
-				(_innerExists == other._innerExists);
-		}
+            const bool innerCompare = (_innerExists && other._innerExists) ?
+                (_inner == other._inner) :
+                (_innerExists == other._innerExists);
+            return _outer == other._outer && innerCompare;
+        }
 
         const_iterator& operator ++() {
             Advance();
