@@ -113,7 +113,6 @@ class TestSdfParsing(unittest.TestCase):
         114_bad_prefix_metadata.sdf
         113_displayName_metadata.sdf
         112_nested_dictionaries.sdf
-        111_string_arrays.sdf
         108_bad_inheritPath.sdf
         105_mapperMetadata.sdf
         104_uniformAttributes.sdf
@@ -162,7 +161,6 @@ class TestSdfParsing(unittest.TestCase):
         50_bad_primPath.sdf
         49_bad_list.sdf
         47_miscSceneInfo.sdf
-        46_weirdStringContent.sdf
         45_rareValueTypes.sdf
         42_bad_noNewlineBetweenComps.sdf
         41_noEndingNewline.sdf
@@ -184,7 +182,6 @@ class TestSdfParsing(unittest.TestCase):
         23_bad_newline3.sdf
         22_bad_newline2.sdf
         21_bad_newline1.sdf
-        20_optionalsemicolons.sdf
         16_bad_list.sdf
         15_bad_list.sdf
         14_bad_value.sdf
@@ -194,9 +191,7 @@ class TestSdfParsing(unittest.TestCase):
         10_bad_value.sdf
         09_bad_type.sdf
         08_bad_file.sdf
-        06_largevalue.sdf
         05_bad_file.sdf
-        04_general.sdf
         03_bad_file.sdf
         02_simple.sdf
         01_empty.sdf
@@ -216,6 +211,14 @@ class TestSdfParsing(unittest.TestCase):
 
         # Disabled tests - this has not failed properly ever, but a bug in this script masked the problem
         # 34_bad_relationship_duplicate_target_attr.sdf
+
+        # NV aluk
+        # Disabled tests - need to strip CRLF on Windows from baseline input.
+        # 111_string_arrays.sdf
+        # 46_weirdStringContent.sdf
+        # 20_optionalsemicolons.sdf
+        # 06_largevalue.sdf
+        # 04_general.sdf
 
         # Create a temporary file for diffs and choose where to get test data.
         import tempfile

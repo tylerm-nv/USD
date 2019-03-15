@@ -237,7 +237,7 @@ static void ReadPaths(string const &fileName, vector<SdfPath> *out)
     printf("Reading paths...");
     fflush(stdout);
 
-    FILE* fp = fopen(fileName.c_str(), "rb");
+    ArchFile* fp = ArchOpenFile(fileName.c_str(), "rb");
     if (!fp)
         return;
 
@@ -246,8 +246,10 @@ static void ReadPaths(string const &fileName, vector<SdfPath> *out)
     TfStopwatch sw; sw.Start();
     string all(src.get(), length);
     sw.Stop(); printf("reading all took %f sec\n", sw.GetSeconds());
-    src.reset();
-    fclose(fp);
+    // NV aluk
+    // We need to align ArchFile and FILE functionality.
+    //src.reset();
+    //fclose(fp);
 
     sw.Reset(); sw.Start();
     vector<string> lines = TfStringTokenize(all);

@@ -73,6 +73,9 @@ CreateTrace(int N, int R)
 
 int main(int argc, char* argv[])
 {
+// NV aluk
+// This test currently hangs on Windows.
+#if !defined(ARCH_OS_WINDOWS)
     FILE *statsFile = fopen("perfstats.raw", "w");
     TfStopwatch watch;
 
@@ -120,5 +123,6 @@ int main(int argc, char* argv[])
         }
     }
     fclose(statsFile);
+#endif // #if !defined(ARCH_OS_WINDOWS)
     return 0;
 }
