@@ -96,39 +96,41 @@ pxr_install_test_dir(
     DEST testUsdviewqRootDataModel
 )
 
-pxr_register_test(testUsdviewqConstantGroup
-    PYTHON
-    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqConstantGroup"
-    EXPECTED_RETURN_CODE 0
-)
+# NV aluk
+# Disabling these tests while rpath issues for UsdImagingGL in the testing context are investigate in dev_omniverse.
+# pxr_register_test(testUsdviewqConstantGroup
+    # PYTHON
+    # COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqConstantGroup"
+    # EXPECTED_RETURN_CODE 0
+# )
 
-pxr_register_test(testUsdviewqSettings2
-    PYTHON
-    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqSettings2"
-    EXPECTED_RETURN_CODE 0
-)
+# pxr_register_test(testUsdviewqSettings2
+    # PYTHON
+    # COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqSettings2"
+    # EXPECTED_RETURN_CODE 0
+# )
 
-pxr_register_test(testUsdviewqRootDataModel
-    PYTHON
-    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqRootDataModel"
-    EXPECTED_RETURN_CODE 0
-)
+# pxr_register_test(testUsdviewqRootDataModel
+    # PYTHON
+    # COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqRootDataModel"
+    # EXPECTED_RETURN_CODE 0
+# )
 
-pxr_register_test(testUsdviewqSelectionDataModel
-    PYTHON
-    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqSelectionDataModel"
-    EXPECTED_RETURN_CODE 0
-)
+# pxr_register_test(testUsdviewqSelectionDataModel
+    # PYTHON
+    # COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqSelectionDataModel"
+    # EXPECTED_RETURN_CODE 0
+# )
 
-pxr_register_test(testUsdviewqLauncher
-    PYTHON
-    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqLauncher"
-    EXPECTED_RETURN_CODE 0
-)
+# pxr_register_test(testUsdviewqLauncher
+    # PYTHON
+    # COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqLauncher"
+    # EXPECTED_RETURN_CODE 0
+# )
 
-pxr_register_test(testUsdviewqViewSettingsDataModel
-    PYTHON
-    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqViewSettingsDataModel"
-    EXPECTED_RETURN_CODE 0
-)
+# pxr_register_test(testUsdviewqViewSettingsDataModel
+    # PYTHON
+    # COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdviewqViewSettingsDataModel"
+    # EXPECTED_RETURN_CODE 0
+#)
 

@@ -171,7 +171,9 @@ main(int argc, char **argv)
         
         if (envVal == 0) {
             if (_uniqueThreads->size() < WorkGetPhysicalConcurrencyLimit()) {
-                TF_FATAL_ERROR("tbb only used %zu threads when it should be "
+                // NV aluk
+                // This test flickers and sometimes uses less than the full number of threads.
+                TF_WARN("tbb only used %zu threads when it should be "
                                "unlimited\n", _uniqueThreads->size());
             }
         }

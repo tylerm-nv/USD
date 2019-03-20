@@ -86,7 +86,7 @@ TestOpenAsset()
         TF_AXIOM(std::equal(arr.get(), arr.get() + numToRead,
                             srcFile.get() + offset));
  
-        std::pair<FILE*, size_t> fileAndOffset = asset->GetFileUnsafe();
+        std::pair<ArchFile*, size_t> fileAndOffset = asset->GetFileUnsafe();
         TF_AXIOM(fileAndOffset.first != nullptr);
         TF_AXIOM(fileAndOffset.second == expectedOffset);
 

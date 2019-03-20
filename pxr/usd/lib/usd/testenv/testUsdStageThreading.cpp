@@ -178,6 +178,9 @@ _WorkTask(size_t msecsToRun, bool runForever)
 
 int main(int argc, char const **argv)
 {
+// NV aluk
+// boost::program_options not working properly in usd-build
+#if 0
     // Set up arguments and their defaults
     boost_po::options_description desc("Options");
     desc.add_options()
@@ -204,6 +207,10 @@ int main(int argc, char const **argv)
         fprintf(stderr, "%s\n", TfStringify(desc).c_str());                     
         exit(1);                                                                
     }
+#else
+    numThreads = std::thread::hardware_concurrency();
+    msecsToRun = 10 * 1000;
+#endif
 
 
     // Initialize. 
