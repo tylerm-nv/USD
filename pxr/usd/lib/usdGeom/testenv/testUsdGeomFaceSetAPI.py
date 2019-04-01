@@ -112,8 +112,8 @@ class TestUsdGeomFaceSetAPI(unittest.TestCase):
         for faceSetName in invalidFaceSetNames:
             faceSet= UsdGeom.FaceSetAPI(sphere, faceSetName)
             (valid, reason) = faceSet.Validate()
-            print "FaceSet named '%s' should be invalid because: %s" % \
-                (faceSetName, reason)
+            print("FaceSet named '%s' should be invalid because: %s" % \
+                (faceSetName, reason))
             self.assertFalse(valid)
 
     def test_NumFaceSets(self):

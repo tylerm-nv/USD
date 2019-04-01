@@ -450,7 +450,7 @@ private:
             .def("update", &This::_UpdateDict, TfPyRaiseOnError<>())
             .def("update", &This::_UpdateList, TfPyRaiseOnError<>())
             .def("copy", &This::Copy, TfPyRaiseOnError<>())
-            .def("__nonzero__", &This::_NonZero, TfPyRaiseOnError<>())
+            .def(PyBoolBuiltinFuncName, &This::_NonZero, TfPyRaiseOnError<>())
             .def(self == self)
             .def(self != self)
             ;
@@ -458,19 +458,19 @@ private:
         class_<_Iterator<_ExtractItem> >
             ((name + "_Iterator").c_str(), no_init)
             .def("__iter__", &_Iterator<_ExtractItem>::GetCopy)
-            .def("next", &_Iterator<_ExtractItem>::GetNext)
+            .def(PyIteratorNextMethodName, &_Iterator<_ExtractItem>::GetNext)
             ;
 
         class_<_Iterator<_ExtractKey> >
             ((name + "_KeyIterator").c_str(), no_init)
             .def("__iter__", &_Iterator<_ExtractKey>::GetCopy)
-            .def("next", &_Iterator<_ExtractKey>::GetNext)
+            .def(PyIteratorNextMethodName, &_Iterator<_ExtractKey>::GetNext)
             ;
 
         class_<_Iterator<_ExtractValue> >
             ((name + "_ValueIterator").c_str(), no_init)
             .def("__iter__", &_Iterator<_ExtractValue>::GetCopy)
-            .def("next", &_Iterator<_ExtractValue>::GetNext)
+            .def(PyIteratorNextMethodName, &_Iterator<_ExtractValue>::GetNext)
             ;
     }
 

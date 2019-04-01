@@ -133,8 +133,8 @@ class TestUsdGeomCollectionAPI(unittest.TestCase):
         for name in invalidCollectionNames:
             collection = UsdGeom.CollectionAPI(root, name)
             (valid, reason) = collection.Validate()
-            print "Collection '%s' is invalid because: %s" % \
-                (name, reason)
+            print("Collection '%s' is invalid because: %s" % \
+                (name, reason))
             self.assertFalse(valid)
 
     def test_NumCollections(self):
