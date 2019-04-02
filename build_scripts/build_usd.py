@@ -37,7 +37,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import urllib.request, urllib.error, urllib.parse
+import urllib2
 import zipfile
 
 # Helpers for printing output
@@ -268,7 +268,7 @@ def DownloadFileWithPowershell(url, outputFilename):
     Run(cmd,logCommandOutput=False)
 
 def DownloadFileWithUrllib(url, outputFilename):
-    r = urllib.request.urlopen(url)
+    r = urllib2.urlopen(url)
     with open(outputFilename, "wb") as outfile:
         outfile.write(r.read())
 
