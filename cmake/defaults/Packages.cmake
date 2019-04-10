@@ -61,10 +61,8 @@ if(PXR_ENABLE_PYTHON_SUPPORT)
     # --Boost
     find_package(Boost
         COMPONENTS
-            filesystem
             program_options
             ${BOOST_PYTHON_COMPONENT_NAME}
-            system
         REQUIRED
     )
 
@@ -86,9 +84,7 @@ else()
     # --Boost
     find_package(Boost
         COMPONENTS
-            filesystem
             program_options
-            system
         REQUIRED
     )
 endif()
@@ -132,6 +128,11 @@ if (PXR_BUILD_IMAGING)
     if (PXR_BUILD_OPENIMAGEIO_PLUGIN)
         find_package(OpenImageIO REQUIRED)
         add_definitions(-DPXR_OIIO_PLUGIN_ENABLED)
+    endif()
+    # --OpenColorIO
+    if (PXR_BUILD_OPENCOLORIO_PLUGIN)
+        find_package(OpenColorIO REQUIRED)
+        add_definitions(-DPXR_OCIO_PLUGIN_ENABLED)
     endif()
     # --OpenGL
     if (PXR_ENABLE_GL_SUPPORT)
