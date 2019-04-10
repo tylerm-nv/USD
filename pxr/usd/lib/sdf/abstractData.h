@@ -130,6 +130,30 @@ private:
     mutable boost::optional<SdfPath> _propertySpecPathBuffer;
 };
 
+// #nv begin #fast-updates
+class SdfAbstractDataFieldAccess : public TfRefBase, public TfWeakBase
+{
+public:
+    SdfAbstractDataFieldAccess(const SdfPath &path,
+                               const TfToken &fieldName) :
+        _path(path), _fieldName(&fieldName), _specId(SdfAbstractDataSpecId(&_path)) {}
+    SDF_API
+    virtual ~SdfAbstractDataFieldAccess();
+
+    SDF_API
+    const SdfAbstractDataSpecId &GetSpecId() { return _specId; }
+
+    SDF_API
+    const TfToken &GetFieldName() { return *_fieldName; }
+private:
+    const SdfPath _path;
+    const TfToken *_fieldName;
+    SdfAbstractDataSpecId _specId;
+};
+
+SDF_DECLARE_HANDLES(SdfAbstractDataFieldAccess);
+// nv end
+
 /// \class SdfAbstractData
 ///
 /// Interface for scene description data storage.
@@ -254,6 +278,20 @@ public:
     SDF_API
     virtual std::type_info const &
     GetTypeid(const SdfAbstractDataSpecId &id, const TfToken &fieldName) const;
+
+    // #nv begin #fast-updates
+    SDF_API
+    virtual SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
+
+    SDF_API
+    virtual void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle);
+
+    SDF_API
+    virtual bool Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value);
+
+    SDF_API
+    virtual bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const;
+    // nv end
 
     /// Set the value of the given \a id and \a fieldName.
     ///
@@ -388,6 +426,11 @@ public:
     virtual bool
     QueryTimeSample(const SdfAbstractDataSpecId& id, double time,
                     SdfAbstractDataValue *optionalValue) const = 0;
+
+    // #nv begin #fast-updates
+    SDF_API
+    virtual void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value);
+    // nv end
 
     SDF_API
     virtual void

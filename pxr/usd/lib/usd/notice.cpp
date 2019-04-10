@@ -172,5 +172,14 @@ UsdNotice::ObjectsChanged::HasChangedFields(const SdfPath &path) const
     return false;
 }
 
+// #nv begin #fast-updates
+const SdfPathVector &
+UsdNotice::ObjectsChanged::GetFastUpdates() const
+{
+    static SdfPathVector emptyFastUpdates;
+    return _fastUpdates ? *_fastUpdates : emptyFastUpdates;
+}
+// nv end
+
 PXR_NAMESPACE_CLOSE_SCOPE
 

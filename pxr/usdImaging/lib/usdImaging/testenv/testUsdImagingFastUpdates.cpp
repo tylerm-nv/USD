@@ -1,0 +1,257 @@
+//
+// Copyright 2019 Pixar
+//
+// Licensed under the Apache License, Version 2.0 (the "Apache License")
+// with the following modification; you may not use this file except in
+// compliance with the Apache License and the following modification to it:
+// Section 6. Trademarks. is deleted and replaced with:
+//
+// 6. Trademarks. This License does not grant permission to use the trade
+//    names, trademarks, service marks, or product names of the Licensor
+//    and its affiliates, except as required to comply with Section 4(c) of
+//    the License and to reproduce the content of the NOTICE file.
+//
+// You may obtain a copy of the Apache License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the Apache License with the above modification is
+// distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+// KIND, either express or implied. See the Apache License for the specific
+// language governing permissions and limitations under the Apache License.
+//
+
+// #nv begin #fast-updates
+#include "pxr/pxr.h"
+#include "pxr/usd/sdf/layer.h"
+#include "pxr/usd/sdf/attributeSpec.h"
+#include "pxr/usd/sdf/primSpec.h"
+#include "pxr/usd/sdf/relationshipSpec.h"
+#include "pxr/usd/sdf/schema.h"
+#include "pxr/usd/sdf/notice.h"
+
+#include "pxr/imaging/hd/unitTestNullRenderDelegate.h""
+
+#include "pxr/usdImaging/usdImaging/delegate.h"
+
+#include "pxr/base/tf/errorMark.h"
+#include "pxr/base/trace/reporter.h"
+#include "pxr/base/trace/trace.h"
+
+#include <iostream>
+#include <random>
+
+PXR_NAMESPACE_USING_DIRECTIVE
+
+TF_DEBUG_CODES(
+    TEST_USDIMAGING_FAST_UPDATES_PERF
+);
+
+TF_REGISTRY_FUNCTION(TfDebug)
+{
+    TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_PERF, "Run testUsdImagingFastUpdates as a performance test");
+}
+
+static std::default_random_engine gRandomEngine(1515);
+
+class LayerAttrChangeHelper
+{
+    SdfLayerRefPtr _layer;
+
+    struct AttrData
+    {
+        SdfAbstractDataFieldAccessHandle defaultFieldHandle;
+        SdfAbstractDataFieldAccessHandle timeSamplesFieldHandle;
+    };
+
+    std::vector<SdfPath> _pathList;
+    TfHashMap<SdfPath, AttrData, SdfPath::Hash> _attrMap;
+
+public:
+    LayerAttrChangeHelper(SdfLayerRefPtr layer)
+        : _layer(layer)
+    {
+        _layer->Traverse(SdfPath::AbsoluteRootPath(), [this](const SdfPath& path)
+        {
+            if (path.IsPropertyPath())
+            {
+                if (_layer->GetSpecType(path) == SdfSpecTypeAttribute)
+                {
+                    _pathList.push_back(path);
+                    AttrData attrData = {
+                        _layer->CreateFieldHandle(path, SdfFieldKeys->Default),
+                        _layer->CreateFieldHandle(path, SdfFieldKeys->TimeSamples)
+                    };
+                    _attrMap[path] = attrData;
+                }
+            }
+        });
+    }
+
+    ~LayerAttrChangeHelper() {
+        TF_FOR_ALL(itr, _attrMap) {
+            _layer->ReleaseFieldHandle(&(itr->second.timeSamplesFieldHandle));
+            _layer->ReleaseFieldHandle(&(itr->second.defaultFieldHandle));
+        }
+    }
+
+    size_t GetAttrCount() const { return _pathList.size(); }
+
+    void ExecuteRandomChange(bool writeDefaults, bool isPerfTest)
+    {
+        static const double timeSampleToSet = 1.0;
+
+        SdfChangeBlock changeBlock;
+
+        for (size_t i = 0; i < _pathList.size(); ++i)
+        {
+            const size_t attrIdx = i;
+            const SdfPath &attrPath = _pathList[i];
+            const AttrData& attrData = _attrMap[attrPath];
+            double oldValue = 1.0;
+            double newValue = 0.0;
+            if (!isPerfTest) {
+                if (writeDefaults) {
+                    TF_AXIOM(attrData.defaultFieldHandle);
+                    VtValue oldVtVal = _layer->GetField(attrData.defaultFieldHandle);
+                    if (oldVtVal.IsHolding<double>())
+                        oldValue = oldVtVal.UncheckedGet<double>();
+                } else {
+                    TF_AXIOM(attrData.timeSamplesFieldHandle);
+                    VtValue oldVtVal = _layer->GetField(attrData.timeSamplesFieldHandle);
+                    if (oldVtVal.IsHolding<SdfTimeSampleMap>()) {
+                        SdfTimeSampleMap oldTimeSamples = oldVtVal.UncheckedGet<SdfTimeSampleMap>();
+                        SdfTimeSampleMap::iterator oldEntry = oldTimeSamples.find(timeSampleToSet);
+                        if (oldEntry != oldTimeSamples.end() && oldEntry->second.IsHolding<double>()) {
+                            oldValue = oldEntry->second.UncheckedGet<double>();
+                        }
+                    }
+                }
+                TF_AXIOM(!std::isnan(oldValue));
+                newValue = std::uniform_int_distribution<int>(1, _pathList.size() - 1)(gRandomEngine) + oldValue;
+                TF_AXIOM(!std::isnan(newValue));
+            } else {
+                newValue = std::uniform_int_distribution<int>(1, _pathList.size() - 1)(gRandomEngine);
+            }
+
+            if (writeDefaults) {
+                _layer->SetField(attrData.defaultFieldHandle, VtValue(newValue));
+            } else {
+                _layer->SetTimeSample(attrData.timeSamplesFieldHandle, timeSampleToSet, VtValue(newValue));
+            }
+
+            if (!isPerfTest) {
+                double modValue = 0.0;
+                if (writeDefaults) {
+                    modValue = _layer->GetField(attrData.defaultFieldHandle).UncheckedGet<double>();
+
+                    TF_AXIOM(!std::isnan(modValue));
+
+                    // Retreiving the attribute value wihout the field handle should result in the same value as retrieving it with the handle.
+                    double modValueNoHandle = _layer->GetField(attrPath, SdfFieldKeys->Default)
+                        .UncheckedGet<double>();
+                    TF_AXIOM(!std::isnan(modValueNoHandle));
+                    TF_AXIOM(modValue == modValueNoHandle);
+                }
+                else {
+                    SdfTimeSampleMap modTimeSamples =
+                        _layer->GetField(attrData.timeSamplesFieldHandle).UncheckedGet<SdfTimeSampleMap>();
+                    TF_AXIOM(modTimeSamples.find(timeSampleToSet) != modTimeSamples.end());
+                    TF_AXIOM(modTimeSamples[timeSampleToSet].IsHolding<double>());
+                    modValue = modTimeSamples[timeSampleToSet].UncheckedGet<double>();
+
+                    TF_AXIOM(!std::isnan(modValue));
+
+                    // Retreiving the attribute value wihout the field handle should result in the same value as retrieving it with the handle.
+                    modTimeSamples = _layer->GetField(attrPath, SdfFieldKeys->TimeSamples)
+                        .UncheckedGet<SdfTimeSampleMap>();
+                    TF_AXIOM(modTimeSamples.find(timeSampleToSet) != modTimeSamples.end());
+                    TF_AXIOM(modTimeSamples[timeSampleToSet].IsHolding<double>());
+                    double modValueNoHandle = modTimeSamples[timeSampleToSet].UncheckedGet<double>();
+                    TF_AXIOM(modValue == modValueNoHandle);
+                }
+                TF_AXIOM(oldValue != modValue);
+                TF_AXIOM(modValue == newValue);
+            }
+        }
+    }
+};
+
+static
+void PopulateInitialLayerContent(SdfLayerRefPtr layer, int numPrims)
+{
+    // XXX:aluk
+    // When authoring in Sdf, there is no API to get the usdPrimTypeName for a schema, so we have to hardcode type names here.
+    auto parentPrim = SdfPrimSpec::New(layer->GetPseudoRoot(), "world", SdfSpecifierDef, "Scope");
+
+    for (int primIdx = 0; primIdx < numPrims; ++primIdx)
+    {
+        std::string primName("sphere");
+        primName.append("_").append(std::to_string(primIdx));
+
+        auto prim = SdfPrimSpec::New(parentPrim, primName, SdfSpecifierDef, "Sphere");
+
+        auto attr = SdfAttributeSpec::New(prim, UsdGeomTokens->radius, SdfValueTypeNames->Double);
+    }
+}
+
+static
+void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
+{
+    const std::string assetPath = "benchmarkAsset.usda";
+
+    auto layer = SdfLayer::CreateNew(assetPath);
+
+    PopulateInitialLayerContent(layer, 300);
+
+    layer->Save();
+
+    layer = nullptr;
+
+    layer = SdfLayer::OpenAsAnonymous(assetPath);
+    auto stage = UsdStage::Open(layer);
+    Hd_UnitTestNullRenderDelegate renderDelegate;
+    UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate), SdfPath::AbsoluteRootPath());
+    imagingDelegate.Populate(stage->GetPseudoRoot());
+
+    std::string traceDetail = writeDefaults ? "(defaults)" : "(time samples)";
+
+    if (isPerfTest)
+        TraceCollector::GetInstance().SetEnabled(true);
+
+    LayerAttrChangeHelper changeGenerator(layer);
+    for (int i = 0; i < 10; ++i)
+    {
+        TRACE_SCOPE_DYNAMIC("Change Attributes " + traceDetail);
+
+        changeGenerator.ExecuteRandomChange(writeDefaults, isPerfTest);
+        if (!isPerfTest) {
+            TF_AXIOM(imagingDelegate.HasPendingFastUpdates());
+        }
+        imagingDelegate.ApplyPendingUpdates();
+        if (!isPerfTest) {
+            TF_AXIOM(!(imagingDelegate.HasPendingFastUpdates()));
+        }
+    }
+
+    if (isPerfTest) {
+        TraceReporter::GetGlobalReporter()->Report(std::cout);
+        TraceCollector::GetInstance().SetEnabled(false);
+        TraceReporter::GetGlobalReporter()->ClearTree();
+    }
+}
+
+int
+main(int argc, char **argv)
+{
+    TfErrorMark errorMark;
+    bool isPerfTest = TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_PERF);
+    BenchmarkFieldUpdate(true /* writeDefaults */, isPerfTest);
+    BenchmarkFieldUpdate(false /* writeDefaults */, isPerfTest);
+
+    TF_AXIOM(errorMark.IsClean());
+
+    return 0;
+}
+// nv end

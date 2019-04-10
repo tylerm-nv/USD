@@ -171,6 +171,40 @@ Sdf_ChangeManager::_SendNotices()
         }
     }
 
+    // +nv #begin #fast-updates
+    SdfLayerFastUpdatesMap fastUpdates;
+    fastUpdates.swap(_data.local().fastUpdates);
+    if (fastUpdates.size() == 1 && changes.empty()) {
+        // Optimal case-- the change block contains only fast updates for a single layer.
+        TF_DEBUG(SDF_CHANGES).Msg("Sending only fast updates for layer %s\n",
+            fastUpdates.begin()->first->GetIdentifier().c_str());
+
+        // Obtain a serial number for this round of change processing.
+        static tbb::atomic<size_t> &changeSerialNumber = _InitChangeSerialNumber();
+        size_t serialNumber = changeSerialNumber.fetch_and_increment();
+        SdfNotice::LayersDidChangeSentPerLayer n(fastUpdates, serialNumber);
+        n.Send(fastUpdates.begin()->first);
+        return;
+    } else {
+        // Otherwise make a dummy change entry for each fast update whose path does not already have a change entry.
+        // These will not have the normal infoChanged data or the flags set, but semantically has
+        // the desired effect of invalidating the data at these paths without triggering recomposition.
+        // This works as long as there are no notice listeners which need to respond specifically
+        // to changes in attribute defaults and timesamples.
+        TF_FOR_ALL(itr, fastUpdates) {
+            SdfLayerChangeListMap::iterator candidate = changes.find(itr->first);
+            TF_FOR_ALL(itr2, itr->second) {
+                if (candidate == changes.end()) {
+                    changes[itr->first].GetEntry(*itr2) = SdfChangeList::Entry();
+                } else if (candidate->second.GetEntryList().find(*itr2) == candidate->second.GetEntryList().end()) {
+                    candidate->second.GetEntry(*itr2) = SdfChangeList::Entry();
+                }
+            }
+        }
+    }
+    // nv end
+
+
     if (changes.empty())
         return;
 
@@ -476,6 +510,18 @@ Sdf_ChangeManager::DidChangeField(const SdfLayerHandle &layer,
         changes[layer].DidChangeInfo(path, field, oldVal, newVal);
     }
 }
+
+// +nv #begin #fast-updates
+void
+Sdf_ChangeManager::DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path)
+{
+    if (!layer->_ShouldNotify())
+        return;
+
+    SdfLayerFastUpdatesMap &fastUpdates = _data.local().fastUpdates;
+    fastUpdates[layer].push_back(path);
+}
+// nv end
 
 void
 Sdf_ChangeManager::DidChangeAttributeTimeSamples(const SdfLayerHandle &layer,

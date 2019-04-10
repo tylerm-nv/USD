@@ -1121,6 +1121,42 @@ _GetExpectedTimeSampleValueType(
     return valueType;
 }
 
+// #nv begin #fast-updates
+void
+SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time,
+                        const VtValue & value)
+{
+    if (!fieldHandle) {
+        TF_CODING_ERROR("Cannot set time sample via field handle on @%s@.  "
+            "Field handle has expired.",
+            GetIdentifier().c_str());
+        return;
+    }
+
+    SdfChangeBlock block;
+    if (!PermissionToEdit()) {
+        TF_CODING_ERROR("Cannot set time sample on <%s>.  "
+            "Layer @%s@ is not editable.",
+            fieldHandle->GetSpecId().GetString().c_str(),
+            GetIdentifier().c_str());
+        return;
+    }
+
+    // Fast path does not perform type checking (just like fast and slow path for setting info fields).
+
+    if (_stateDelegate) {
+        _stateDelegate->_MarkCurrentStateAsDirty();
+    }
+
+    // TODO(USD):optimization: Analyze the affected time interval.
+    Sdf_ChangeManager::Get()
+        .DidFastUpdate(SdfLayerHandle(this),
+            fieldHandle->GetSpecId().GetFullSpecPath());
+
+    _data->SetTimeSample(fieldHandle, time, value);
+}
+// nv end
+
 void 
 SdfLayer::SetTimeSample(const SdfAbstractDataSpecId& id, double time, 
                         const VtValue & value)
@@ -3137,6 +3173,48 @@ SdfLayer::GetField(const SdfAbstractDataSpecId& id,
     return result;
 }
 
+// #nv begin #fast-updates
+VtValue
+SdfLayer::GetField(const SdfAbstractDataFieldAccessHandle &fieldHandle) const
+{
+    VtValue result;
+
+    if (!fieldHandle) {
+        TF_CODING_ERROR("Cannot gewt value via field handle on @%s@.  "
+            "Field handle has expired.",
+            GetIdentifier().c_str());
+        return result;
+    }
+
+    if (!_data->Get(fieldHandle, result))
+    {
+        // Otherwise if this is a required field, and the data has a spec here,
+        // return the fallback value.
+        if (SdfSchema::FieldDefinition const *def =
+            _GetRequiredFieldDef(fieldHandle->GetSpecId(), fieldHandle->GetFieldName()))
+        {
+            result = def->GetFallbackValue();
+        }
+    }
+    return result;
+}
+
+SdfAbstractDataFieldAccessHandle
+SdfLayer::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName)
+{
+    return _data->CreateFieldHandle(path, fieldName);
+}
+
+void
+SdfLayer::ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle)
+{
+    if (!fieldHandle || !(*fieldHandle))
+        return;
+
+    _data->ReleaseFieldHandle(fieldHandle);
+}
+// nv end
+
 VtValue
 SdfLayer::GetFieldDictValueByKey(const SdfAbstractDataSpecId& id,
                                  const TfToken& fieldName,
@@ -3165,6 +3243,53 @@ SdfLayer::SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName,
     if (value != oldValue)
         _PrimSetField(id, fieldName, value, &oldValue);
 }
+
+// #nv begin #fast-updates
+void
+SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue& value)
+{
+    if (!fieldHandle) {
+        TF_CODING_ERROR("Cannot set field via field handle on @%s@.  "
+            "Field handle has expired.",
+            GetIdentifier().c_str());
+        return;
+    }
+
+    if (value.IsEmpty())
+        return EraseField(fieldHandle->GetSpecId(), fieldHandle->GetFieldName());
+
+    if (ARCH_UNLIKELY(!PermissionToEdit())) {
+        TF_CODING_ERROR("Cannot set %s on <%s>. Layer @%s@ is not editable.",
+            fieldHandle->GetFieldName().GetText(), fieldHandle->GetSpecId().GetString().c_str(),
+            GetIdentifier().c_str());
+        return;
+    }
+
+    VtValue oldValue;
+    _data->Get(fieldHandle, oldValue);
+    if (value != oldValue) {
+        // Send notification when leaving the change block,
+        // if we are not already nested in another change block.
+        SdfChangeBlock block;
+
+        _stateDelegate->_MarkCurrentStateAsDirty();
+
+        const TfToken &fieldName = fieldHandle->GetFieldName();
+
+        if (fieldName == SdfFieldKeys->Default) {
+            Sdf_ChangeManager::Get()
+                .DidFastUpdate(SdfLayerHandle(this),
+                    fieldHandle->GetSpecId().GetFullSpecPath());
+        } else {
+            Sdf_ChangeManager::Get().DidChangeField(
+                SdfLayerHandle(this),
+                fieldHandle->GetSpecId().GetFullSpecPath(), fieldHandle->GetFieldName(), oldValue, value);
+        }
+
+        _data->Set(fieldHandle, value);
+    }
+}
+// nv end
 
 void
 SdfLayer::SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName,

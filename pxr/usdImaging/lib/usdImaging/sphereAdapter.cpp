@@ -247,5 +247,19 @@ UsdImagingSphereAdapter::GetMeshTransform(UsdPrim const& prim,
     return xf;
 }
 
+// #nv begin #fast-updates
+HdDirtyBits
+UsdImagingSphereAdapter::ProcessPropertyChange(UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
+{
+    if (propertyName == UsdGeomTokens->radius)
+        return HdChangeTracker::DirtyTransform;
+
+    // Allow base class to handle change processing.
+    return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
+}
+// nv end
+
 PXR_NAMESPACE_CLOSE_SCOPE
 
