@@ -91,6 +91,12 @@ public:
     void DidChangeInfo(const SdfPath &path, const TfToken &key,
                        const VtValue &oldValue, const VtValue &newValue);
 
+    // #nv begin #fast-updates
+    // When a change list contains both fast updates and normal edits, treat the fast updates as normal.
+    void FastUpdateFallback(const SdfPath &attrPath);
+    // nv end
+
+
     /// \struct Entry
     ///
     /// Entry of changes at a single path in namespace.

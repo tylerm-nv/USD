@@ -195,9 +195,9 @@ Sdf_ChangeManager::_SendNotices()
             SdfLayerChangeListMap::iterator candidate = changes.find(itr->first);
             TF_FOR_ALL(itr2, itr->second) {
                 if (candidate == changes.end()) {
-                    changes[itr->first].GetEntry(*itr2) = SdfChangeList::Entry();
+                    changes[itr->first].FastUpdateFallback(*itr2);
                 } else if (candidate->second.GetEntryList().find(*itr2) == candidate->second.GetEntryList().end()) {
-                    candidate->second.GetEntry(*itr2) = SdfChangeList::Entry();
+                    candidate->second.FastUpdateFallback(*itr2);
                 }
             }
         }
