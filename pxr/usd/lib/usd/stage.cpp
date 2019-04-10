@@ -3794,6 +3794,10 @@ UsdStage::_HandleLayersDidChange(
 {
     TfAutoMallocTag2 tag("Usd", _mallocTagID);
 
+    // #nv begin #fast-updates
+    TRACE_FUNCTION();
+    // nv end
+
     // Ignore if this is not the round of changes we're looking for.
     size_t serial = n.GetSerialNumber();
     if (serial == _lastChangeSerialNumber)
@@ -3820,6 +3824,71 @@ UsdStage::_HandleLayersDidChange(
     // have otherwise changed.
     using _PathsToChangesMap = UsdNotice::ObjectsChanged::_PathsToChangesMap;
     _PathsToChangesMap recomposeChanges, otherResyncChanges, otherInfoChanges;
+
+    // #nv begin #fast-updates
+    const SdfLayerFastUpdatesMap &fastUpdates = n.GetFastUpdates();
+
+    if (!fastUpdates.empty() && n.GetChangeListMap().empty()) {
+
+        // Early out for only processing fast updates.
+        TF_DEBUG(USD_CHANGES).Msg("\nProcessing fast updates\n");
+
+        UsdStageWeakPtr self(this);
+
+        // Filter out all changes to objects beneath instances and remap
+        // them to the corresponding object in the instance's master.
+        auto remapChangesToMasters = [this](SdfPathVector* changes) {
+            SdfPathVector masterChanges;
+            for (auto it = changes->begin(); it != changes->end(); ) {
+                if (_IsObjectDescendantOfInstance(*it)) {
+                    const SdfPath primIndexPath =
+                        it->GetAbsoluteRootOrPrimPath();
+                    for (const SdfPath& pathInMaster :
+                        _instanceCache->GetPrimsInMastersUsingPrimIndexPath(
+                            primIndexPath)) {
+                        masterChanges.push_back(it->ReplacePrefix(primIndexPath, pathInMaster));
+                    }
+                    it = changes->erase(it);
+                    continue;
+                }
+                ++it;
+            }
+
+            changes->insert(changes->end(), masterChanges.begin(), masterChanges.end());
+        };
+
+        // SdfChangeManager should never send fast updates for more than 1 layer at once.
+        if (TF_VERIFY(fastUpdates.size() == 1)) {
+            // We may need to perform namespace transformations for when the edited layer's
+            // namespace does not match that of the composed stage (e.g., via references
+            // and inherits), and also remap instance edits to masters.
+            // Unfortunately there is no cheap heuristic that can detect when this is
+            // not needed, as that would mean that we could past the SdfPathVector
+            // reference directly from the SdfNotice to the UsdNotice.
+            SdfPathVector remappedFastUpdates;
+            remappedFastUpdates.reserve(fastUpdates.begin()->second.size());
+            TF_FOR_ALL(pathItr, fastUpdates.begin()->second) {
+                _AddDependentPaths(fastUpdates.begin()->first, *pathItr,
+                    *_cache, &remappedFastUpdates, nullptr /* extraData*/);
+            }
+
+            // Need to uniquify contents, for example, in the case where a prim references
+            // a prim which itself inherits from a class prim.
+            SdfPathSet pathSet;
+            pathSet.insert(remappedFastUpdates.begin(), remappedFastUpdates.end());
+            remappedFastUpdates.assign(pathSet.begin(), pathSet.end());
+
+            remapChangesToMasters(&remappedFastUpdates);
+            UsdNotice::ObjectsChanged(
+                self, &recomposeChanges, &otherInfoChanges, &remappedFastUpdates).Send(self);
+
+            // Receivers can now refresh their caches... or just dirty them
+            UsdNotice::StageContentsChanged(self).Send(self);
+
+            return;
+        }
+    }
+    // nv end
 
     SdfPathVector changedActivePaths;
 

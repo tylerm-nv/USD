@@ -73,3 +73,19 @@ pxr_library(usdImaging
         plugInfo.json
 )
 
+# #nv begin #fast-updates
+pxr_build_test(testUsdImagingFastUpdates
+    LIBRARIES
+        trace
+        sdf
+        hd
+        usd
+        usdImaging
+    CPPFILES
+        testenv/testUsdImagingFastUpdates.cpp
+)
+
+pxr_register_test(testUsdImagingFastUpdates
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdImagingFastUpdates"
+)
+# nv end

@@ -577,6 +577,17 @@ public:
     VtValue GetField(const SdfAbstractDataSpecId& id,
                      const TfToken& fieldName) const;
 
+    // #nv begin #fast-updates
+    SDF_API
+    VtValue GetField(const SdfAbstractDataFieldAccessHandle &fieldHandle) const;
+
+    SDF_API
+    SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
+
+    SDF_API
+    void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle);
+    // nv end
+
     /// Return the value for the given \a id and \a fieldName. Returns the
     /// provided \a defaultValue value if none is set.
     template <class T>
@@ -598,6 +609,12 @@ public:
     SDF_API
     void SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName,
         const VtValue& value);
+
+    // #nv begin #fast-updates
+    SDF_API
+    void SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue& value);
+    // nv end
+
     SDF_API
     void SetField(const SdfAbstractDataSpecId& id, const TfToken& fieldName,
         const SdfAbstractDataConstValue& value);
@@ -1359,6 +1376,12 @@ public:
 
         return hasValue && (!outValue.isValueBlock);
     }
+
+    // #nv begin #fast-updates
+    SDF_API
+    void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time,
+                       const VtValue & value);
+    // nv end
 
     SDF_API
     void SetTimeSample(const SdfAbstractDataSpecId& id, double time, 

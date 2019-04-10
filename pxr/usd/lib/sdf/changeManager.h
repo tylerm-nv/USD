@@ -69,6 +69,11 @@ public:
     void DidChangeField(const SdfLayerHandle &layer,
                         const SdfPath & path, const TfToken &field,
                         const VtValue & oldValue, const VtValue & newValue );
+
+    // #nv begin #fast-updates
+    void DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path);
+    // nv end
+
     void DidChangeAttributeTimeSamples(const SdfLayerHandle &layer,
                                        const SdfPath &attrPath);
 
@@ -104,6 +109,10 @@ private:
         SdfLayerChangeListMap changes;
         int changeBlockDepth;
         std::vector<SdfSpec> removeIfInert;
+
+        // #nv begin #fast-updates
+        SdfLayerFastUpdatesMap fastUpdates;
+        // nv end
     };
 
     tbb::enumerable_thread_specific<_Data> _data;

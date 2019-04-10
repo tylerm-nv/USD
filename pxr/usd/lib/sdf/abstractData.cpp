@@ -314,6 +314,45 @@ SdfAbstractData::GetTypeid(
     return Get(id, fieldName).GetTypeid();
 }
 
+// #nv begin #fast-updates
+SdfAbstractDataFieldAccess::~SdfAbstractDataFieldAccess()
+{
+}
+
+SdfAbstractDataFieldAccessHandle
+SdfAbstractData::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName)
+{
+    TF_CODING_ERROR("%s not supported for this file format", TF_FUNC_NAME().c_str());
+    return nullptr;
+}
+
+void
+SdfAbstractData::ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle)
+{
+    TF_CODING_ERROR("%s not supported for this file format", TF_FUNC_NAME().c_str());
+}
+
+bool
+SdfAbstractData::Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value)
+{
+    TF_CODING_ERROR("%s not supported for this file format", TF_FUNC_NAME().c_str());
+    return false;
+}
+
+bool
+SdfAbstractData::Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const
+{
+    TF_CODING_ERROR("%s not supported for this file format", TF_FUNC_NAME().c_str());
+    return false;
+}
+
+void
+SdfAbstractData::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value)
+{
+    TF_CODING_ERROR("%s not supported for this file format", TF_FUNC_NAME().c_str());
+}
+// nv end
+
 bool
 SdfAbstractData::HasDictKey(const SdfAbstractDataSpecId& id,
                             const TfToken &fieldName,

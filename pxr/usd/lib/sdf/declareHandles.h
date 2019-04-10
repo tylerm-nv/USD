@@ -43,6 +43,9 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+// #nv begin #fast-updates
+class SdfAbstractDataFieldAccess;
+// nv end
 class SdfLayer;
 class SdfSpec;
 template <class T> class TfRefPtr;
@@ -186,6 +189,16 @@ struct SdfHandleTo<SdfLayer> {
     typedef std::vector<Handle> Vector;
     typedef std::vector<ConstHandle> ConstVector;
 };
+
+// #nv begin #fast-updates
+template <>
+struct SdfHandleTo<SdfAbstractDataFieldAccess> {
+    typedef TfWeakPtr<SdfAbstractDataFieldAccess> Handle;
+    typedef TfWeakPtr<const SdfAbstractDataFieldAccess> ConstHandle;
+    typedef std::vector<Handle> Vector;
+    typedef std::vector<ConstHandle> ConstVector;
+};
+// nv end
 
 template <typename T>
 typename SdfHandleTo<T>::Handle

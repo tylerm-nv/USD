@@ -66,6 +66,22 @@ SdfNotice::BaseLayersDidChange::GetLayers() const
     return layers;
 }
 
+// #nv begin #fast-updates
+const SdfLayerChangeListMap &
+SdfNotice::BaseLayersDidChange::GetChangeListMap() const {
+    static SdfLayerChangeListMap emptyMap;
+    return _map ? *_map : emptyMap;
+
+}
+
+const SdfLayerFastUpdatesMap &
+SdfNotice::LayersDidChangeSentPerLayer::GetFastUpdates() const
+{
+    static SdfLayerFastUpdatesMap emptyFastUpdatesMap;
+    return _fastUpdates ? *_fastUpdates : emptyFastUpdatesMap;
+}
+// nv end
+
 SdfNotice::LayerIdentifierDidChange::LayerIdentifierDidChange(
     const std::string& oldIdentifier, const std::string& newIdentifier) :
       _oldId(oldIdentifier),

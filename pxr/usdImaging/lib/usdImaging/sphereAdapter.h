@@ -78,6 +78,18 @@ public:
                                UsdImagingInstancerContext const* 
                                    instancerContext = NULL) const;
 
+// ---------------------------------------------------------------------- //
+/// \name Change Processing
+// ---------------------------------------------------------------------- //
+
+    // #nv begin #fast-updates
+    USDIMAGING_API
+    virtual HdDirtyBits ProcessPropertyChange(UsdPrim const& prim,
+        SdfPath const& cachePath,
+        TfToken const& propertyName) override;
+    // nv end
+
+
     USDIMAGING_API
     static VtValue GetMeshPoints(UsdPrim const& prim, 
                                  UsdTimeCode time);

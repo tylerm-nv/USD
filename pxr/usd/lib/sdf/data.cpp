@@ -24,6 +24,9 @@
 
 #include "pxr/pxr.h"
 #include "pxr/usd/sdf/data.h"
+// #nv begin #fast-updates
+#include "pxr/usd/sdf/schema.h"
+// nv end
 #include "pxr/base/trace/trace.h"
 #include "pxr/base/work/utils.h"
 
@@ -52,6 +55,12 @@ SdfData::EraseSpec(const SdfAbstractDataSpecId& id)
         return;
     }
     _data.erase(i);
+
+    // #nv begin #fast-updates
+    _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(id.GetFullSpecPath());
+    if (fieldItr != _fieldHandles.end())
+        _fieldHandles.erase(fieldItr);
+    // nv end
 }
 
 void
@@ -71,6 +80,12 @@ SdfData::MoveSpec(const SdfAbstractDataSpecId& oldId,
         return;
     }
     _data.erase(old);
+
+    // #nv begin #fast-updates
+    _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(oldId.GetFullSpecPath());
+    if (fieldItr != _fieldHandles.end())
+        _fieldHandles.erase(fieldItr);
+    // nv end
 }
 
 SdfSpecType
@@ -168,6 +183,77 @@ SdfData::Get(const SdfAbstractDataSpecId& id, const TfToken & field) const
     return VtValue();
 }
 
+// #nv begin #fast-updates
+SdfData::_FieldHandleData::~_FieldHandleData()
+{
+}
+
+SdfAbstractDataFieldAccessHandle
+SdfData::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName)
+{
+    TfAutoMallocTag2 tag("Sdf", "SdfData::CreateFieldHandle");
+
+    SdfAbstractDataSpecId id(&path);
+
+    VtValue *vtVal = _GetOrCreateFieldValue(id, fieldName);
+
+    // Get existing handle if possible.
+    _AllFieldHandleHashTable::iterator allItr = _fieldHandles.find(id.GetFullSpecPath());
+    if (allItr != _fieldHandles.end()) {
+        _SpecFieldHandleHashTable::iterator specItr = allItr->second.find(fieldName);
+        if (specItr != allItr->second.end()) {
+            return specItr->second;
+        }
+    }
+    _FieldHandleData *fieldHandle = new _FieldHandleData(path, fieldName, vtVal);
+    _fieldHandles[id.GetFullSpecPath()][fieldName] = TfCreateRefPtr(fieldHandle);
+    return TfCreateWeakPtr(fieldHandle);
+}
+
+void
+SdfData::ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle)
+{
+    TF_FOR_ALL(itr, _fieldHandles) {
+        _SpecFieldHandleHashTable::iterator candidate= itr->second.end();
+        TF_FOR_ALL(specItr, itr->second) {
+            if (*fieldHandle == TfDynamic_cast<SdfAbstractDataFieldAccessHandle>(specItr->second)) {
+                candidate = specItr;
+                break;
+            }
+        }
+
+        if (candidate != itr->second.end()) {
+            itr->second.erase(candidate);
+            break;
+        }
+    }
+}
+
+bool
+SdfData::Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value)
+{
+    TRACE_FUNCTION();
+
+    if (!fieldHandle)
+        return false;
+
+    VtValue *vtValToSet = TfDynamic_cast<TfWeakPtr <_FieldHandleData>>(fieldHandle)->vtValue;
+    *vtValToSet = value;
+    return true;
+}
+
+bool
+SdfData::Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const
+{
+    if (!fieldHandle)
+        return false;
+
+    VtValue *vtValToGet = TfDynamic_cast<TfWeakPtr <_FieldHandleData>>(fieldHandle)->vtValue;
+    value = *vtValToGet;
+    return true;
+}
+// #nv end
+
 void 
 SdfData::Set(const SdfAbstractDataSpecId& id, const TfToken & field, 
              const VtValue& value)
@@ -215,7 +301,22 @@ SdfData::_GetOrCreateFieldValue(const SdfAbstractDataSpecId& id,
         }
     }
 
-    spec.fields.push_back( _FieldValuePair(field, VtValue()) );
+    // #nv begin #fast-updates
+    const _FieldValuePair *fieldsData = spec.fields.data();
+    spec.fields.push_back( _FieldValuePair(field,
+        field == SdfFieldKeys->TimeSamples ? VtValue(SdfTimeSampleMap()) : VtValue()) );
+
+    if (fieldsData != spec.fields.data()) {
+        // The spec's vector of fields has moved, so we need to refresh affected live field handles.
+        _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+        for (size_t j = 0, jEnd = spec.fields.size(); j != jEnd; ++j) {
+            _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(spec.fields[j].first);
+            if (fieldHandleItr != specFieldHandles.end()) {
+                fieldHandleItr->second->vtValue = &spec.fields[j].second;
+            }
+        }
+    }
+    // nv end
     return &spec.fields.back().second;
 }
 
@@ -231,9 +332,18 @@ SdfData::Erase(const SdfAbstractDataSpecId& id, const TfToken & field)
     for (size_t j=0, jEnd = spec.fields.size(); j != jEnd; ++j) {
         if (spec.fields[j].first == field) {
             spec.fields.erase(spec.fields.begin()+j);
-            return;
+            // #nv begin #fast-updates
+            break;
         }
     }
+
+    // Remove field handle if found.
+    _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+    _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(field);
+    if (fieldHandleItr != specFieldHandles.end()) {
+        specFieldHandles.erase(fieldHandleItr);
+    }
+    // nv end
 }
 
 std::vector<TfToken>
@@ -401,6 +511,29 @@ SdfData::QueryTimeSample(const SdfAbstractDataSpecId& id, double time,
     }
     return false;
 }
+
+// #nv begin #fast-updates
+void
+SdfData::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value)
+{
+    TRACE_FUNCTION();
+
+    if (!fieldHandle)
+        return;
+
+    SdfTimeSampleMap newSamples;
+
+    VtValue *fieldValue = TfDynamic_cast<TfWeakPtr <_FieldHandleData>>(fieldHandle)->vtValue;
+
+    fieldValue->UncheckedSwap(newSamples);
+
+    // Insert or overwrite into newSamples.
+    newSamples[time] = value;
+
+    // Set back into the field.
+    fieldValue->Swap(newSamples);
+}
+// nv end
 
 void
 SdfData::SetTimeSample(const SdfAbstractDataSpecId& id, double time, 

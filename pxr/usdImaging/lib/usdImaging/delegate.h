@@ -474,6 +474,10 @@ public:
     USDIMAGING_API
     bool IsInInvisedPaths(const SdfPath &usdPath) const;
 
+    // #nv begin #fast-updates
+    USDIMAGING_API
+    bool HasPendingFastUpdates() const;
+    // nv end
 private:
     // Internal friend class.
     class _Worker;
@@ -668,6 +672,10 @@ private:
     typedef std::unordered_map<SdfPath, TfTokenVector, SdfPath::Hash> 
         _PathsToUpdateMap;
     _PathsToUpdateMap _pathsToUpdate;
+
+    // #nv begin #fast-updates
+    SdfPathVector _pathsToFastUpdate;
+    // nv end
 
     UsdImaging_XformCache _xformCache;
     UsdImaging_MaterialBindingImplData _materialBindingImplData;

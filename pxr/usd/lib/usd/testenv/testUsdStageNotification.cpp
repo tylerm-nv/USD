@@ -33,6 +33,13 @@
 #include "pxr/usd/usd/specializes.h"
 #include "pxr/usd/usd/stage.h"
 
+// #nv begin #fast-updates
+#include "pxr/usd/sdf/attributeSpec.h"
+#include "pxr/usd/sdf/layer.h"
+#include "pxr/usd/sdf/primSpec.h"
+#include "pxr/usd/sdf/reference.h"
+// nv end
+
 #include "pxr/base/tf/errorMark.h"
 #include "pxr/base/tf/notice.h"
 #include "pxr/base/tf/ostreamMethods.h"
@@ -508,11 +515,130 @@ TestObjectsChanged()
     }
 }
 
+// #nv begin #fast-updates
+void TestFastUpdates()
+{
+    typedef UsdNotice::ObjectsChanged Notice;
+
+    // Fast updates on references should propgate as expected.
+    auto layer = SdfLayer::CreateNew("refTest.usda");
+    auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
+    auto attrName = "dummyAttr";
+    auto attr = SdfAttributeSpec::New(prim, attrName, SdfValueTypeNames->Double);
+    auto specId = SdfAbstractDataSpecId(&attr->GetPath());
+    auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
+    TF_AXIOM(fieldHandle);
+    auto referencingPrim = SdfPrimSpec::New(layer->GetPseudoRoot(), "refPrim", SdfSpecifierOver);
+    referencingPrim->GetReferenceList().Prepend(SdfReference("./refTest.usda", prim->GetPath()));
+    TF_AXIOM(referencingPrim);
+    SdfPath refAttrPath = referencingPrim->GetPath().AppendProperty(attr->GetNameToken());
+    VtValue doubleVal(9.0);
+    auto stage = UsdStage::Open(layer);
+    {
+        printf("Fast updates on references should propagate as expected\n");
+        SdfPathVector expectedPaths = { attr->GetPath(), refAttrPath };
+        _NoticeTester tester(stage);
+        tester.AddTest([expectedPaths](Notice const &n) {
+            bool result = true;
+            const SdfPathVector &fastUpdates = n.GetFastUpdates();
+            TF_FOR_ALL(itr, expectedPaths) {
+                result = result && std::find(fastUpdates.begin(), fastUpdates.end(), *itr) != fastUpdates.end();
+            }
+            return TF_AXIOM(result);
+        });
+        layer->SetField(fieldHandle, doubleVal);
+
+        // Retrieving the new value should get the same result regardless of whether it
+        // goes through the faster field handle codepath or not.
+        TF_AXIOM(layer->GetField(fieldHandle) == doubleVal);
+        TF_AXIOM(layer->GetField(specId, SdfFieldKeys->Default) == doubleVal);
+
+        // There should be no spec for the referencing prim's attr, as it has no explicitly authored value.
+        TF_AXIOM(!layer->GetAttributeAtPath(refAttrPath));
+
+        // There should be no value for the referencing prim's attr, as it has no explicitly authored value.
+        auto refSpecId = SdfAbstractDataSpecId(&refAttrPath);
+        TF_AXIOM(layer->GetField(refSpecId, SdfFieldKeys->Default).IsEmpty());
+
+        // The composed value of the referencing prim's attr should match the newly authored value.
+        VtValue getVal;
+        TF_AXIOM(stage->GetPrimAtPath(referencingPrim->GetPath()).GetAttribute(attr->GetNameToken()).Get(&getVal));
+        TF_AXIOM(getVal == doubleVal);
+    }
+    {
+        // Erasing fields are currently not treated as fast updates.
+        printf("Erasing fields are currently not treated as fast updates.\n");
+        _NoticeTester tester(stage);
+        tester.AddTest([](Notice const &n) {
+            return TF_AXIOM(n.GetFastUpdates().empty());
+        });
+        layer->SetField(fieldHandle, VtValue());
+
+    }
+    // Fast updates on inherits should propagate as expected.
+    // This case demonstrates that the UsdStage must uniquify the fast update paths,
+    // because the dummy prim's attribute is affected by both the class prim and the reference prim.
+    auto classPrim = SdfPrimSpec::New(layer->GetPseudoRoot(), "_classPrim", SdfSpecifierClass);
+    TF_AXIOM(classPrim);
+    prim->GetInheritPathList().Prepend(classPrim->GetPath());
+    attr = SdfAttributeSpec::New(classPrim, attrName, SdfValueTypeNames->Double);
+    specId = SdfAbstractDataSpecId(&attr->GetPath());
+    fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
+    TF_AXIOM(fieldHandle);
+    SdfPath inheritsAttrPath = prim->GetPath().AppendProperty(attr->GetNameToken());
+    {
+        printf("Fast updates on inherits should propagate as expected\n");
+        SdfPathVector expectedPaths = { attr->GetPath(), refAttrPath, inheritsAttrPath };
+        _NoticeTester tester(stage);
+        tester.AddTest([expectedPaths](Notice const &n) {
+            bool result = true;
+            const SdfPathVector &fastUpdates = n.GetFastUpdates();
+            TF_FOR_ALL(itr, expectedPaths) {
+                result = result && std::find(fastUpdates.begin(), fastUpdates.end(), *itr) != fastUpdates.end();
+            }
+            return TF_AXIOM(result);
+        });
+        layer->SetField(fieldHandle, doubleVal);
+    }
+    {
+        // Fast updates intermixed with non-fast updates in the same SdfChangeBlock
+        // should fall back to the non-fast change processing codepath.
+        SdfPathVector expectedChangedInfoPaths = { attr->GetPath(), refAttrPath, inheritsAttrPath };
+        TfToken anotherNewPrimName("anotherNewPrim");
+        SdfPath expectedResyncedPath = SdfPath::AbsoluteRootPath().AppendChild(anotherNewPrimName);
+        _NoticeTester tester(stage);
+        tester.AddTest([expectedChangedInfoPaths, expectedResyncedPath](Notice const &n) {
+            bool result = n.GetFastUpdates().empty();
+            auto changedInfoPaths = n.GetChangedInfoOnlyPaths();
+            TF_FOR_ALL(itr, expectedChangedInfoPaths) {
+                result = result && std::find(changedInfoPaths.begin(), changedInfoPaths.end(), *itr) != changedInfoPaths.end();
+            }
+            return TF_AXIOM(result) &&
+                TF_AXIOM(n.GetResyncedPaths().size() == 1) &&
+                TF_AXIOM(*(n.GetResyncedPaths().begin()) == expectedResyncedPath);
+
+            return true;
+        });
+        printf("Fast updates intermixed with non-fast updates in the same SdfChangeBlock "
+               "should fall back to the non-fast change processing codepath.\n");
+        {
+            SdfChangeBlock changeBlock;
+            layer->SetField(fieldHandle, VtValue(106.7));
+            auto newPrim = SdfPrimSpec::New(layer->GetPseudoRoot(), anotherNewPrimName, SdfSpecifierDef);
+        }
+    }
+}
+// nv end
+
 int main()
 {
     TfErrorMark m;
 
     TestObjectsChanged();
+
+    // #nv begin #fast-updates
+    TestFastUpdates();
+    // nv end
 
     TF_AXIOM(m.IsClean());
 

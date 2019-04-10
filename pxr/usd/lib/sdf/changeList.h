@@ -40,6 +40,10 @@ PXR_NAMESPACE_OPEN_SCOPE
 class SdfChangeList;
 typedef std::map<SdfLayerHandle, SdfChangeList> SdfLayerChangeListMap;
 
+// #nv begin #fast-updates
+typedef std::map<SdfLayerHandle, SdfPathVector> SdfLayerFastUpdatesMap;
+// nv end
+
 /// \class SdfChangeList
 ///
 /// A list of scene description modifications, organized by the namespace

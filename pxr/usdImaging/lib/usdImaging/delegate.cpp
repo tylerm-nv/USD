@@ -864,6 +864,30 @@ UsdImagingDelegate::ApplyPendingUpdates()
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
 
+    // #nv begin #fast-updates
+    if (!_pathsToFastUpdate.empty()) {
+
+        // Conservative invalidation of caches which can be affected by attribute value changes.
+        _xformCache.Clear();
+        _visCache.Clear();
+        _drawModeCache.Clear();
+
+        SdfPathVector fastUpdates;
+        std::swap(fastUpdates, _pathsToFastUpdate);
+
+        TfTokenVector dummyInfoFields;
+
+        UsdImagingDelegate::_Worker worker;
+        UsdImagingIndexProxy indexProxy(this, &worker);
+
+        for (const auto &path : fastUpdates) {
+            _RefreshObject(path, dummyInfoFields, &indexProxy);
+        }
+
+        _ExecuteWorkForVariabilityUpdate(&worker);
+    }
+    // nv end
+
     // Early out if there are no updates.
     if (_pathsToResync.empty() && _pathsToUpdate.empty()) {
         return;
@@ -958,6 +982,13 @@ UsdImagingDelegate::_OnObjectsChanged(UsdNotice::ObjectsChanged const& notice,
                             "from stage with root layer @%s@\n",
                         sender->GetRootLayer()->GetIdentifier().c_str());
 
+    // #nv begin #fast-updates
+    const SdfPathVector &fastUpdates = notice.GetFastUpdates();
+    if (!fastUpdates.empty()) {
+        _pathsToFastUpdate.insert(_pathsToFastUpdate.end(), fastUpdates.begin(), fastUpdates.end());
+    }
+    // nv end
+
     using PathRange = UsdNotice::ObjectsChanged::PathRange;
 
     // These paths are subtree-roots representing entire subtrees that may have
@@ -999,6 +1030,14 @@ UsdImagingDelegate::_OnObjectsChanged(UsdNotice::ObjectsChanged const& notice,
             TF_DEBUG(USDIMAGING_CHANGES).Msg(" - Refresh queued: %s\n",
                         it->GetText());
         }
+
+        // #nv begin #fast-updates
+        TF_FOR_ALL(it, _pathsToFastUpdate) {
+            TF_DEBUG(USDIMAGING_CHANGES).Msg(" - Fast update queued: %s\n",
+                it->GetText());
+        }
+        // nv end
+
     }
 }
 
@@ -2257,6 +2296,14 @@ UsdImagingDelegate::IsInInvisedPaths(SdfPath const &usdPath) const
     }
     return false;
 }
+
+// #nv begin #fasat-updates
+bool
+UsdImagingDelegate::HasPendingFastUpdates() const
+{
+    return !(_pathsToFastUpdate.empty());
+}
+// nv end
 
 /*virtual*/
 bool
