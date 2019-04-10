@@ -109,10 +109,14 @@ public:
                                       SdfPath const& cachePath,
                                       UsdImagingIndexProxy* index) override;
 
-	//+NV_CHANGE FRZHANG
-	USDIMAGING_API
-	static const bool USE_NV_GPUSKINNING = true;
-	//-NV_CHANGE FRZHANG
+    //+NV_CHANGE FRZHANG
+    USDIMAGING_API
+    virtual VtValue UsdImagingMeshAdapter::GetPoints(UsdPrim const& prim,
+                                                     SdfPath const& cachePath,
+                                                     UsdTimeCode time) const override;
+    USDIMAGING_API
+    static const bool USE_NV_GPUSKINNING = true;
+    //-NV_CHANGE FRZHANG
 
 protected:
     USDIMAGING_API
