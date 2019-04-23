@@ -521,6 +521,7 @@ void TestFastUpdates()
     typedef UsdNotice::ObjectsChanged Notice;
 
     // Fast updates on references should propgate as expected.
+
     auto layer = SdfLayer::CreateNew("refTest.usda");
     auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     auto attrName = "dummyAttr";
@@ -528,12 +529,21 @@ void TestFastUpdates()
     auto specId = SdfAbstractDataSpecId(&attr->GetPath());
     auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
+    auto stage = UsdStage::Open(layer);
+
+    // A newly defined property on a newly defined prim should have no composition dependents.
+    stage->CheckFieldForCompositionDependents(layer, fieldHandle);
+    TF_AXIOM(!fieldHandle->HasCompositionDependents());
+
+    // After adding a new prim which references the prim we created above, the
+    // field handle that we created above should then have composition dependents.
     auto referencingPrim = SdfPrimSpec::New(layer->GetPseudoRoot(), "refPrim", SdfSpecifierOver);
     referencingPrim->GetReferenceList().Prepend(SdfReference("./refTest.usda", prim->GetPath()));
     TF_AXIOM(referencingPrim);
+    TF_AXIOM(fieldHandle->HasCompositionDependents());
+
     SdfPath refAttrPath = referencingPrim->GetPath().AppendProperty(attr->GetNameToken());
     VtValue doubleVal(9.0);
-    auto stage = UsdStage::Open(layer);
     {
         printf("Fast updates on references should propagate as expected\n");
         SdfPathVector expectedPaths = { attr->GetPath(), refAttrPath };
@@ -574,6 +584,9 @@ void TestFastUpdates()
         });
         layer->SetField(fieldHandle, VtValue());
 
+        // Erasing a field should make its field handle go invalid.
+        TF_AXIOM(!fieldHandle);
+
     }
     // Fast updates on inherits should propagate as expected.
     // This case demonstrates that the UsdStage must uniquify the fast update paths,
@@ -585,6 +598,8 @@ void TestFastUpdates()
     specId = SdfAbstractDataSpecId(&attr->GetPath());
     fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
+    stage->CheckFieldForCompositionDependents(layer, fieldHandle);
+    TF_AXIOM(fieldHandle->HasCompositionDependents());
     SdfPath inheritsAttrPath = prim->GetPath().AppendProperty(attr->GetNameToken());
     {
         printf("Fast updates on inherits should propagate as expected\n");

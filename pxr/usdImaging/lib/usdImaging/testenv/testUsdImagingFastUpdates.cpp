@@ -58,6 +58,7 @@ static std::default_random_engine gRandomEngine(1515);
 class LayerAttrChangeHelper
 {
     SdfLayerRefPtr _layer;
+    UsdStagePtr _stage;
 
     struct AttrData
     {
@@ -69,8 +70,8 @@ class LayerAttrChangeHelper
     TfHashMap<SdfPath, AttrData, SdfPath::Hash> _attrMap;
 
 public:
-    LayerAttrChangeHelper(SdfLayerRefPtr layer)
-        : _layer(layer)
+    LayerAttrChangeHelper(SdfLayerRefPtr layer, UsdStagePtr stage)
+        : _layer(layer), _stage(stage)
     {
         _layer->Traverse(SdfPath::AbsoluteRootPath(), [this](const SdfPath& path)
         {
@@ -83,6 +84,8 @@ public:
                         _layer->CreateFieldHandle(path, SdfFieldKeys->Default),
                         _layer->CreateFieldHandle(path, SdfFieldKeys->TimeSamples)
                     };
+                    _stage->CheckFieldForCompositionDependents(_layer, attrData.defaultFieldHandle);
+                    _stage->CheckFieldForCompositionDependents(_layer, attrData.timeSamplesFieldHandle);
                     _attrMap[path] = attrData;
                 }
             }
@@ -114,11 +117,13 @@ public:
             if (!isPerfTest) {
                 if (writeDefaults) {
                     TF_AXIOM(attrData.defaultFieldHandle);
+                    TF_AXIOM(!attrData.defaultFieldHandle->HasCompositionDependents());
                     VtValue oldVtVal = _layer->GetField(attrData.defaultFieldHandle);
                     if (oldVtVal.IsHolding<double>())
                         oldValue = oldVtVal.UncheckedGet<double>();
                 } else {
                     TF_AXIOM(attrData.timeSamplesFieldHandle);
+                    TF_AXIOM(!attrData.timeSamplesFieldHandle->HasCompositionDependents());
                     VtValue oldVtVal = _layer->GetField(attrData.timeSamplesFieldHandle);
                     if (oldVtVal.IsHolding<SdfTimeSampleMap>()) {
                         SdfTimeSampleMap oldTimeSamples = oldVtVal.UncheckedGet<SdfTimeSampleMap>();
@@ -220,7 +225,7 @@ void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
     if (isPerfTest)
         TraceCollector::GetInstance().SetEnabled(true);
 
-    LayerAttrChangeHelper changeGenerator(layer);
+    LayerAttrChangeHelper changeGenerator(layer, stage);
     for (int i = 0; i < 10; ++i)
     {
         TRACE_SCOPE_DYNAMIC("Change Attributes " + traceDetail);

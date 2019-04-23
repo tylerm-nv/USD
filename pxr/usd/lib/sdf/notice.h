@@ -29,6 +29,9 @@
 #include "pxr/pxr.h"
 #include "pxr/usd/sdf/api.h"
 #include "pxr/usd/sdf/changeList.h"
+// #nv begin #fast-updates
+#include "pxr/usd/sdf/changeManager.h"
+// nv end
 #include "pxr/usd/sdf/declareHandles.h"
 #include "pxr/usd/sdf/path.h"
 #include "pxr/base/tf/notice.h"

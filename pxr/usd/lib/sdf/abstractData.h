@@ -136,7 +136,8 @@ class SdfAbstractDataFieldAccess : public TfRefBase, public TfWeakBase
 public:
     SdfAbstractDataFieldAccess(const SdfPath &path,
                                const TfToken &fieldName) :
-        _path(path), _fieldName(&fieldName), _specId(SdfAbstractDataSpecId(&_path)) {}
+        _path(path), _fieldName(&fieldName), _specId(SdfAbstractDataSpecId(&_path)),
+        _hasCompositionDependents(true) {}
     SDF_API
     virtual ~SdfAbstractDataFieldAccess();
 
@@ -145,10 +146,20 @@ public:
 
     SDF_API
     const TfToken &GetFieldName() { return *_fieldName; }
+
+    SDF_API
+    bool HasCompositionDependents() const { return _hasCompositionDependents;  }
+
+    SDF_API
+    void SetHasCompositionDependents(bool val) { _hasCompositionDependents = val; }
 private:
     const SdfPath _path;
     const TfToken *_fieldName;
     SdfAbstractDataSpecId _specId;
+
+    // If all fields updated have no composition dependents, we can
+    // avoid computing dependent paths to update during change notification.
+    bool _hasCompositionDependents;
 };
 
 SDF_DECLARE_HANDLES(SdfAbstractDataFieldAccess);

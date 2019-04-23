@@ -1159,7 +1159,8 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     // TODO(USD):optimization: Analyze the affected time interval.
     Sdf_ChangeManager::Get()
         .DidFastUpdate(SdfLayerHandle(this),
-            fieldHandle->GetSpecId().GetFullSpecPath());
+            fieldHandle->GetSpecId().GetFullSpecPath(),
+            fieldHandle->HasCompositionDependents());
 
     _data->SetTimeSample(fieldHandle, time, value);
 }
@@ -3279,7 +3280,8 @@ SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const Vt
         if (fieldName == SdfFieldKeys->Default) {
             Sdf_ChangeManager::Get()
                 .DidFastUpdate(SdfLayerHandle(this),
-                    fieldHandle->GetSpecId().GetFullSpecPath());
+                    fieldHandle->GetSpecId().GetFullSpecPath(),
+                    fieldHandle->HasCompositionDependents());
         } else {
             Sdf_ChangeManager::Get().DidChangeField(
                 SdfLayerHandle(this),

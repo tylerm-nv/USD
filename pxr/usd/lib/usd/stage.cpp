@@ -3863,29 +3863,35 @@ UsdStage::_HandleLayersDidChange(
 
         // SdfChangeManager should never send fast updates for more than 1 layer at once.
         if (TF_VERIFY(fastUpdates.size() == 1)) {
-            // We may need to perform namespace transformations for when the edited layer's
-            // namespace does not match that of the composed stage (e.g., via references
-            // and inherits), and also remap instance edits to masters.
-            // Unfortunately there is no cheap heuristic that can detect when this is
-            // not needed, as that would mean that we could past the SdfPathVector
-            // reference directly from the SdfNotice to the UsdNotice.
-            SdfPathVector remappedFastUpdates;
-            remappedFastUpdates.reserve(fastUpdates.begin()->second.size());
-            TF_FOR_ALL(pathItr, fastUpdates.begin()->second) {
-                _AddDependentPaths(fastUpdates.begin()->first, *pathItr,
-                    *_cache, &remappedFastUpdates, nullptr /* extraData*/);
+            if (!fastUpdates.begin()->second.hasCompositionDependents) {
+                // If the fast updates have no composition dependents, we can send the
+                // unmodified property paths straight to the notice.
+                UsdNotice::ObjectsChanged(
+                    self, &recomposeChanges, &otherInfoChanges, &fastUpdates.begin()->second.propertyPaths).Send(self);
+            } else {
+                // We need to perform namespace transformations for when the edited layer's
+                // namespace does not match that of the composed stage (e.g., via references
+                // and inherits), and also remap instance edits to masters.
+                // Unfortunately there is no cheap heuristic that can detect when this is
+                // not needed, as that would mean that we could past the SdfPathVector
+                // reference directly from the SdfNotice to the UsdNotice.
+                SdfPathVector remappedFastUpdates;
+                remappedFastUpdates.reserve(fastUpdates.begin()->second.propertyPaths.size());
+                TF_FOR_ALL(pathItr, fastUpdates.begin()->second.propertyPaths) {
+                    _AddDependentPaths(fastUpdates.begin()->first, *pathItr,
+                        *_cache, &remappedFastUpdates, nullptr /* extraData*/);
+                }
+
+                // Need to uniquify contents, for example, in the case where a prim references
+                // a prim which itself inherits from a class prim.
+                std::sort(remappedFastUpdates.begin(), remappedFastUpdates.end(), SdfPath::FastLessThan());
+                remappedFastUpdates.erase(
+                    std::unique(remappedFastUpdates.begin(), remappedFastUpdates.end()), remappedFastUpdates.end());
+
+                remapChangesToMasters(&remappedFastUpdates);
+                UsdNotice::ObjectsChanged(
+                    self, &recomposeChanges, &otherInfoChanges, &remappedFastUpdates).Send(self);
             }
-
-            // Need to uniquify contents, for example, in the case where a prim references
-            // a prim which itself inherits from a class prim.
-            SdfPathSet pathSet;
-            pathSet.insert(remappedFastUpdates.begin(), remappedFastUpdates.end());
-            remappedFastUpdates.assign(pathSet.begin(), pathSet.end());
-
-            remapChangesToMasters(&remappedFastUpdates);
-            UsdNotice::ObjectsChanged(
-                self, &recomposeChanges, &otherInfoChanges, &remappedFastUpdates).Send(self);
-
             // Receivers can now refresh their caches... or just dirty them
             UsdNotice::StageContentsChanged(self).Send(self);
 
@@ -4062,6 +4068,24 @@ UsdStage::_HandleLayersDidChange(
     // Now we want to remove all elements of otherInfoChanges that are
     // prefixed by elements in recomposeChanges or beneath instances.
     _MergeAndRemoveDescendentEntries(&recomposeChanges, &otherInfoChanges);
+
+    // #nv begin #fast-updates
+    if (!recomposeChanges.empty()) {
+        // Refresh field handles for recomposition changes.
+        TF_FOR_ALL(itr, _fieldHandles) {
+            auto fieldHandleItr = itr->second.begin();
+            while (fieldHandleItr != itr->second.end()) {
+                if (*fieldHandleItr) {
+                    CheckFieldForCompositionDependents(itr->first, *fieldHandleItr);
+                    fieldHandleItr++;
+                }
+                else {
+                    fieldHandleItr = itr->second.erase(fieldHandleItr);
+                }
+            }
+        }
+    }
+    // nv end
 
     UsdStageWeakPtr self(this);
 
@@ -4694,6 +4718,24 @@ bool UsdStage::IsMutenessStateGlobal() const
     return _isGlobalMutenessState;
 }
 //nv end
+
+// #nv begin #fast-updates
+void
+UsdStage::CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
+                                             SdfAbstractDataFieldAccessHandle fieldHandle)
+{
+    if (!layer || !fieldHandle)
+        return;
+    SdfPathVector dependentPaths;
+    const auto &specId = fieldHandle->GetSpecId();
+    _AddDependentPaths(layer, specId.GetFullSpecPath(),
+        *_cache, &dependentPaths, nullptr /* extraData*/);
+    bool hasCompositionDependents = dependentPaths.size() > 1 || *dependentPaths.begin() != specId.GetFullSpecPath();
+    fieldHandle->SetHasCompositionDependents(hasCompositionDependents);
+
+    _fieldHandles[layer].insert(fieldHandle);
+}
+// nv end
 
 SdfPrimSpecHandle
 UsdStage::_GetPrimSpec(const SdfPath& path)
