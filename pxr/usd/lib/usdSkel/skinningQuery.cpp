@@ -339,41 +339,6 @@ UsdSkelSkinningQuery::ComputeSkinnedPoints(const VtArray<Matrix4>& xforms,
     return false;
 }
 
-//+NV_CHANGE TAE
-// Added cached joint indices, weights 
-bool
-UsdSkelSkinningQuery::ComputeSkinnedPoints(const VtMatrix4dArray& xforms,
-	const VtIntArray& jointIndices,
-	const VtFloatArray& jointWeights,
-	VtVec3fArray* points,
-	UsdTimeCode time) const
-{
-	TRACE_FUNCTION();
-
-	if (!points) {
-		TF_CODING_ERROR("'points' pointer is null.");
-		return false;
-	}
-
-	// If the binding site has a custom joint ordering, the query will have
-	// a mapper that should be used to reorder transforms
-	// (skel order -> binding order)
-	VtMatrix4dArray orderedXforms(xforms);
-	if (_mapper) {
-		if (!_mapper->Remap(xforms, &orderedXforms)) {
-			return false;
-		}
-	}
-
-	GfMatrix4d geomBindXform = GetGeomBindTransform(time);
-	return UsdSkelSkinPointsLBS(geomBindXform, orderedXforms,
-		jointIndices, jointWeights,
-		_numInfluencesPerComponent, points);
-
-	//return false;
-}
-//-NV_CHANGE TAE
-
 template USDSKEL_API bool
 UsdSkelSkinningQuery::ComputeSkinnedPoints(const VtArray<GfMatrix4d>&,
                                            VtVec3fArray*, UsdTimeCode) const;

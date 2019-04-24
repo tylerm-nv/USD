@@ -304,6 +304,11 @@ private:
         UsdSkelAnimMapper blendShapeMapper;
         SdfPath skelPath;
         bool hasJointInfluences = false;
+        //+NV_CHANGE FRZHANG
+        std::shared_ptr<UsdSkelSkinningQuery>	skinningQueryPtr;
+        void NVGPUSKIN_InitSkinInfo(const UsdSkelSkeletonQuery& skelQuery,
+            const UsdSkelSkinningQuery& skinningQuery);
+        //-NV_CHANGE FRZHANG
     };
 
     const _SkinnedPrimData* _GetSkinnedPrimData(const SdfPath& cachePath) const;
