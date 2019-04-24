@@ -45,12 +45,14 @@
 PXR_NAMESPACE_USING_DIRECTIVE
 
 TF_DEBUG_CODES(
-    TEST_USDIMAGING_FAST_UPDATES_PERF
+    TEST_USDIMAGING_FAST_UPDATES_PERF,
+    TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF
 );
 
 TF_REGISTRY_FUNCTION(TfDebug)
 {
     TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_PERF, "Run testUsdImagingFastUpdates as a performance test");
+    TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF, "Run testUsdImagingFastUpdates without field handles as a performance test");
 }
 
 static std::default_random_engine gRandomEngine(1515);
@@ -101,7 +103,7 @@ public:
 
     size_t GetAttrCount() const { return _pathList.size(); }
 
-    void ExecuteRandomChange(bool writeDefaults, bool isPerfTest)
+    void ExecuteRandomChange(bool writeDefaults, bool isBaselinePerfTest, bool isPerfTest)
     {
         static const double timeSampleToSet = 1.0;
 
@@ -141,9 +143,13 @@ public:
             }
 
             if (writeDefaults) {
-                _layer->SetField(attrData.defaultFieldHandle, VtValue(newValue));
+                isBaselinePerfTest ?
+                    _layer->SetField(SdfAbstractDataSpecId(&attrPath), SdfFieldKeys->Default, VtValue(newValue)) :
+                    _layer->SetField(attrData.defaultFieldHandle, VtValue(newValue));
             } else {
-                _layer->SetTimeSample(attrData.timeSamplesFieldHandle, timeSampleToSet, VtValue(newValue));
+                isBaselinePerfTest ?
+                    _layer->SetTimeSample(SdfAbstractDataSpecId(&attrPath), timeSampleToSet, VtValue(newValue)) :
+                    _layer->SetTimeSample(attrData.timeSamplesFieldHandle, timeSampleToSet, VtValue(newValue));
             }
 
             if (!isPerfTest) {
@@ -202,9 +208,9 @@ void PopulateInitialLayerContent(SdfLayerRefPtr layer, int numPrims)
 }
 
 static
-void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
+void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, bool isBaselinePerfTest, bool isPerfTest)
 {
-    const std::string assetPath = "benchmarkAsset.usda";
+    const std::string assetPath = "benchmarkAsset." + fileExtension;
 
     auto layer = SdfLayer::CreateNew(assetPath);
 
@@ -220,7 +226,7 @@ void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
     UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate), SdfPath::AbsoluteRootPath());
     imagingDelegate.Populate(stage->GetPseudoRoot());
 
-    std::string traceDetail = writeDefaults ? "(defaults)" : "(time samples)";
+    std::string traceDetail = writeDefaults ? "(" + fileExtension + " defaults)" : "(" + fileExtension + " time samples)";
 
     if (isPerfTest)
         TraceCollector::GetInstance().SetEnabled(true);
@@ -230,7 +236,7 @@ void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
     {
         TRACE_SCOPE_DYNAMIC("Change Attributes " + traceDetail);
 
-        changeGenerator.ExecuteRandomChange(writeDefaults, isPerfTest);
+        changeGenerator.ExecuteRandomChange(writeDefaults, isBaselinePerfTest, isPerfTest);
         if (!isPerfTest) {
             TF_AXIOM(imagingDelegate.HasPendingFastUpdates());
         }
@@ -251,9 +257,12 @@ int
 main(int argc, char **argv)
 {
     TfErrorMark errorMark;
-    bool isPerfTest = TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_PERF);
-    BenchmarkFieldUpdate(true /* writeDefaults */, isPerfTest);
-    BenchmarkFieldUpdate(false /* writeDefaults */, isPerfTest);
+    bool isBaselinePerfTest = TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF);
+    bool isPerfTest = isBaselinePerfTest || TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_PERF);
+    BenchmarkFieldUpdate("usda", true /* writeDefaults */, isBaselinePerfTest, isPerfTest);
+    BenchmarkFieldUpdate("usda", false /* writeDefaults */, isBaselinePerfTest, isPerfTest);
+    BenchmarkFieldUpdate("usdc", true /* writeDefaults */, isBaselinePerfTest, isPerfTest);
+    BenchmarkFieldUpdate("usdc", false /* writeDefaults */, isBaselinePerfTest, isPerfTest);
 
     TF_AXIOM(errorMark.IsClean());
 

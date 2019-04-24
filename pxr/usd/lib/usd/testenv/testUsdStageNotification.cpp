@@ -516,13 +516,14 @@ TestObjectsChanged()
 }
 
 // #nv begin #fast-updates
-void TestFastUpdates()
+void TestFastUpdates(const std::string &fileExtension)
 {
     typedef UsdNotice::ObjectsChanged Notice;
 
     // Fast updates on references should propgate as expected.
 
-    auto layer = SdfLayer::CreateNew("refTest.usda");
+    auto layerId = "refTest." + fileExtension;
+    auto layer = SdfLayer::CreateNew(layerId);
     auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     auto attrName = "dummyAttr";
     auto attr = SdfAttributeSpec::New(prim, attrName, SdfValueTypeNames->Double);
@@ -538,7 +539,7 @@ void TestFastUpdates()
     // After adding a new prim which references the prim we created above, the
     // field handle that we created above should then have composition dependents.
     auto referencingPrim = SdfPrimSpec::New(layer->GetPseudoRoot(), "refPrim", SdfSpecifierOver);
-    referencingPrim->GetReferenceList().Prepend(SdfReference("./refTest.usda", prim->GetPath()));
+    referencingPrim->GetReferenceList().Prepend(SdfReference("./" + layerId, prim->GetPath()));
     TF_AXIOM(referencingPrim);
     TF_AXIOM(fieldHandle->HasCompositionDependents());
 
@@ -652,7 +653,8 @@ int main()
     TestObjectsChanged();
 
     // #nv begin #fast-updates
-    TestFastUpdates();
+    TestFastUpdates("usda");
+    TestFastUpdates("usdc");
     // nv end
 
     TF_AXIOM(m.IsClean());
