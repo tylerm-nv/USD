@@ -2186,10 +2186,6 @@ HdStMesh::GetInitialDirtyBitsMask() const
         | HdChangeTracker::DirtyTopology
         | HdChangeTracker::DirtyTransform
         | HdChangeTracker::DirtyVisibility
-		//+NV_FRZHANG CHANGE
-		| HdChangeTracker::NV_DirtySkinningBinding
-		| HdChangeTracker::NV_DirtySkelAnimXform
-		//-NV_FRZHANG CHANGE
         ;
 
     return mask;

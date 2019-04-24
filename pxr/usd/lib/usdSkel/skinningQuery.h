@@ -180,21 +180,6 @@ public:
                               VtVec3fArray* points,
                               UsdTimeCode time=UsdTimeCode::Default()) const;
 
-	//+NV_CHANGE TAE
-	/// Both \p xforms and \p points are given in _skeleton space_,
-	/// using the joint order of the bound skeleton.
-	/// Joint influences and the (optional) binding transform are computed
-	/// at time \p time (which will typically be unvarying).
-	///
-	/// \sa UsdSkelSkeletonQuery::ComputeSkinningTransforms
-	USDSKEL_API
-		bool ComputeSkinnedPoints(const VtMatrix4dArray& xforms,
-			const VtIntArray& jointIndices,
-			const VtFloatArray& jointWeights,
-			VtVec3fArray* points,
-			UsdTimeCode time = UsdTimeCode::Default()) const;
-	//-NV_CHANGE TAE
-
     /// Compute a skinning transform using linear blend skinning.
     /// The \p xforms are given in _skeleton space_, using the joint order of
     /// the bound skeleton.

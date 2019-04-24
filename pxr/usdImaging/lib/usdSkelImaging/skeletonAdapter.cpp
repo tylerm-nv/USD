@@ -30,6 +30,9 @@
 #include "pxr/usdImaging/usdImaging/gprimAdapter.h"
 #include "pxr/usdImaging/usdImaging/indexProxy.h"
 #include "pxr/usdImaging/usdImaging/tokens.h"
+//+NV_CHANGE FRZHANG
+#include "pxr/usdImaging/usdImaging/meshAdapter.h"
+//-NV_CHANGE FRZHANG
 
 #include "pxr/usd/usdGeom/boundable.h"
 #include "pxr/usd/usdGeom/pointBased.h"
@@ -93,6 +96,11 @@ TF_DEFINE_PRIVATE_TOKENS(
 TF_DEFINE_ENV_SETTING(USDSKELIMAGING_FORCE_CPU_COMPUTE, 0,
     "Use Hydra ExtCPU computations for skinning.");
 
+//+NV_CHANGE FRZHANG : usd nv gpuskinning instead of hydra skinning compute.
+TF_DEFINE_ENV_SETTING(USDSKELIMAGING_FORCE_NVGPUSKINNING, 0,
+    "Use NVIDIA GPUSKining computations for skinning.");
+//-NV_CHANGE FRZHANG
+
 TF_REGISTRY_FUNCTION(TfType)
 {
     using Adapter = UsdSkelImagingSkeletonAdapter;
@@ -100,6 +108,15 @@ TF_REGISTRY_FUNCTION(TfType)
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
 
+//+NV_CHANGE FRZHANG
+static bool
+_IsNVGPUSkinningComputations()
+{
+    static bool enabled
+        = (TfGetEnvSetting(USDSKELIMAGING_FORCE_NVGPUSKINNING) == 1);
+    return enabled;
+}
+//-NV_CHANGE FRZHANG
 // XXX: Temporary way to force CPU comps. Ideally, this is a render delegate
 // opinion, or should be handled in Hydra ExtComputation.
 static bool
@@ -107,6 +124,9 @@ _IsEnabledCPUComputations()
 {
     static bool enabled
         = (TfGetEnvSetting(USDSKELIMAGING_FORCE_CPU_COMPUTE) == 1);
+    //+NV_CHANGE FRZHANG
+    enabled = enabled && !_IsNVGPUSkinningComputations();
+    //-NV_CHANGE FRZHANG
     return enabled;
 }
 
@@ -115,6 +135,9 @@ _IsEnabledAggregatorComputation()
 {
     // XXX: Aggregated comps don't work with CPU comps yet.
     static bool enabled = !_IsEnabledCPUComputations();
+    //+NV_CHANGE FRZHANG
+    enabled = enabled && !_IsNVGPUSkinningComputations();
+    //-NV_CHANGE FRZHANG
     return enabled;
 }
 
@@ -141,11 +164,6 @@ UsdSkelImagingSkeletonAdapter::Populate(
         return SdfPath();
     }
 
-
-    // #nv begin #gpu-skinning
-    //+NV_FRZHANG CHANGE : comment out the below code to disable bone mesh rendering.
-# if 1 // Temp revert the comment out
-//-NV_FRZHANG CHANGE
     auto skelData = std::make_shared<_SkelData>();
     skelData->skelQuery = _skelCache.GetSkelQuery(UsdSkelSkeleton(prim));
 
@@ -155,16 +173,17 @@ UsdSkelImagingSkeletonAdapter::Populate(
     SdfPath instancer = instancerContext ?
         instancerContext->instancerId : SdfPath();
 
-    // Insert mesh prim to visualize the bone mesh for the skeleton.
-    // Note: This uses the "rest" pose of the skeleton.
-    // Also, since the bone mesh isn't backed by the UsdStage, we register the
-    // skeleton prim on its behalf.
-    index->InsertRprim(HdPrimTypeTokens->mesh, prim.GetPath(),
-        instancer, prim, shared_from_this());
-    //+NV_FRZHANG CHANGE
-#endif
-//-NV_FRZHANG CHANGE
-// nv end
+    //+NV_CHANGE FRZHANG
+    if (!_IsNVGPUSkinningComputations())
+    {
+     //-NV_CHANGE FRZHANG
+        // Insert mesh prim to visualize the bone mesh for the skeleton.
+        // Note: This uses the "rest" pose of the skeleton.
+        // Also, since the bone mesh isn't backed by the UsdStage, we register the
+        // skeleton prim on its behalf.
+        index->InsertRprim(HdPrimTypeTokens->mesh, prim.GetPath(),
+            instancer, prim, shared_from_this());
+    }
 
 
     // Insert a computation for each skinned prim targeted by this
@@ -190,6 +209,13 @@ UsdSkelImagingSkeletonAdapter::Populate(
 
             _skinnedPrimDataCache[skinnedPrimPath] =
                 _SkinnedPrimData(skelData->skelQuery, query);
+
+            //+NV_CHANGE FRZHANG : skip adding Sprim for the hydra skinning computation.
+            if (_IsNVGPUSkinningComputations())
+            {
+                continue;
+            }
+            //-NV_CHANGE FRZHANG
 
             SdfPath compPath = _GetSkinningComputationPath(skinnedPrimPath);
 
@@ -385,6 +411,10 @@ UsdSkelImagingSkeletonAdapter::ProcessPropertyChange(
                     "property change. Hijacking doesn't work in this "
                     "scenario.\n", cachePath.GetText());
             }
+
+            //+NV_CHANGE FRZHANG
+            dirtyBits |= HdChangeTracker::NV_DirtySkinningBinding;
+            //-NV_CHANGE FRZHANG
         }
 
         return dirtyBits;
@@ -1200,6 +1230,25 @@ namespace {
         return false;
     }
 
+    //+NV_CHANGE FRZHANG
+    bool
+        _GetInfluences(const UsdSkelSkinningQuery& skinningQuery, UsdTimeCode time,
+            VtIntArray& jointIndices, VtFloatArray& jointWeights,
+            int& numInfluencesPerPoint, bool& hasConstantInfluences
+        )
+    {
+        numInfluencesPerPoint = skinningQuery.GetNumInfluencesPerComponent();
+        hasConstantInfluences = skinningQuery.IsRigidlyDeformed();
+        return skinningQuery.ComputeJointInfluences(&jointIndices, &jointWeights, time);
+    }
+
+    GfMatrix4d
+        _GetBindTransform(const UsdSkelSkinningQuery& skinningQuery, UsdTimeCode time )
+    {
+        return skinningQuery.GetGeomBindTransform(time);
+    }
+    //-NV_CHANGE FRZHANG
+
 
     bool
         _ComputeSkinningTransforms(const UsdSkelSkeletonQuery& skelQuery,
@@ -1757,7 +1806,18 @@ UsdSkelImagingSkeletonAdapter::_TrackSkinnedPrimVariability(
         timeVaryingBits, instancerContext);
 
     if (_IsAffectedByTimeVaryingSkelAnim(cachePath)) {
-        (*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
+        //+NV_CHANGE FRZHANG : dirty the skelXform instead of points in nv gpu skinning.
+        //(*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
+        if (_IsNVGPUSkinningComputations())
+        {
+            (*timeVaryingBits) |= HdChangeTracker::NV_DirtySkelAnimXform;
+        }
+        else
+        {
+            (*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
+        }
+
+        //-NV_CHANGE FRZHANG
         HD_PERF_COUNTER_INCR(UsdImagingTokens->usdVaryingPrimvar);
     }
 }
@@ -1781,7 +1841,11 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
     ("[UpdateForTime] Cache path: <%s>\n", cachePath.GetText());
 
     // Register points as a computed primvar on the skinned prim.
-    if (requestedBits & HdChangeTracker::DirtyPoints) {
+    if ((requestedBits & HdChangeTracker::DirtyPoints)
+        //+NV_CHANGE FRZHANG
+        && !_IsNVGPUSkinningComputations()
+        //-NV_CHANGE FRZHANG
+        ) {
         UsdImagingValueCache* valueCache = _GetValueCache();
 
         HdExtComputationPrimvarDescriptorVector& computedPrimvarsEntry =
@@ -1817,11 +1881,69 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
     requestedBits &= ~HdChangeTracker::DirtyPoints;
 
     // Since The SkeletonAdapter hijacks skinned prims (see SkelRootAdapter),
-    // make sure to delegate to the actual adapter registered for the prim.
+// make sure to delegate to the actual adapter registered for the prim.
     UsdImagingPrimAdapterSharedPtr adapter = _GetPrimAdapter(skinnedPrim);
     adapter->UpdateForTime(skinnedPrim, skinnedPrimPath,
         time, requestedBits, instancerContext);
 
+    //+NV_CHANGE FRZHANG : nv gpu skinning input update.
+    if (_IsNVGPUSkinningComputations())
+    {
+        auto meshAdapter = boost::dynamic_pointer_cast<
+            UsdImagingMeshAdapter> (adapter);
+        TF_VERIFY(meshAdapter);
+
+        const _SkinnedPrimData* skinnedPrimData = _GetSkinnedPrimData(skinnedPrimPath);
+        TF_VERIFY(skinnedPrimData);
+
+        const _SkelData* skelData = _GetSkelData(skinnedPrimData->skelPath);
+        TF_VERIFY(skelData);
+
+        const UsdSkelSkinningQuery& skinningQuery = *skinnedPrimData->skinningQueryPtr;
+        const UsdSkelSkeletonQuery& skelQuery = skelData->skelQuery;
+        if (requestedBits & HdChangeTracker::NV_DirtySkinningBinding)
+        {
+            VtVec3fArray restPoints = _GetSkinnedPrimPoints(skinnedPrim, skinnedPrimPath, time);
+            meshAdapter->UpdateRestPoints(skinnedPrim, skinnedPrimPath, time, restPoints);
+
+            if (skinnedPrimData->hasJointInfluences)
+            {
+                GfMatrix4d bindTransform = _GetBindTransform(skinningQuery, time);
+                VtIntArray jointIndices;
+                VtFloatArray jointWeights;
+                int numInfluencesPerPoint;
+                bool hasConstantInfluences;
+                if (_GetInfluences(skinningQuery, time, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences))
+                {
+                    meshAdapter->UpdateSkinningBinding(skinnedPrim, skinnedPrimPath, time,
+                        bindTransform, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences);
+                }
+            }
+
+            //if (skinnedPrimData->blendShapeQuery != nullptr)
+            //{
+
+            //}
+        }
+
+        if (requestedBits & HdChangeTracker::NV_DirtySkelAnimXform)
+        {
+            if (skinnedPrimData->hasJointInfluences)
+            {
+                UsdGeomXformCache xformCache(time);
+                GfMatrix4d primWorldToLocal = xformCache.GetLocalToWorldTransform(skinnedPrim).GetInverse();
+                GfMatrix4d skelLocalToWorld = xformCache.GetLocalToWorldTransform(skelQuery.GetPrim());
+                VtMatrix4fArray skelAnimTransform;
+                if (_ComputeSkinningTransforms(skelQuery, skinnedPrimData->jointMapper, time, &skelAnimTransform))
+                {
+                    meshAdapter->UpdateSkelAnim(skinnedPrim, skinnedPrimPath, time,
+                        skelAnimTransform, primWorldToLocal, skelLocalToWorld);
+
+                }
+            }
+        }
+    }
+    //-NV_CHANGE FRZHANG
 
     // Don't publish skinning related primvars since they're consumed only by
     // the computations.
@@ -2016,7 +2138,21 @@ UsdSkelImagingSkeletonAdapter::_SkinnedPrimData::_SkinnedPrimData(
             blendShapeQuery.reset();
         }
     }
+
+    //+NV_CHANGE FRZHANG
+    NVGPUSKIN_InitSkinInfo(skelQuery,skinningQuery);
+    //-NV_CHANGE FRZHANG
 }
 
+
+void 
+UsdSkelImagingSkeletonAdapter::_SkinnedPrimData::NVGPUSKIN_InitSkinInfo(
+    const UsdSkelSkeletonQuery& skelQuery,
+    const UsdSkelSkinningQuery& skinningQuery
+)
+{
+    skinningQueryPtr =
+        std::make_shared<UsdSkelSkinningQuery>(skinningQuery);
+}
 
 PXR_NAMESPACE_CLOSE_SCOPE
