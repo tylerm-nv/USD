@@ -130,14 +130,6 @@ HdRprim::PropagateRprimDirtyBits(HdDirtyBits bits)
                  HdChangeTracker::DirtyPrimvar);
     }
 
-	//+NV_FRZHANG CHANGE
-	if (bits & (HdChangeTracker::DirtyTopology | HdChangeTracker::DirtyPoints))
-	{
-		bits |= HdChangeTracker::NV_DirtySkinningBinding;
-		bits |= HdChangeTracker::NV_DirtySkelAnimXform;
-	}
-	//-NV_FRZHANG CHANGE
-
     // Let subclasses propagate bits
     return _PropagateDirtyBits(bits);
 }
@@ -395,14 +387,13 @@ HdRprim::_PopulateConstantPrimvars(HdSceneDelegate* delegate,
 VtMatrix4dArray
 HdRprim::_GetInstancerTransforms(HdSceneDelegate* delegate)
 {
-    SdfPath const& id = GetId();
     SdfPath instancerId = _instancerId;
     VtMatrix4dArray transforms;
 
     HdRenderIndex &renderIndex = delegate->GetRenderIndex();
 
     while (!instancerId.IsEmpty()) {
-        transforms.push_back(delegate->GetInstancerTransform(instancerId, id));
+        transforms.push_back(delegate->GetInstancerTransform(instancerId));
         HdInstancer *instancer = renderIndex.GetInstancer(instancerId);
         if (instancer) {
             instancerId = instancer->GetParentId();

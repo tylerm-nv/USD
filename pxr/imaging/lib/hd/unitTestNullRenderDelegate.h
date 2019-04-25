@@ -73,14 +73,10 @@ public:
     HD_API
     virtual HdInstancer *CreateInstancer(HdSceneDelegate *delegate,
                                          SdfPath const& id,
-                                         SdfPath const& instancerId) override {
-        return nullptr;
-    }
+                                         SdfPath const& instancerId) override;
 
     HD_API
-    virtual void DestroyInstancer(HdInstancer *instancer) override {
-        delete instancer;
-    }
+    virtual void DestroyInstancer(HdInstancer *instancer) override;
 
     ////////////////////////////////////////////////////////////////////////////
     ///

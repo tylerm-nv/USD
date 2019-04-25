@@ -31,13 +31,6 @@
 #include "pxr/usdImaging/usdImaging/primAdapter.h"
 #include "pxr/usdImaging/usdImaging/gprimAdapter.h"
 
-//+NV_CHANGE FRZHANG
-#include "pxr/usd/usdSkel/skinningQuery.h"
-#include "pxr/usd/usdSkel/skeletonQuery.h"
-
-#include <boost/unordered_map.hpp>
-//_NV_CHANGE FRZHANG
-
 PXR_NAMESPACE_OPEN_SCOPE
 
 
@@ -90,6 +83,25 @@ public:
                                UsdImagingInstancerContext const* 
                                    instancerContext = NULL) const override;
 
+    //+NV_CHANGE FRZHANG
+    /////+++Update Skinning Animation API
+    USDIMAGING_API
+        void UpdateRestPoints(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+            const VtVec3fArray& restPoints);
+
+    USDIMAGING_API
+        void UpdateSkinningBinding(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+            const GfMatrix4d& bindTransform,
+            const VtIntArray& jointIndices, const VtFloatArray jointweights,
+            int numInfluencesPerPoint, bool hasConstantInfluences
+        );
+
+    USDIMAGING_API
+        void UpdateSkelAnim(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+            const VtMatrix4fArray& skelAnim, const GfMatrix4d& primWorldToLocal, const GfMatrix4d& skelLocalToWorld
+        );
+    //-NV_CHANGE FRZHANG
+
     // ---------------------------------------------------------------------- //
     /// \name Change Processing
     // ---------------------------------------------------------------------- //
@@ -109,11 +121,6 @@ public:
                                       SdfPath const& cachePath,
                                       UsdImagingIndexProxy* index) override;
 
-	//+NV_CHANGE FRZHANG
-	USDIMAGING_API
-	static const bool USE_NV_GPUSKINNING = true;
-	//-NV_CHANGE FRZHANG
-
 protected:
     USDIMAGING_API
     virtual void _RemovePrim(SdfPath const& cachePath,
@@ -123,34 +130,11 @@ protected:
     virtual bool _IsBuiltinPrimvar(TfToken const& primvarName) const override;
 
 private:
-    void _GetPoints(UsdPrim const&, VtValue* value, UsdTimeCode time) const;
     void _GetMeshTopology(UsdPrim const& prim, VtValue* topoHolder, 
             UsdTimeCode time) const;
     void _GetSubdivTags(UsdPrim const& prim, SubdivTags* tags, 
             UsdTimeCode time) const ;
 
-	//+NV_CHANGE FRZHANG
-	void _InitSkinningInfo(UsdPrim const& prim);
-	struct _SkinningData
-	{
-		void ComputeSkinningPoints(UsdPrim const& prim, VtValue* value, UsdTimeCode time);
-		bool GetBlendValues(VtValue* jointIndices, VtValue* jointWeights, int* numInfluencesPerPoint, bool* hasConstantInfluences, UsdTimeCode time = 0.0);
-		bool GetBindXform(GfMatrix4d* geomBindXform, UsdTimeCode time = 0.0);
-		bool ComputeSkelAnimValues(VtValue* skinningXform, GfMatrix4d* primWorldToLocal, GfMatrix4d* skelLocalToWorld, UsdTimeCode time);
-
-		UsdSkelSkinningQuery	skinningQuery;
-		UsdSkelSkeletonQuery	skeletonQuery;
-		VtIntArray				jointIndices;
-		VtFloatArray			jointWeights;
-		GfInterval				animTimeInterval;
-		double					lastUpdateTime;
-		bool					isSkinningMesh;
-	};
-
-	_SkinningData* _GetSkinningData(const SdfPath& cachePath) const;
-	using _SkinningDataMap = boost::unordered_map<SdfPath, std::shared_ptr<_SkinningData> >;
-	_SkinningDataMap			_skinningDataCache;
-	//-NV_CHANGE FRZHANG
 };
 
 

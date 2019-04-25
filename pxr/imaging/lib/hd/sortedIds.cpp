@@ -37,17 +37,17 @@ PXR_NAMESPACE_OPEN_SCOPE
 static const size_t SORTED_PERCENT = 90;
 
 Hd_SortedIds::Hd_SortedIds()
- : _ids()
- , _sortedCount(0)
- , _afterLastDeletePoint(INVALID_DELETE_POINT)
+    : _ids()
+    , _sortedCount(0)
+    , _afterLastDeletePoint(INVALID_DELETE_POINT)
 {
 
 }
 
 Hd_SortedIds::Hd_SortedIds(Hd_SortedIds &&other)
- : _ids(std::move(other._ids))
- , _sortedCount(other._sortedCount)
- , _afterLastDeletePoint(other._afterLastDeletePoint)
+    : _ids(std::move(other._ids))
+    , _sortedCount(other._sortedCount)
+    , _afterLastDeletePoint(other._afterLastDeletePoint)
 {
 
 }
@@ -106,10 +106,10 @@ Hd_SortedIds::Remove(const SdfPath &id)
             if (id <= _ids[_sortedCount - 1]) {
 
                 SdfPathVector::iterator endSortedElements =
-                                                    _ids.begin() + _sortedCount;
+                    _ids.begin() + _sortedCount;
                 idToRemove = std::lower_bound(_ids.begin(),
-                                              endSortedElements,
-                                              id);
+                    endSortedElements,
+                    id);
 
                 if (idToRemove != endSortedElements) {
                     // Id could actually exist in the unsorted part
@@ -119,13 +119,14 @@ Hd_SortedIds::Remove(const SdfPath &id)
                     if (*idToRemove != id) {
                         idToRemove = _ids.end();
                     }
-                } else {
+                }
+                else {
                     // We checked that id should be in the sorted range
                     // so lower_bound should return an iterator between
                     // begin and endSortedElements - 1.
                     TF_CODING_ERROR("Id (%s) greater than all items in "
-                                    " sorted list",
-                                    id.GetText());
+                        " sorted list",
+                        id.GetText());
                     idToRemove = _ids.end();
                 }
             }
@@ -135,8 +136,8 @@ Hd_SortedIds::Remove(const SdfPath &id)
     // If all else fail, linear search through unsorted portion
     if (idToRemove == _ids.end()) {
         idToRemove = std::find(_ids.begin() + _sortedCount,
-                               _ids.end(),
-                               id);
+            _ids.end(),
+            id);
     }
 
     if (idToRemove != _ids.end()) {
@@ -144,43 +145,16 @@ Hd_SortedIds::Remove(const SdfPath &id)
             SdfPathVector::iterator lastElement = _ids.end();
             --lastElement;
 
-            if (idToRemove != lastElement) {
-                std::iter_swap(idToRemove, lastElement);
-
-                _ids.pop_back();
-                _afterLastDeletePoint = idToRemove - _ids.begin();
-                ++_afterLastDeletePoint;
-// + NV_CHANGE JSHENTU
-                if (_afterLastDeletePoint >= _ids.size())
-                {
-                    // If removing second last element, index will grow out of bound.
-                    _afterLastDeletePoint = INVALID_DELETE_POINT;
-                }
-// - NV_CHANGE JSHENTU
-            } else {
-                _ids.pop_back();
-                _afterLastDeletePoint = INVALID_DELETE_POINT;
-            }
-
-            // As we've moved an element from the end into the middle
-            // the list is now only sorted up to the place where the element
+            // As we are going to move an element from the end into the middle
+            // the list will now only be sorted up to the place where the element
             // was removed.
+            _sortedCount = std::min(_sortedCount,
+                static_cast<size_t>(
+                (idToRemove - _ids.begin())));
 
-            if (_ids.size())
-            {
-// + NV_CHANGE JSHENTU
-                // idToRemove may already be popped and become invalid iterator.
-                // Triggers "vector iterators incompatible" in debug build.
-                _sortedCount = std::min(_sortedCount,
-                    static_cast<size_t>(
-                        _afterLastDeletePoint == INVALID_DELETE_POINT ? _ids.size() : (idToRemove - _ids.begin())));
+            std::iter_swap(idToRemove, lastElement);
 
-                // // Original
-                // _sortedCount = std::min(_sortedCount,
-                //    static_cast<size_t>(
-                //    (idToRemove - _ids.begin())));
-// - NV_CHANGE JSHENTU
-            }
+            _ids.pop_back();
         }
     }
 }
@@ -203,7 +177,7 @@ void Hd_SortedIds::RemoveRange(size_t start, size_t end)
     }
 
     SdfPathVector::iterator itStart = _ids.begin() + start;
-    SdfPathVector::iterator itEnd   = _ids.begin() + (end + 1);
+    SdfPathVector::iterator itEnd = _ids.begin() + (end + 1);
 
     _ids.erase(itStart, itEnd);
     _sortedCount -= numToRemove;
@@ -259,7 +233,8 @@ Hd_SortedIds::_Sort()
     //   (_sortedCount / numIds) * 100 > SORTED_PERCENT
     if (100 * _sortedCount > SORTED_PERCENT * numIds) {
         _InsertSort();
-    } else {
+    }
+    else {
         _FullSort();
     }
 

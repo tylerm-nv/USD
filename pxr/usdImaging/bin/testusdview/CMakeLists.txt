@@ -161,7 +161,12 @@ if (NOT PXR_HEADLESS_TEST_MODE)
         DEST testusdviewDeactivate
     )
 
-	pxr_register_test(testusdviewAlive                                               
+    pxr_install_test_dir(
+        SRC testenv/testUsdviewSkinning
+        DEST testusdviewSkinning
+    )
+
+    pxr_register_test(testusdviewAlive                                               
         PRE_COMMAND "${PYTHON_EXECUTABLE} testUsdviewAliveSetup.py"
         PYTHON
         COMMAND "${CMAKE_INSTALL_PREFIX}/bin/testusdview --testScript testAlive.py test.usda"   
@@ -349,6 +354,12 @@ if (NOT PXR_HEADLESS_TEST_MODE)
     pxr_register_test(testusdviewDeactivate
         PYTHON
         COMMAND "${CMAKE_INSTALL_PREFIX}/bin/testusdview --testScript testUsdviewDeactivate.py test.usda"
+        EXPECTED_RETURN_CODE 0
+    )
+    
+    pxr_register_test(testusdviewSkinning
+        PYTHON
+        COMMAND "${CMAKE_INSTALL_PREFIX}/bin/testusdview --testScript testUsdviewSkinning.py arm.usda"
         EXPECTED_RETURN_CODE 0
     )
 

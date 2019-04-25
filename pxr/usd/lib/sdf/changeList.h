@@ -33,6 +33,7 @@
 
 #include <set>
 #include <map>
+#include <unordered_map>
 #include <iosfwd>
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -89,6 +90,12 @@ public:
 
     void DidChangeInfo(const SdfPath &path, const TfToken &key,
                        const VtValue &oldValue, const VtValue &newValue);
+
+    // #nv begin #fast-updates
+    // When a change list contains both fast updates and normal edits, treat the fast updates as normal.
+    void FastUpdateFallback(const SdfPath &attrPath);
+    // nv end
+
 
     /// \struct Entry
     ///
@@ -174,15 +181,17 @@ public:
     };
 
     /// Map of change entries at various paths in a layer.
-    typedef std::map<SdfPath, Entry> EntryList;
+    typedef std::unordered_map<SdfPath, Entry, SdfPath::Hash> EntryList;
 
 public:
     const EntryList & GetEntryList() const { return _entries; }
 
     // Change accessors/mutators
-    Entry& GetEntry( const SdfPath & );
+    Entry const &GetEntry( const SdfPath & ) const;
 
 private:
+    Entry &_GetEntry(SdfPath const &);
+    
     EntryList _entries;
 };
 
