@@ -73,6 +73,9 @@ class UsdResolveInfo;
 class Usd_Resolver;
 class UsdPrimRange;
 
+// #nv begin #fast-updates
+SDF_DECLARE_HANDLES(SdfAbstractDataFieldAccess);
+// nv end
 SDF_DECLARE_HANDLES(SdfLayer);
 
 /// \class UsdStage
@@ -2067,6 +2070,11 @@ public:
     bool IsMutenessStateGlobal() const;
 //nv end
 
+// #nv begin #fast-updates
+    USD_API
+    void CheckFieldForCompositionDependents(const SdfLayerHandle &layer, SdfAbstractDataFieldAccessHandle fieldHandle);
+// nv end
+
 private:
 
     // The 'pseudo root' prim.
@@ -2120,6 +2128,11 @@ private:
 
     bool _isGlobalMutenessState;
     //nv end
+
+    // #nv begin #fast-updates
+    // Field handles to check for composition dependents when recomposing a stage.
+    std::map<SdfLayerHandle, std::set<SdfAbstractDataFieldAccessHandle> > _fieldHandles;
+    // nv end
 
     friend class UsdAPISchemaBase;
     friend class UsdAttribute;

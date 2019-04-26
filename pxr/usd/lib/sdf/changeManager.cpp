@@ -171,6 +171,8 @@ Sdf_ChangeManager::_SendNotices()
         }
     }
 
+    static tbb::atomic<size_t> &changeSerialNumber = _InitChangeSerialNumber();
+
     // +nv #begin #fast-updates
     SdfLayerFastUpdatesMap fastUpdates;
     fastUpdates.swap(_data.local().fastUpdates);
@@ -180,7 +182,6 @@ Sdf_ChangeManager::_SendNotices()
             fastUpdates.begin()->first->GetIdentifier().c_str());
 
         // Obtain a serial number for this round of change processing.
-        static tbb::atomic<size_t> &changeSerialNumber = _InitChangeSerialNumber();
         size_t serialNumber = changeSerialNumber.fetch_and_increment();
         SdfNotice::LayersDidChangeSentPerLayer n(fastUpdates, serialNumber);
         n.Send(fastUpdates.begin()->first);
@@ -193,7 +194,7 @@ Sdf_ChangeManager::_SendNotices()
         // to changes in attribute defaults and timesamples.
         TF_FOR_ALL(itr, fastUpdates) {
             SdfLayerChangeListMap::iterator candidate = changes.find(itr->first);
-            TF_FOR_ALL(itr2, itr->second) {
+            TF_FOR_ALL(itr2, itr->second.propertyPaths) {
                 if (candidate == changes.end()) {
                     changes[itr->first].FastUpdateFallback(*itr2);
                 } else if (candidate->second.GetEntryList().find(*itr2) == candidate->second.GetEntryList().end()) {
@@ -221,7 +222,6 @@ Sdf_ChangeManager::_SendNotices()
     }
 
     // Obtain a serial number for this round of change processing.
-    static tbb::atomic<size_t> &changeSerialNumber = _InitChangeSerialNumber();
     size_t serialNumber = changeSerialNumber.fetch_and_increment();
 
     // Send global notice.
@@ -496,13 +496,16 @@ Sdf_ChangeManager::DidChangeField(const SdfLayerHandle &layer,
 
 // +nv #begin #fast-updates
 void
-Sdf_ChangeManager::DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path)
+Sdf_ChangeManager::DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path,
+                                 bool hasCompositionDependents)
 {
     if (!layer->_ShouldNotify())
         return;
 
     SdfLayerFastUpdatesMap &fastUpdates = _data.local().fastUpdates;
-    fastUpdates[layer].push_back(path);
+    fastUpdates[layer].propertyPaths.push_back(path);
+    if (hasCompositionDependents)
+        fastUpdates[layer].hasCompositionDependents = true;
 }
 // nv end
 

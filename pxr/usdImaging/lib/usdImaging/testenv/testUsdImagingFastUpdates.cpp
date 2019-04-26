@@ -45,12 +45,16 @@
 PXR_NAMESPACE_USING_DIRECTIVE
 
 TF_DEBUG_CODES(
-    TEST_USDIMAGING_FAST_UPDATES_PERF
+    TEST_USDIMAGING_FAST_UPDATES_PERF,
+    TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF,
+    TEST_USDIMAGING_FAST_UPDATES_NO_IMAGING
 );
 
 TF_REGISTRY_FUNCTION(TfDebug)
 {
     TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_PERF, "Run testUsdImagingFastUpdates as a performance test");
+    TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF, "Run testUsdImagingFastUpdates without field handles as a performance test");
+    TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_NO_IMAGING, "Run testUsdImagingFastUpdates with no imaging overhead");
 }
 
 static std::default_random_engine gRandomEngine(1515);
@@ -58,6 +62,7 @@ static std::default_random_engine gRandomEngine(1515);
 class LayerAttrChangeHelper
 {
     SdfLayerRefPtr _layer;
+    UsdStagePtr _stage;
 
     struct AttrData
     {
@@ -69,8 +74,8 @@ class LayerAttrChangeHelper
     TfHashMap<SdfPath, AttrData, SdfPath::Hash> _attrMap;
 
 public:
-    LayerAttrChangeHelper(SdfLayerRefPtr layer)
-        : _layer(layer)
+    LayerAttrChangeHelper(SdfLayerRefPtr layer, UsdStagePtr stage)
+        : _layer(layer), _stage(stage)
     {
         _layer->Traverse(SdfPath::AbsoluteRootPath(), [this](const SdfPath& path)
         {
@@ -83,6 +88,8 @@ public:
                         _layer->CreateFieldHandle(path, SdfFieldKeys->Default),
                         _layer->CreateFieldHandle(path, SdfFieldKeys->TimeSamples)
                     };
+                    _stage->CheckFieldForCompositionDependents(_layer, attrData.defaultFieldHandle);
+                    _stage->CheckFieldForCompositionDependents(_layer, attrData.timeSamplesFieldHandle);
                     _attrMap[path] = attrData;
                 }
             }
@@ -98,7 +105,7 @@ public:
 
     size_t GetAttrCount() const { return _pathList.size(); }
 
-    void ExecuteRandomChange(bool writeDefaults, bool isPerfTest)
+    void ExecuteRandomChange(bool writeDefaults, bool isBaselinePerfTest, bool isPerfTest)
     {
         static const double timeSampleToSet = 1.0;
 
@@ -114,11 +121,13 @@ public:
             if (!isPerfTest) {
                 if (writeDefaults) {
                     TF_AXIOM(attrData.defaultFieldHandle);
+                    TF_AXIOM(!attrData.defaultFieldHandle->HasCompositionDependents());
                     VtValue oldVtVal = _layer->GetField(attrData.defaultFieldHandle);
                     if (oldVtVal.IsHolding<double>())
                         oldValue = oldVtVal.UncheckedGet<double>();
                 } else {
                     TF_AXIOM(attrData.timeSamplesFieldHandle);
+                    TF_AXIOM(!attrData.timeSamplesFieldHandle->HasCompositionDependents());
                     VtValue oldVtVal = _layer->GetField(attrData.timeSamplesFieldHandle);
                     if (oldVtVal.IsHolding<SdfTimeSampleMap>()) {
                         SdfTimeSampleMap oldTimeSamples = oldVtVal.UncheckedGet<SdfTimeSampleMap>();
@@ -136,9 +145,13 @@ public:
             }
 
             if (writeDefaults) {
-                _layer->SetField(attrData.defaultFieldHandle, VtValue(newValue));
+                isBaselinePerfTest ?
+                    _layer->SetField(SdfAbstractDataSpecId(&attrPath), SdfFieldKeys->Default, VtValue(newValue)) :
+                    _layer->SetField(attrData.defaultFieldHandle, VtValue(newValue));
             } else {
-                _layer->SetTimeSample(attrData.timeSamplesFieldHandle, timeSampleToSet, VtValue(newValue));
+                isBaselinePerfTest ?
+                    _layer->SetTimeSample(SdfAbstractDataSpecId(&attrPath), timeSampleToSet, VtValue(newValue)) :
+                    _layer->SetTimeSample(attrData.timeSamplesFieldHandle, timeSampleToSet, VtValue(newValue));
             }
 
             if (!isPerfTest) {
@@ -193,13 +206,18 @@ void PopulateInitialLayerContent(SdfLayerRefPtr layer, int numPrims)
         auto prim = SdfPrimSpec::New(parentPrim, primName, SdfSpecifierDef, "Sphere");
 
         auto attr = SdfAttributeSpec::New(prim, UsdGeomTokens->radius, SdfValueTypeNames->Double);
+
+        // Prepopulate timesample map with many entries-- the runtime performance of authoring new or existing
+        // time samples should be comparable regardless of the size of the timesample map.
+        for (double time=2.0; time < 1000.0; ++time)
+            layer->SetTimeSample(attr->GetPath(), time, time);
     }
 }
 
 static
-void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
+void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, bool isBaselinePerfTest, bool isPerfTest, bool enableImaging)
 {
-    const std::string assetPath = "benchmarkAsset.usda";
+    const std::string assetPath = "benchmarkAsset." + fileExtension;
 
     auto layer = SdfLayer::CreateNew(assetPath);
 
@@ -213,25 +231,29 @@ void BenchmarkFieldUpdate(bool writeDefaults, bool isPerfTest)
     auto stage = UsdStage::Open(layer);
     Hd_UnitTestNullRenderDelegate renderDelegate;
     UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate), SdfPath::AbsoluteRootPath());
-    imagingDelegate.Populate(stage->GetPseudoRoot());
 
-    std::string traceDetail = writeDefaults ? "(defaults)" : "(time samples)";
+    if (enableImaging)
+        imagingDelegate.Populate(stage->GetPseudoRoot());
+
+    std::string traceDetail = writeDefaults ? "(" + fileExtension + " defaults)" : "(" + fileExtension + " time samples)";
 
     if (isPerfTest)
         TraceCollector::GetInstance().SetEnabled(true);
 
-    LayerAttrChangeHelper changeGenerator(layer);
+    LayerAttrChangeHelper changeGenerator(layer, stage);
     for (int i = 0; i < 10; ++i)
     {
         TRACE_SCOPE_DYNAMIC("Change Attributes " + traceDetail);
 
-        changeGenerator.ExecuteRandomChange(writeDefaults, isPerfTest);
-        if (!isPerfTest) {
-            TF_AXIOM(imagingDelegate.HasPendingFastUpdates());
-        }
-        imagingDelegate.ApplyPendingUpdates();
-        if (!isPerfTest) {
-            TF_AXIOM(!(imagingDelegate.HasPendingFastUpdates()));
+        changeGenerator.ExecuteRandomChange(writeDefaults, isBaselinePerfTest, isPerfTest);
+        if (enableImaging) {
+            if (!isPerfTest) {
+                TF_AXIOM(imagingDelegate.HasPendingFastUpdates());
+            }
+            imagingDelegate.ApplyPendingUpdates();
+            if (!isPerfTest) {
+                TF_AXIOM(!(imagingDelegate.HasPendingFastUpdates()));
+            }
         }
     }
 
@@ -246,9 +268,13 @@ int
 main(int argc, char **argv)
 {
     TfErrorMark errorMark;
-    bool isPerfTest = TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_PERF);
-    BenchmarkFieldUpdate(true /* writeDefaults */, isPerfTest);
-    BenchmarkFieldUpdate(false /* writeDefaults */, isPerfTest);
+    bool isBaselinePerfTest = TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF);
+    bool isPerfTest = isBaselinePerfTest || TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_PERF);
+    bool enableImaging = !TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_NO_IMAGING);
+    BenchmarkFieldUpdate("usda", true /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
+    BenchmarkFieldUpdate("usda", false /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
+    BenchmarkFieldUpdate("usdc", true /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
+    BenchmarkFieldUpdate("usdc", false /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
 
     TF_AXIOM(errorMark.IsClean());
 

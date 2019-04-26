@@ -42,7 +42,15 @@ class SdfChangeList;
 typedef std::map<SdfLayerHandle, SdfChangeList> SdfLayerChangeListMap;
 
 // #nv begin #fast-updates
-typedef std::map<SdfLayerHandle, SdfPathVector> SdfLayerFastUpdatesMap;
+class SdfFastUpdateList
+{
+public:
+    SdfFastUpdateList() : hasCompositionDependents(false) {}
+    bool hasCompositionDependents;
+    SdfPathVector propertyPaths;
+};
+
+typedef std::map<SdfLayerHandle, SdfFastUpdateList> SdfLayerFastUpdatesMap;
 // nv end
 
 /// \class SdfChangeList

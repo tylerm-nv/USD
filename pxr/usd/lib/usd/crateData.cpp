@@ -275,6 +275,12 @@ public:
                 _flatTypes.erase(_flatTypes.begin() + index);
             }
         }
+
+        // #nv begin #fast-updates
+        _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(id.GetFullSpecPath());
+        if (fieldItr != _fieldHandles.end())
+            _fieldHandles.erase(fieldItr);
+        // nv end
     }
 
     inline void MoveSpec(const SdfAbstractDataSpecId& oldId,
@@ -316,6 +322,12 @@ public:
             
             TF_VERIFY(iresult.second);
         }
+
+        // #nv begin #fast-updates
+        _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(oldId.GetFullSpecPath());
+        if (fieldItr != _fieldHandles.end())
+            _fieldHandles.erase(fieldItr);
+        // nv end
     }
 
     inline SdfSpecType GetSpecType(const SdfAbstractDataSpecId &id) const {
@@ -524,7 +536,11 @@ public:
     inline void _SetHelper(
         Data &d, SdfAbstractDataSpecId const &id,
         typename Data::value_type *&lastSet,
-        TfToken const &fieldName, VtValue const &value) {
+        TfToken const &fieldName, VtValue const &value,
+        // #nv #begin #fast-updates
+        VtValue **fieldValLocation = nullptr) {
+        TRACE_FUNCTION();
+        // nv end
 
         SdfPath const &path = id.GetFullSpecPath();
 
@@ -553,20 +569,52 @@ public:
             convertedVal = _FromPayloadListOpValue(value);
             valPtr = &convertedVal;
         }
+
+        // #nv begin #fast-updates
+        bool foundField = false;
+        // nv end
         
         auto &spec = lastSet->second;
         spec.DetachIfNotUnique();
         auto &fields = spec.fields.GetMutable();
+        // #nv begin #fast-updates
+        auto *fieldData = fields.data();
+        //fields.reserve(64);
+        // nv end
         for (size_t j=0, jEnd = fields.size(); j != jEnd; ++j) {
             if (fields[j].first == fieldName) {
                 // Found existing field entry.
                 fields[j].second = *valPtr;
-                return;
+                // #nv begin #fast-updates
+                foundField = true;
+                if (fieldValLocation) {
+                    *fieldValLocation = &fields[j].second;
+                }
+                break;
+                // nv end
             }
         }
         
-        // No existing field entry.
-        fields.emplace_back(fieldName, *valPtr);
+        // #nv begin #fast-updates
+        if (!foundField) {
+            // No existing field entry.
+            fields.emplace_back(fieldName, *valPtr);
+            if (fieldValLocation) {
+                *fieldValLocation = &fields.back().second;
+            }
+        }
+        // If the spec's vector of fields has moved, we need to refresh affected live field handles.
+        if (fieldData != fields.data()) {
+            _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+            for (size_t j = 0, jEnd = fields.size(); j != jEnd; ++j) {
+                _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(fields[j].first);
+                if (fieldHandleItr != specFieldHandles.end()) {
+                    fieldHandleItr->second->vtValue = &fields[j].second;
+                }
+            }
+        }
+
+        // nv end
     }
 
     inline void Set(const SdfAbstractDataSpecId& id,
@@ -620,7 +668,76 @@ public:
         _hashData ?
             _EraseHelper(*_hashData, id, field) :
             _EraseHelper(_flatData, id, field);
+
+        // #nv begin #fast-updates
+        // Remove field handle if found.
+        _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+        _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(field);
+        if (fieldHandleItr != specFieldHandles.end()) {
+            specFieldHandles.erase(fieldHandleItr);
+        }
+        // nv end
     }
+
+    // #nv begin #fast-updates
+    inline SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName) {
+        TfAutoMallocTag tag("Usd_CrateDataImpl::CreateFieldHandle");
+
+        auto id = SdfAbstractDataSpecId(&path);
+        VtValue value = (fieldName == SdfFieldKeys->TimeSamples) ? VtValue(SdfTimeSampleMap()) : VtValue();
+        VtValue *fieldValLocation = nullptr;
+        _hashData ?
+            _SetHelper(*_hashData, id, _hashLastSet, fieldName, value, &fieldValLocation) :
+            _SetHelper(_flatData, id, _flatLastSet, fieldName, value, &fieldValLocation);
+
+        _FieldHandleData *fieldHandle = new _FieldHandleData(path, fieldName, fieldValLocation);
+        _fieldHandles[id.GetFullSpecPath()][fieldName] = TfCreateRefPtr(fieldHandle);
+        return TfCreateWeakPtr(fieldHandle);
+    }
+
+    inline void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle) {
+        TF_FOR_ALL(itr, _fieldHandles) {
+            _SpecFieldHandleHashTable::iterator candidate = itr->second.end();
+            TF_FOR_ALL(specItr, itr->second) {
+                if (*fieldHandle == TfDynamic_cast<SdfAbstractDataFieldAccessHandle>(specItr->second)) {
+                    candidate = specItr;
+                    break;
+                }
+            }
+
+            if (candidate != itr->second.end()) {
+                itr->second.erase(candidate);
+                break;
+            }
+        }
+    }
+
+    inline bool Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value) {
+        TRACE_FUNCTION();
+
+        if (!fieldHandle)
+            return false;
+
+        VtValue *vtValToSet = TfDynamic_cast<TfWeakPtr <_FieldHandleData>>(fieldHandle)->vtValue;
+        *vtValToSet = value;
+        return true;
+    }
+
+    inline bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const {
+        if (!fieldHandle)
+            return false;
+
+        VtValue *vtValToGet = TfDynamic_cast<TfWeakPtr <_FieldHandleData>>(fieldHandle)->vtValue;
+        value = *vtValToGet;
+
+        if (fieldHandle->GetFieldName() == SdfFieldKeys->TimeSamples) {
+            // Special case, convert internal TimeSamples to
+            // SdfTimeSampleMap.
+            value = _MakeTimeSampleMap(value);
+        }
+        return true;
+    }
+    // nv end
 
     inline std::set<double>
     ListAllTimeSamples() const {
@@ -755,6 +872,43 @@ public:
             fieldValue->UncheckedSwap(newSamples);
         }
     }
+
+    // #nv #begin #fast-updates
+    inline void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value) {
+        TRACE_FUNCTION();
+
+        if (!fieldHandle)
+            return;
+
+        TimeSamples newSamples;
+
+        VtValue *fieldValue = TfDynamic_cast<TfWeakPtr <_FieldHandleData>>(fieldHandle)->vtValue;
+
+        if (fieldValue && fieldValue->IsHolding<TimeSamples>()) {
+            fieldValue->UncheckedSwap(newSamples);
+        }
+
+        // Insert or overwrite time into newTimes.
+        auto iter = lower_bound(newSamples.times.Get().begin(),
+            newSamples.times.Get().end(), time);
+        if (iter == newSamples.times.Get().end() || *iter != time) {
+            auto index = iter - newSamples.times.Get().begin();
+            // Make the samples mutable, which may invalidate 'iter'.
+            _crateFile->MakeTimeSampleTimesAndValuesMutable(newSamples);
+            newSamples.times.GetMutable().
+                insert(newSamples.times.GetMutable().begin() + index, time);
+            newSamples.values.insert(newSamples.values.begin() + index, value);
+        }
+        else {
+            // Make the values mutable, then modify.
+            _crateFile->MakeTimeSampleValuesMutable(newSamples);
+            newSamples.values[iter - newSamples.times.Get().begin()] = value;
+        }
+
+        // Set back into the field.
+        fieldValue->Swap(newSamples);
+    }
+    // nv end
 
     ////////////////////////////////////////////////////////////////////////
 private:
@@ -1087,6 +1241,10 @@ private:
         TfReset(_flatTypes);
         _flatLastSet = nullptr;
         _hashLastSet = nullptr;
+
+        // #nv begin #fast-updates
+        TfReset(_fieldHandles);
+        // nv end
     }
 
     bool _MaybeMoveToHashTable() {
@@ -1109,6 +1267,17 @@ private:
             }
             TfReset(_flatData);
             TfReset(_flatTypes);
+
+            // #nv begin #fast-updates
+            // We need to refresh affected live field handles.
+            for (auto specsByName : _fieldHandles) {
+                for (auto fieldsByName : specsByName.second) {
+                    auto &fieldHandle = fieldsByName.second;
+                    fieldHandle->vtValue =
+                        _GetMutableFieldValue(fieldHandle->GetSpecId(), fieldHandle->GetFieldName());
+                }
+            }
+            // nv end
         }
         return static_cast<bool>(_hashData);
     }
@@ -1159,6 +1328,23 @@ private:
 
     // Underlying file.
     std::unique_ptr<CrateFile> _crateFile;
+
+    // #nv begin #fast-updates
+    class _FieldHandleData : public SdfAbstractDataFieldAccess {
+    public:
+        virtual ~_FieldHandleData() {}
+        _FieldHandleData(const SdfPath &path,
+            const TfToken &fieldName,
+            VtValue *vtValue_ = nullptr) :
+            SdfAbstractDataFieldAccess(path, fieldName), vtValue(vtValue_) {}
+        VtValue *vtValue;
+    };
+
+    // Hashtables with fast access to field values on specs.
+    typedef TfHashMap<TfToken, TfRefPtr<_FieldHandleData>, TfToken::HashFunctor> _SpecFieldHandleHashTable;
+    typedef TfHashMap<SdfPath, _SpecFieldHandleHashTable, SdfPath::Hash> _AllFieldHandleHashTable;
+    _AllFieldHandleHashTable _fieldHandles;
+    // nv end
 };
 
 
@@ -1302,6 +1488,30 @@ Usd_CrateData::Erase(const SdfAbstractDataSpecId& id, const TfToken & field)
     return _impl->Erase(id, field);
 }
 
+// #nv begin #fast-updates
+SdfAbstractDataFieldAccessHandle
+Usd_CrateData::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName) {
+    return _impl->CreateFieldHandle(path, fieldName);
+}
+
+void
+Usd_CrateData::ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle) {
+    return _impl->ReleaseFieldHandle(fieldHandle);
+}
+
+bool
+Usd_CrateData::Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value)
+{
+    return _impl->Set(fieldHandle, value);
+}
+
+bool
+Usd_CrateData::Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const
+{
+    return _impl->Get(fieldHandle, value);
+}
+// nv end
+
 // ------------------------------------------------------------------------- //
 // Time Sample API.
 //
@@ -1364,6 +1574,13 @@ Usd_CrateData::EraseTimeSample(const SdfAbstractDataSpecId& id, double time)
 {
     return _impl->EraseTimeSample(id, time);
 }
+
+// #nv begin #fast-updates
+void
+Usd_CrateData::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value) {
+    return _impl->SetTimeSample(fieldHandle, time, value);
+}
+// nv end
 
 PXR_NAMESPACE_CLOSE_SCOPE
 
