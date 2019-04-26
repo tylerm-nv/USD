@@ -41,6 +41,18 @@ PXR_NAMESPACE_OPEN_SCOPE
 class SdfChangeList;
 typedef std::map<SdfLayerHandle, SdfChangeList> SdfLayerChangeListMap;
 
+// #nv begin #fast-updates
+class SdfFastUpdateList
+{
+public:
+    SdfFastUpdateList() : hasCompositionDependents(false) {}
+    bool hasCompositionDependents;
+    SdfPathVector propertyPaths;
+};
+
+typedef std::map<SdfLayerHandle, SdfFastUpdateList> SdfLayerFastUpdatesMap;
+// nv end
+
 /// \class SdfChangeList
 ///
 /// A list of scene description modifications, organized by the namespace

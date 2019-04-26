@@ -43,19 +43,6 @@ SDF_DECLARE_HANDLES(SdfLayer);
 
 class SdfSpec;
 
-// #nv begin #fast-updates
-class SdfFastUpdateList
-{
-public:
-    SdfFastUpdateList() : hasCompositionDependents(false) {}
-    bool hasCompositionDependents;
-    SdfPathVector propertyPaths;
-};
-
-typedef std::map<SdfLayerHandle, SdfFastUpdateList> SdfLayerFastUpdatesMap;
-// nv end
-
-
 /// \class Sdf_ChangeManager
 ///
 /// Pathway for invalidation and change notification emitted by Sdf.
@@ -84,7 +71,7 @@ public:
                         const VtValue & oldValue, const VtValue & newValue );
 
     // #nv begin #fast-updates
-    void DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path, bool hasNoCompositionDependents);
+    void DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path, bool hasCompositionDependents);
     // nv end
 
     void DidChangeAttributeTimeSamples(const SdfLayerHandle &layer,
