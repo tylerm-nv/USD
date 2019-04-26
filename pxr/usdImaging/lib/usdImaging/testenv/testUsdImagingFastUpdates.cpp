@@ -46,13 +46,15 @@ PXR_NAMESPACE_USING_DIRECTIVE
 
 TF_DEBUG_CODES(
     TEST_USDIMAGING_FAST_UPDATES_PERF,
-    TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF
+    TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF,
+    TEST_USDIMAGING_FAST_UPDATES_NO_IMAGING
 );
 
 TF_REGISTRY_FUNCTION(TfDebug)
 {
     TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_PERF, "Run testUsdImagingFastUpdates as a performance test");
     TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF, "Run testUsdImagingFastUpdates without field handles as a performance test");
+    TF_DEBUG_ENVIRONMENT_SYMBOL(TEST_USDIMAGING_FAST_UPDATES_NO_IMAGING, "Run testUsdImagingFastUpdates with no imaging overhead");
 }
 
 static std::default_random_engine gRandomEngine(1515);
@@ -204,11 +206,16 @@ void PopulateInitialLayerContent(SdfLayerRefPtr layer, int numPrims)
         auto prim = SdfPrimSpec::New(parentPrim, primName, SdfSpecifierDef, "Sphere");
 
         auto attr = SdfAttributeSpec::New(prim, UsdGeomTokens->radius, SdfValueTypeNames->Double);
+
+        // Prepopulate timesample map with many entries-- the runtime performance of authoring new or existing
+        // time samples should be comparable regardless of the size of the timesample map.
+        for (double time=2.0; time < 1000.0; ++time)
+            layer->SetTimeSample(attr->GetPath(), time, time);
     }
 }
 
 static
-void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, bool isBaselinePerfTest, bool isPerfTest)
+void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, bool isBaselinePerfTest, bool isPerfTest, bool enableImaging)
 {
     const std::string assetPath = "benchmarkAsset." + fileExtension;
 
@@ -224,7 +231,9 @@ void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, 
     auto stage = UsdStage::Open(layer);
     Hd_UnitTestNullRenderDelegate renderDelegate;
     UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate), SdfPath::AbsoluteRootPath());
-    imagingDelegate.Populate(stage->GetPseudoRoot());
+
+    if (enableImaging)
+        imagingDelegate.Populate(stage->GetPseudoRoot());
 
     std::string traceDetail = writeDefaults ? "(" + fileExtension + " defaults)" : "(" + fileExtension + " time samples)";
 
@@ -237,12 +246,14 @@ void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, 
         TRACE_SCOPE_DYNAMIC("Change Attributes " + traceDetail);
 
         changeGenerator.ExecuteRandomChange(writeDefaults, isBaselinePerfTest, isPerfTest);
-        if (!isPerfTest) {
-            TF_AXIOM(imagingDelegate.HasPendingFastUpdates());
-        }
-        imagingDelegate.ApplyPendingUpdates();
-        if (!isPerfTest) {
-            TF_AXIOM(!(imagingDelegate.HasPendingFastUpdates()));
+        if (enableImaging) {
+            if (!isPerfTest) {
+                TF_AXIOM(imagingDelegate.HasPendingFastUpdates());
+            }
+            imagingDelegate.ApplyPendingUpdates();
+            if (!isPerfTest) {
+                TF_AXIOM(!(imagingDelegate.HasPendingFastUpdates()));
+            }
         }
     }
 
@@ -259,10 +270,11 @@ main(int argc, char **argv)
     TfErrorMark errorMark;
     bool isBaselinePerfTest = TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_BASELINE_PERF);
     bool isPerfTest = isBaselinePerfTest || TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_PERF);
-    BenchmarkFieldUpdate("usda", true /* writeDefaults */, isBaselinePerfTest, isPerfTest);
-    BenchmarkFieldUpdate("usda", false /* writeDefaults */, isBaselinePerfTest, isPerfTest);
-    BenchmarkFieldUpdate("usdc", true /* writeDefaults */, isBaselinePerfTest, isPerfTest);
-    BenchmarkFieldUpdate("usdc", false /* writeDefaults */, isBaselinePerfTest, isPerfTest);
+    bool enableImaging = !TfDebug::IsEnabled(TEST_USDIMAGING_FAST_UPDATES_NO_IMAGING);
+    BenchmarkFieldUpdate("usda", true /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
+    BenchmarkFieldUpdate("usda", false /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
+    BenchmarkFieldUpdate("usdc", true /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
+    BenchmarkFieldUpdate("usdc", false /* writeDefaults */, isBaselinePerfTest, isPerfTest, enableImaging);
 
     TF_AXIOM(errorMark.IsClean());
 
