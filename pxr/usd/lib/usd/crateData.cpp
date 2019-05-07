@@ -684,11 +684,25 @@ public:
         TfAutoMallocTag tag("Usd_CrateDataImpl::CreateFieldHandle");
 
         auto id = SdfAbstractDataSpecId(&path);
-        VtValue value = (fieldName == SdfFieldKeys->TimeSamples) ? VtValue(SdfTimeSampleMap()) : VtValue();
-        VtValue *fieldValLocation = nullptr;
-        _hashData ?
-            _SetHelper(*_hashData, id, _hashLastSet, fieldName, value, &fieldValLocation) :
-            _SetHelper(_flatData, id, _flatLastSet, fieldName, value, &fieldValLocation);
+
+        // Get existing handle if possible.
+        _AllFieldHandleHashTable::iterator allItr = _fieldHandles.find(id.GetFullSpecPath());
+        if (allItr != _fieldHandles.end()) {
+            _SpecFieldHandleHashTable::iterator specItr = allItr->second.find(fieldName);
+            if (specItr != allItr->second.end()) {
+                return specItr->second;
+            }
+        }
+
+        // Get existing location if available.
+        VtValue *fieldValLocation = _GetMutableFieldValue(id, fieldName);
+        if (!fieldValLocation) {
+            // If there is no existing location, make one with an empty value.
+            VtValue value = (fieldName == SdfFieldKeys->TimeSamples) ? VtValue(TimeSamples()) : VtValue();
+            _hashData ?
+                _SetHelper(*_hashData, id, _hashLastSet, fieldName, value, &fieldValLocation) :
+                _SetHelper(_flatData, id, _flatLastSet, fieldName, value, &fieldValLocation);
+        }
 
         _FieldHandleData *fieldHandle = new _FieldHandleData(path, fieldName, fieldValLocation);
         _fieldHandles[id.GetFullSpecPath()][fieldName] = TfCreateRefPtr(fieldHandle);
@@ -906,7 +920,7 @@ public:
         }
 
         // Set back into the field.
-        fieldValue->Swap(newSamples);
+        fieldValue->UncheckedSwap(newSamples);
     }
     // nv end
 
