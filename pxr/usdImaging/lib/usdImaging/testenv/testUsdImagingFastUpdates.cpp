@@ -58,6 +58,7 @@ TF_REGISTRY_FUNCTION(TfDebug)
 }
 
 static std::default_random_engine gRandomEngine(1515);
+static const double NUM_INITIAL_TIME_SAMPLES = 1000.0;
 
 class LayerAttrChangeHelper
 {
@@ -129,12 +130,12 @@ public:
                     TF_AXIOM(attrData.timeSamplesFieldHandle);
                     TF_AXIOM(!attrData.timeSamplesFieldHandle->HasCompositionDependents());
                     VtValue oldVtVal = _layer->GetField(attrData.timeSamplesFieldHandle);
-                    if (oldVtVal.IsHolding<SdfTimeSampleMap>()) {
-                        SdfTimeSampleMap oldTimeSamples = oldVtVal.UncheckedGet<SdfTimeSampleMap>();
-                        SdfTimeSampleMap::iterator oldEntry = oldTimeSamples.find(timeSampleToSet);
-                        if (oldEntry != oldTimeSamples.end() && oldEntry->second.IsHolding<double>()) {
-                            oldValue = oldEntry->second.UncheckedGet<double>();
-                        }
+                    TF_AXIOM(oldVtVal.IsHolding<SdfTimeSampleMap>());
+                    SdfTimeSampleMap oldTimeSamples = oldVtVal.UncheckedGet<SdfTimeSampleMap>();
+                    TF_AXIOM((oldTimeSamples.size() == NUM_INITIAL_TIME_SAMPLES) || (oldTimeSamples.size() == NUM_INITIAL_TIME_SAMPLES + 1));
+                    SdfTimeSampleMap::iterator oldEntry = oldTimeSamples.find(timeSampleToSet);
+                    if (oldEntry != oldTimeSamples.end() && oldEntry->second.IsHolding<double>()) {
+                        oldValue = oldEntry->second.UncheckedGet<double>();
                     }
                 }
                 TF_AXIOM(!std::isnan(oldValue));
@@ -146,11 +147,11 @@ public:
 
             if (writeDefaults) {
                 isBaselinePerfTest ?
-                    _layer->SetField(SdfAbstractDataSpecId(&attrPath), SdfFieldKeys->Default, VtValue(newValue)) :
+                    _layer->SetField(attrPath, SdfFieldKeys->Default, VtValue(newValue)) :
                     _layer->SetField(attrData.defaultFieldHandle, VtValue(newValue));
             } else {
                 isBaselinePerfTest ?
-                    _layer->SetTimeSample(SdfAbstractDataSpecId(&attrPath), timeSampleToSet, VtValue(newValue)) :
+                    _layer->SetTimeSample(attrPath, timeSampleToSet, VtValue(newValue)) :
                     _layer->SetTimeSample(attrData.timeSamplesFieldHandle, timeSampleToSet, VtValue(newValue));
             }
 
@@ -179,6 +180,7 @@ public:
                     // Retreiving the attribute value wihout the field handle should result in the same value as retrieving it with the handle.
                     modTimeSamples = _layer->GetField(attrPath, SdfFieldKeys->TimeSamples)
                         .UncheckedGet<SdfTimeSampleMap>();
+                    TF_AXIOM(modTimeSamples.size() == NUM_INITIAL_TIME_SAMPLES + 1);
                     TF_AXIOM(modTimeSamples.find(timeSampleToSet) != modTimeSamples.end());
                     TF_AXIOM(modTimeSamples[timeSampleToSet].IsHolding<double>());
                     double modValueNoHandle = modTimeSamples[timeSampleToSet].UncheckedGet<double>();
@@ -209,8 +211,10 @@ void PopulateInitialLayerContent(SdfLayerRefPtr layer, int numPrims)
 
         // Prepopulate timesample map with many entries-- the runtime performance of authoring new or existing
         // time samples should be comparable regardless of the size of the timesample map.
-        for (double time=2.0; time < 1000.0; ++time)
+        for (double time=2.0; time < 2.0 + NUM_INITIAL_TIME_SAMPLES; ++time)
             layer->SetTimeSample(attr->GetPath(), time, time);
+
+        TF_AXIOM(layer->GetNumTimeSamplesForPath(attr->GetPath()) == NUM_INITIAL_TIME_SAMPLES);
     }
 }
 
