@@ -1153,7 +1153,7 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     // Fast path does not perform type checking (just like fast and slow path for setting info fields).
 
     if (_stateDelegate) {
-        _stateDelegate->_MarkCurrentStateAsDirty();
+        _stateDelegate->_OnSetTimeSample(fieldHandle->GetSpecId(), time, value);
     }
 
     // TODO(USD):optimization: Analyze the affected time interval.
@@ -3273,7 +3273,7 @@ SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const Vt
         // if we are not already nested in another change block.
         SdfChangeBlock block;
 
-        _stateDelegate->_MarkCurrentStateAsDirty();
+        _stateDelegate->_OnSetField(fieldHandle->GetSpecId(), fieldHandle->GetFieldName(), value);
 
         const TfToken &fieldName = fieldHandle->GetFieldName();
 
