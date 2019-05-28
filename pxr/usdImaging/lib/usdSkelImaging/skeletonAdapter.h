@@ -337,7 +337,7 @@ private:
     /// (Populated via UsdSkelImagingSkeletonAdaptor::Populate)
 
     using _SkelSkinMap =
-        std::unordered_map<SdfPath, SdfPathVector, SdfPath::Hash>;
+        std::unordered_map<SdfPath, SdfPathSet, SdfPath::Hash>;
     
     using _SkelAnimMap =
         std::unordered_map<SdfPath, _SkelSkinMap, SdfPath::Hash>;
