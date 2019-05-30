@@ -260,6 +260,13 @@ private:
             HdDirtyBits requestedBits,
             const UsdImagingInstancerContext* instancerContext=nullptr) const;
 
+    //+NV_CHANGE FRZHANG
+    // ---------------------------------------------------------------------- //
+    /// Handlers for skelAnimation
+    // ---------------------------------------------------------------------- //
+    bool _IsSkelAnimPrimPath(const SdfPath& cachePath) const;
+    
+    //-NV_CHANGE FRZHANG
 
     // ---------------------------------------------------------------------- //
     /// Populated skeleton state
@@ -324,6 +331,18 @@ private:
     using _SkelBindingMap =
         std::unordered_map<SdfPath, UsdSkelBinding, SdfPath::Hash>;
     _SkelBindingMap _skelBindingMap;
+
+    //+NV_CHANGE FRZHANG
+    /// SkelAnim -> Skeleton -> SkinnedMesh
+    /// (Populated via UsdSkelImagingSkeletonAdaptor::Populate)
+
+    using _SkelSkinMap =
+        std::unordered_map<SdfPath, SdfPathSet, SdfPath::Hash>;
+    
+    using _SkelAnimMap =
+        std::unordered_map<SdfPath, _SkelSkinMap, SdfPath::Hash>;
+    _SkelAnimMap _skelAnimMap;
+    //-NV_CHANGE FRZHANG
 };
 
 

@@ -193,6 +193,9 @@ UsdSkelImagingSkeletonAdapter::Populate(
     // the computation, and we pass the skinnedPrim as the usdPrim,
     // argument and _not_ the skel prim.
     const auto bindingIt = _skelBindingMap.find(skelPath);
+    //+NV_CHANGE FRZHANG
+    SdfPathSet affectedSkinnedPrimPath;
+    //-NV_CHANGE FRZHANG
 
     if (bindingIt != _skelBindingMap.end()) {
         UsdSkelBinding const& binding = bindingIt->second;
@@ -211,8 +214,9 @@ UsdSkelImagingSkeletonAdapter::Populate(
                 _SkinnedPrimData(skelData->skelQuery, query);
 
             //+NV_CHANGE FRZHANG : skip adding Sprim for the hydra skinning computation.
+            affectedSkinnedPrimPath.insert(skinnedPrimPath);
             if (_IsNVGPUSkinningComputations())
-            {
+            {     
                 continue;
             }
             //-NV_CHANGE FRZHANG
@@ -251,6 +255,22 @@ UsdSkelImagingSkeletonAdapter::Populate(
         // Do nothing. This isn't an error. We can have skeletons that
         // don't affect any skinned prims. One example is using variants.
     }
+
+    //+NV_CHANGE FRZHANG
+    const UsdSkelAnimQuery& animQuery = skelData->skelQuery.GetAnimQuery();
+    SdfPath const& animPath = animQuery.GetPrim().GetPath();
+    UsdImagingPrimAdapterSharedPtr animPrimAdapter =
+        _GetPrimAdapter(animQuery.GetPrim());
+    if (animPrimAdapter)
+    {
+        TF_VERIFY(animPrimAdapter == shared_from_this());
+    }
+    else
+    {
+        index->AddPrimInfo(animPath, animQuery.GetPrim(), shared_from_this());
+    }
+    _skelAnimMap[animPath][skelPath] = affectedSkinnedPrimPath;
+    //-NV_CHANGE FRZHANG
 
     return prim.GetPath();
 }
@@ -413,12 +433,27 @@ UsdSkelImagingSkeletonAdapter::ProcessPropertyChange(
             }
 
             //+NV_CHANGE FRZHANG
-            dirtyBits |= HdChangeTracker::NV_DirtySkinningBinding;
+            if (_IsNVGPUSkinningComputations())
+            {
+                dirtyBits |= HdChangeTracker::NV_DirtySkinningBinding;
+            }
             //-NV_CHANGE FRZHANG
         }
 
         return dirtyBits;
     }
+
+    //+NV_CHANGE FRZHANG
+    if(_IsNVGPUSkinningComputations() && _IsSkelAnimPrimPath(cachePath)){
+        if (propertyName == UsdSkelTokens->translations
+            || propertyName == UsdSkelTokens->rotations
+            || propertyName == UsdSkelTokens->scales
+            )
+        {
+            return HdChangeTracker::NV_DirtySkelAnimXform;
+        }
+    }
+    //-NV_CHANGE FRZHANG
 
     // We don't expect to get callbacks on behalf of any other prims on
     // the USD stage.
@@ -473,6 +508,38 @@ UsdSkelImagingSkeletonAdapter::MarkDirty(const UsdPrim& prim,
         index->MarkSprimDirty(cachePath, dirty);
 
     }
+    //+NV_CHANGE_FRZHANG
+    else if (_IsNVGPUSkinningComputations() && _IsSkelAnimPrimPath(cachePath))
+    {
+        if (dirty & HdChangeTracker::NV_DirtySkelAnimXform)
+        {
+            const auto skelIt = _skelAnimMap.find(cachePath);
+
+            if (skelIt != _skelAnimMap.end()) {
+                _SkelSkinMap const& skelSkinMap = skelIt->second;
+
+                for (auto const& skin : skelSkinMap)
+                {
+                    SdfPath const& skelPath = skin.first;
+                    const _SkelData* skelData = _GetSkelData(skelPath);
+                    if (skelData != nullptr)
+                    {
+                        //This animation is queried
+                        if (skelData->skelQuery.GetAnimQuery().GetPrim().GetPath() == cachePath)
+                        {
+                            SdfPathSet const& skinnedPrimPaths = skin.second;
+                            for (auto const& skinnedPrimPath : skinnedPrimPaths)
+                            {
+                                index->MarkRprimDirty(skinnedPrimPath, HdChangeTracker::NV_DirtySkelAnimXform);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+    //-NV_CHANGE FRZHANG
     else {
         // We don't expect to get callbacks on behalf of any other prims on
         // the USD stage.
@@ -809,6 +876,13 @@ UsdSkelImagingSkeletonAdapter::_RemovePrim(const SdfPath& cachePath,
     bool isSkelPath = _skelBindingMap.find(cachePath) != _skelBindingMap.end();
     if (isSkelPath) {
         _skelBindingMap.erase(cachePath);
+        //+NV_CHANGE FRZHANG
+        for (auto& skel : _skelAnimMap)
+        {
+            _SkelSkinMap& skelSkin = skel.second;
+            skelSkin.erase(cachePath);
+        }
+        //-NV_CHANGE FRZHANG
     }
     else if (_IsSkinnedPrimPath(cachePath)) {
         // Remove the computations as well.
@@ -822,7 +896,24 @@ UsdSkelImagingSkeletonAdapter::_RemovePrim(const SdfPath& cachePath,
         }
 
         _skinnedPrimDataCache.erase(cachePath);
+        //+NV_CHANGE FRZHANG
+        for (auto& skel : _skelAnimMap)
+        {
+            _SkelSkinMap& skelSkin = skel.second;
+            for (auto& skin : skelSkin)
+            {
+                SdfPathSet& skinnedPrimPaths = skin.second;
+                skinnedPrimPaths.erase(cachePath);
+            }
+        }
+        //-NV_CHANGE FRZHANG
     }
+    //+NV_CHANGE FRZHANG
+    else if (_IsSkelAnimPrimPath(cachePath))
+    {
+        _skelAnimMap.erase(cachePath);
+    }
+    //-NV_CAHNGE FRZHANG
 
     // Remove internal bookkeeping entries.
     _skelDataCache.erase(cachePath);
@@ -1965,6 +2056,20 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
         }
     }
 }
+
+//+NV_CHANGE FRZHANG
+// ---------------------------------------------------------------------- //
+/// Handlers for skelAnimation
+// ---------------------------------------------------------------------- //
+bool
+UsdSkelImagingSkeletonAdapter::_IsSkelAnimPrimPath(const SdfPath& cachePath) const
+{
+    if (_skelAnimMap.find(cachePath) != _skelAnimMap.end()) {
+        return true;
+    }
+    return false;
+}
+//-NV_CHANGE FRZHANG
 
 
 // ---------------------------------------------------------------------- //
