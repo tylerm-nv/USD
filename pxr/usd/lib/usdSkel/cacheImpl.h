@@ -78,6 +78,10 @@ public:
         UsdAttribute jointIndicesAttr;
         UsdAttribute jointWeightsAttr;
         UsdAttribute geomBindTransformAttr;
+        //+NV_CHANGE FRZHANG
+        UsdAttribute skinningMethodAttr;
+        UsdAttribute skinningBlendWeightsAttr;
+        //-NV_CHANGE FRZHANG
         UsdAttribute jointsAttr;
         UsdAttribute blendShapesAttr;
         UsdRelationship blendShapeTargetsRel;

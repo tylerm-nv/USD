@@ -232,6 +232,25 @@ class "SkelBindingAPI" (
         for more information on interpolation and elementSize."""
     )
 
+    uniform token skel:skinningMethod = "ClassicLinear" (
+        allowedTokens = ["ClassicLinear", "DualQuaternion", "WeightedBlend"]
+        customData = {
+            string apiName = "skinningMethod"
+        }       
+        doc = """Different calculation method for skinning. LBS, DQ, and blendWeight"""
+    )
+
+    uniform float[] primvars:skel:skinningBlendWeights (
+        customData = {
+            string apiName = "skinningBlendWeights"
+        }       
+        doc = """Weights for weighted blend skinning method. The primvar can have either 
+        *constant* or *vertex* interpolation.
+        Constant interpolation means every vertex share the same single blend weight.
+        Vertex interpolation means every vertex has their own blend weight. The element
+        size should match the vertices count in this case."""
+    )
+
     uniform token[] skel:blendShapes (
         customData = {
             string apiName = "blendShapes"

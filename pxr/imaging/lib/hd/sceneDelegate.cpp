@@ -235,12 +235,18 @@ bool HdSceneDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& restPo
 
 /*virtual*/
 bool
-HdSceneDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences)
+HdSceneDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, 
+    int& numInfluencesPerPoint, bool& hasConstantInfluences,
+    TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights
+)
 {
 	jointIndices = VtIntArray();
 	jointWeights = VtFloatArray();
 	numInfluencesPerPoint = 0;
 	hasConstantInfluences = true;
+    skinningMethod = TfToken("ClassicLinear");
+    skinningBlendWeights = VtFloatArray();
+    hasConstantSkinningBlendWeights = true;
 	return false;
 }
 

@@ -74,6 +74,14 @@ struct UsdSkelTokensType {
     /// 
     /// UsdSkelAnimation
     const TfToken blendShapeWeights;
+    /// \brief "ClassicLinear"
+    /// 
+    /// Possible value for UsdSkelBindingAPI::GetSkelSkinningMethodAttr(), Default value for UsdSkelBindingAPI::GetSkelSkinningMethodAttr()
+    const TfToken classicLinear;
+    /// \brief "DualQuaternion"
+    /// 
+    /// Possible value for UsdSkelBindingAPI::GetSkelSkinningMethodAttr()
+    const TfToken dualQuaternion;
     /// \brief "jointNames"
     /// 
     /// UsdSkelSkeleton
@@ -106,6 +114,10 @@ struct UsdSkelTokensType {
     /// 
     /// UsdSkelBindingAPI
     const TfToken primvarsSkelJointWeights;
+    /// \brief "primvars:skel:skinningBlendWeights"
+    /// 
+    /// UsdSkelBindingAPI
+    const TfToken primvarsSkelSkinningBlendWeights;
     /// \brief "restTransforms"
     /// 
     /// UsdSkelSkeleton
@@ -138,6 +150,10 @@ struct UsdSkelTokensType {
     /// 
     /// UsdSkelBindingAPI
     const TfToken skelSkeleton;
+    /// \brief "skel:skinningMethod"
+    /// 
+    /// UsdSkelBindingAPI
+    const TfToken skelSkinningMethod;
     /// \brief "translations"
     /// 
     /// UsdSkelAnimation
@@ -146,6 +162,10 @@ struct UsdSkelTokensType {
     /// 
     /// UsdSkelInbetweenShape - The weight location at which the inbetween shape applies.
     const TfToken weight;
+    /// \brief "WeightedBlend"
+    /// 
+    /// Possible value for UsdSkelBindingAPI::GetSkelSkinningMethodAttr()
+    const TfToken weightedBlend;
     /// A vector of all of the tokens listed above.
     const std::vector<TfToken> allTokens;
 };

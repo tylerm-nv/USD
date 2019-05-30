@@ -329,7 +329,9 @@ public:
 	USDIMAGING_API
 	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform) override;
 	USDIMAGING_API
-	virtual bool GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences) override;
+	virtual bool GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, 
+        int& numInfluencesPerPoint, bool& hasConstantInfluences, 
+        TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights) override;
 	USDIMAGING_API
 	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld) override;
 	//-NV_CHANGE FRZHANG

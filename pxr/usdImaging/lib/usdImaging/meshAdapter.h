@@ -92,8 +92,9 @@ public:
     USDIMAGING_API
         void UpdateSkinningBinding(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
             const GfMatrix4d& bindTransform,
-            const VtIntArray& jointIndices, const VtFloatArray jointweights,
-            int numInfluencesPerPoint, bool hasConstantInfluences
+            const VtIntArray& jointIndices, const VtFloatArray& jointweights,
+            int numInfluencesPerPoint, bool hasConstantInfluences,
+            const TfToken& skinningMethod, const VtFloatArray& skinningBlendweights, bool hasConstantSkinningBlendWeights
         );
 
     USDIMAGING_API

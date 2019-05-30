@@ -179,11 +179,23 @@ public:
 			static TfToken attr("hasConstantInfluences");
 			return Key(path, attr);
 		}
+        static Key SkinningMethod(SdfPath const& path) {
+            static TfToken attr("skinningMethod");
+            return Key(path, attr);
+        }
+        static Key SkinningBlendWeights(SdfPath const& path) {
+            static TfToken attr("skinningBlendWeights");
+            return Key(path, attr);
+        }
+        static Key HasConstantSkinningBlendWeights(SdfPath const& path) {
+            static TfToken attr("hasConstantSkinningBlendWeights");
+            return Key(path, attr);
+        }
+        //skeleton prim keys
 		static Key PrimWorldToLocal(SdfPath const& path) {
 			static TfToken attr("primWorldToLocal");
 			return Key(path, attr);
 		}
-		//skeleton prim keys
 		static Key SkinningXforms(SdfPath const& path) {
 			static TfToken attr("skinningXforms");
 			return Key(path, attr);
@@ -396,6 +408,9 @@ public:
 		_Erase<VtValue>(Key::JointWeights(path));
 		_Erase<int>(Key::NumInfluencesPerPoint(path));
 		_Erase<bool>(Key::HasConstantInfluences(path));
+        _Erase<TfToken>(Key::SkinningMethod(path));
+        _Erase<VtValue>(Key::SkinningBlendWeights(path));
+        _Erase<bool>(Key::HasConstantSkinningBlendWeights(path));
 		_Erase<GfMatrix4d>(Key::PrimWorldToLocal(path));
 		_Erase<VtValue>(Key::SkinningXforms(path));
 		_Erase<GfMatrix4d>(Key::SkelLocalToWorld(path));
@@ -524,6 +539,15 @@ public:
 	bool& GetHasConstantInfluences(SdfPath const& path) const {
 		return _Get<bool>(Key::HasConstantInfluences(path));
 	}
+    TfToken& GetSkinningMethod(SdfPath const& path) const {
+        return _Get<TfToken>(Key::SkinningMethod(path));
+    }
+    VtValue& GetSkinningBlendWeights(SdfPath const& path) const {
+        return _Get<VtValue>(Key::SkinningBlendWeights(path));
+    }
+    bool& GetHasConstantSkinningBlendWeights(SdfPath const& path) const {
+        return _Get<bool>(Key::HasConstantSkinningBlendWeights(path));
+    }
 	GfMatrix4d& GetPrimWorldToLocal(SdfPath const& path) const {
 		return _Get<GfMatrix4d>(Key::PrimWorldToLocal(path));
 	}
@@ -658,6 +682,15 @@ public:
 	bool FindHasConstantInfluences(SdfPath const& path, bool* value) const {
 		return _Find(Key::HasConstantInfluences(path), value);
 	}
+    bool FindSkinningMethod(SdfPath const& path, TfToken* value) const {
+        return _Find(Key::SkinningMethod(path), value);
+    }
+    bool FindSkinningBlendWeights(SdfPath const& path, VtValue* value) const {
+        return _Find(Key::SkinningBlendWeights(path), value);
+    }
+    bool FindHasConstantSkinningBlendWeights(SdfPath const& path, bool* value) const {
+        return _Find(Key::HasConstantSkinningBlendWeights(path), value);
+    }
 	bool FindPrimWorldToLocal(SdfPath const& path, GfMatrix4d* value) const {
 		return _Find(Key::PrimWorldToLocal(path), value);
 	}
@@ -788,6 +821,15 @@ public:
 	bool ExtractHasConstantInfluences(SdfPath const& path, bool* value) {
 		return _Extract(Key::HasConstantInfluences(path), value);
 	}
+    bool ExtractSkinningMethod(SdfPath const& path, TfToken* value) {
+        return _Extract(Key::SkinningMethod(path), value);
+    }
+    bool ExtractSkinningBlendWeights(SdfPath const& path, VtValue* value) {
+        return _Extract(Key::SkinningBlendWeights(path), value);
+    }
+    bool ExtractHasConstantSkinningBlendWeights(SdfPath const& path, bool* value) {
+        return _Extract(Key::HasConstantSkinningBlendWeights(path), value);
+    }
 	bool ExtractPrimWorldToLocal(SdfPath const& path, GfMatrix4d* value) {
 		return _Extract(Key::PrimWorldToLocal(path), value);
 	}

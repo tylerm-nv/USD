@@ -419,6 +419,10 @@ UsdSkelImagingSkeletonAdapter::ProcessPropertyChange(
         if (propertyName == UsdSkelTokens->primvarsSkelJointIndices ||
             propertyName == UsdSkelTokens->primvarsSkelJointWeights ||
             propertyName == UsdSkelTokens->primvarsSkelGeomBindTransform ||
+            //+NV_CHANGE FRZHANG
+            propertyName == UsdSkelTokens->skelSkinningMethod ||
+            propertyName == UsdSkelTokens->primvarsSkelSkinningBlendWeights ||
+            //-NV_CHANGE FRZHANG
             propertyName == UsdSkelTokens->skelJoints ||
             propertyName == UsdSkelTokens->skelBlendShapes ||
             propertyName == UsdSkelTokens->skelBlendShapeTargets) {
@@ -1336,6 +1340,36 @@ namespace {
         return skinningQuery.ComputeJointInfluences(&jointIndices, &jointWeights, time);
     }
 
+    bool
+        _GetSkinningMethod(const UsdSkelSkinningQuery& skinningQuery,
+            TfToken& skinningMethod, VtFloatArray& skinningBlendWeights, bool& hasConstantSkinningBlendWeights
+        )
+    {
+        UsdAttribute skinningMethodAttr = skinningQuery.GetSkinningMethodAttr();
+        hasConstantSkinningBlendWeights = true;
+        if (skinningMethodAttr.IsValid())
+        {
+            skinningMethodAttr.Get(&skinningMethod);
+            if (skinningMethod == UsdSkelTokens->weightedBlend)
+            {
+                UsdGeomPrimvar skinningBlendWeightsPrimvar = skinningQuery.GetSkinningBlendWeightsPrimvar();
+                if (skinningBlendWeightsPrimvar.IsDefined())
+                {
+                    skinningBlendWeightsPrimvar.Get(&skinningBlendWeights);
+                    hasConstantSkinningBlendWeights = skinningBlendWeightsPrimvar.GetInterpolation() == UsdGeomTokens->constant;
+                }
+            }
+            else
+            {
+                skinningBlendWeights = VtFloatArray();
+            }
+            return true;
+        }
+        skinningBlendWeights = VtFloatArray();
+        skinningMethod = UsdSkelTokens->classicLinear;
+        return false;
+    }
+
     GfMatrix4d
         _GetBindTransform(const UsdSkelSkinningQuery& skinningQuery, UsdTimeCode time )
     {
@@ -2007,10 +2041,18 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
                 VtFloatArray jointWeights;
                 int numInfluencesPerPoint;
                 bool hasConstantInfluences;
+                TfToken skinningMethod;
+                VtFloatArray skinningBlendWeights;
+                bool hasConstantSkinningBlendWeights;
                 if (_GetInfluences(skinningQuery, time, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences))
                 {
+                    _GetSkinningMethod(skinningQuery, skinningMethod, skinningBlendWeights, hasConstantSkinningBlendWeights);
+                    
                     meshAdapter->UpdateSkinningBinding(skinnedPrim, skinnedPrimPath, time,
-                        bindTransform, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences);
+                        bindTransform, jointIndices, jointWeights, 
+                        numInfluencesPerPoint, hasConstantInfluences,
+                        skinningMethod, skinningBlendWeights, hasConstantSkinningBlendWeights
+                        );
                 }
             }
 
