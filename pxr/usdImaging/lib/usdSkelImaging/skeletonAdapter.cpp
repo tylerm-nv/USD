@@ -258,18 +258,21 @@ UsdSkelImagingSkeletonAdapter::Populate(
 
     //+NV_CHANGE FRZHANG
     const UsdSkelAnimQuery& animQuery = skelData->skelQuery.GetAnimQuery();
-    SdfPath const& animPath = animQuery.GetPrim().GetPath();
-    UsdImagingPrimAdapterSharedPtr animPrimAdapter =
-        _GetPrimAdapter(animQuery.GetPrim());
-    if (animPrimAdapter)
+    if (animQuery.IsValid())
     {
-        TF_VERIFY(animPrimAdapter == shared_from_this());
+        SdfPath const& animPath = animQuery.GetPrim().GetPath();
+        UsdImagingPrimAdapterSharedPtr animPrimAdapter =
+            _GetPrimAdapter(animQuery.GetPrim());
+        if (animPrimAdapter)
+        {
+            TF_VERIFY(animPrimAdapter == shared_from_this());
+        }
+        else
+        {
+            index->AddPrimInfo(animPath, animQuery.GetPrim(), shared_from_this());
+        }
+        _skelAnimMap[animPath][skelPath] = affectedSkinnedPrimPath;
     }
-    else
-    {
-        index->AddPrimInfo(animPath, animQuery.GetPrim(), shared_from_this());
-    }
-    _skelAnimMap[animPath][skelPath] = affectedSkinnedPrimPath;
     //-NV_CHANGE FRZHANG
 
     return prim.GetPath();
