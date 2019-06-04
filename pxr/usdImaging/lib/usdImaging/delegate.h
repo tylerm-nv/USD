@@ -120,7 +120,7 @@ public:
                          UsdPrimVector const& rootPrims,
                          std::vector<SdfPathVector> const& excludedPrimPaths,
                          std::vector<SdfPathVector> const& invisedPrimPaths);
-        
+
     /// Populates the rootPrim in the HdRenderIndex.
     USDIMAGING_API
     void Populate(UsdPrim const& rootPrim);
@@ -160,6 +160,12 @@ public:
     /// Applies any scene edits which have been queued up by notices from USD.
     USDIMAGING_API
     void ApplyPendingUpdates();
+
+    // #nv begin #fast-updates
+    /// Applies any fast (non-structural) updates which have been queued up by notices from USD.
+    USDIMAGING_API
+    virtual void ApplyPendingFastUpdates();
+    // nv end
 
     /// Returns the refinement level that is used when prims have no explicit
     /// level set.
@@ -506,9 +512,78 @@ public:
     USDIMAGING_API
     bool HasPendingFastUpdates() const;
     // nv end
-private:
+
+// #nv begin #fast-updates
+protected:
     // Internal friend class.
-    class _Worker;
+    class _Worker {
+    public:
+        typedef std::vector<std::pair<SdfPath, int> > ResultVector;
+
+    private:
+        struct _Task {
+            _Task() : delegate(nullptr) { }
+            _Task(UsdImagingDelegate* delegate_, const SdfPath& path_)
+                : delegate(delegate_)
+                , path(path_)
+            {
+            }
+
+            UsdImagingDelegate* delegate;
+            SdfPath path;
+        };
+        std::vector<_Task> _tasks;
+
+    public:
+        _Worker()
+        {
+        }
+
+    void AddTask(UsdImagingDelegate* delegate, SdfPath const& usdPath) {
+            _tasks.push_back(_Task(delegate, usdPath));
+        }
+
+        size_t GetTaskCount() {
+            return _tasks.size();
+        }
+
+        // Disables value cache mutations for all imaging delegates that have
+        // added tasks to this worker.
+    void DisableValueCacheMutations();
+
+        // Enables value cache mutations for all imaging delegates that have
+        // added tasks to this worker.
+    void EnableValueCacheMutations();
+
+        // Preps all tasks for parallel update.
+    void UpdateVariabilityPrep();
+
+        // Populates prim variability and initial state.
+        // Used as a parallel callback method for use with WorkParallelForN.
+    void UpdateVariability(size_t start, size_t end);
+
+        // Updates prim data on time change.
+        // Used as a parallel callback method for use with WorkParallelForN.
+    void UpdateForTime(size_t start, size_t end);
+    };
+
+    // The lightest-weight update, it does fine-grained invalidation of
+    // individual properties at the given path (prim or property).
+    //
+    // If \p path is a prim path, changedPrimInfoFields will be populated
+    // with the list of scene description fields that caused this prim to
+    // be refreshed.
+    USDIMAGING_API
+    void _RefreshObject(SdfPath const& path,
+        TfTokenVector const& changedPrimInfoFields,
+        UsdImagingIndexProxy* proxy,
+        bool checkVariability = true);
+
+    UsdImaging_XformCache _xformCache;
+    SdfPathVector _pathsToFastUpdate;
+
+// nv end
+private:
     friend class UsdImagingIndexProxy;
     friend class UsdImagingPrimAdapter;
 
@@ -537,16 +612,6 @@ private:
     // ---------------------------------------------------------------------- //
     void _OnObjectsChanged(UsdNotice::ObjectsChanged const&,
                            UsdStageWeakPtr const& sender);
-
-    // The lightest-weight update, it does fine-grained invalidation of
-    // individual properties at the given path (prim or property).
-    //
-    // If \p path is a prim path, changedPrimInfoFields will be populated
-    // with the list of scene description fields that caused this prim to
-    // be refreshed.
-    void _RefreshObject(SdfPath const& path, 
-                        TfTokenVector const& changedPrimInfoFields,
-                        UsdImagingIndexProxy* proxy);
 
     // Heavy-weight invalidation of an entire prim subtree. All cached data is
     // reconstructed for all prims below \p rootPath.
@@ -701,11 +766,6 @@ private:
         _PathsToUpdateMap;
     _PathsToUpdateMap _pathsToUpdate;
 
-    // #nv begin #fast-updates
-    SdfPathVector _pathsToFastUpdate;
-    // nv end
-
-    UsdImaging_XformCache _xformCache;
     UsdImaging_MaterialBindingImplData _materialBindingImplData;
     UsdImaging_MaterialBindingCache _materialBindingCache;
     UsdImaging_VisCache _visCache;
