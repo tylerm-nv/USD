@@ -67,12 +67,15 @@ public:
     SDF_API
     bool IsDirty();
 
+    // #nv begin #fast-updates
     SDF_API
     void SetField(
         const SdfAbstractDataSpecId& id,
         const TfToken& field,
         const VtValue& value,
-        const VtValue *oldValue=NULL);
+        const VtValue *oldValue=NULL,
+        bool fastUpdates=false);
+    // nv end
 
     SDF_API
     void SetField(

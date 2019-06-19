@@ -1675,13 +1675,16 @@ private:
     // Returns const handle to _data.
     SdfAbstractDataConstPtr _GetData() const;
 
+    // #nv begin #fast-updates
     // Inverse primitive for setting a single field.
     template <class T>
     void _PrimSetField(const SdfAbstractDataSpecId& id, 
                        const TfToken& fieldName,
                        const T& value,
                        const VtValue *oldValue = NULL,
-                       bool useDelegate = true);
+                       bool useDelegate = true,
+                       bool fastUpdates = false);
+    // nv end
 
 	template <class T>
 	void _PrimSetFields(VtArray<SdfAbstractDataSpecId*> ids,

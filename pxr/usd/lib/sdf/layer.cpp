@@ -3656,7 +3656,8 @@ SdfLayer::_PrimSetField(const SdfAbstractDataSpecId& id,
                         const TfToken& fieldName,
                         const T& value,
                         const VtValue *oldValuePtr,
-                        bool useDelegate)
+                        bool useDelegate,
+                        bool fastUpdates)
 {
     // Send notification when leaving the change block.
     SdfChangeBlock block;
@@ -3670,9 +3671,17 @@ SdfLayer::_PrimSetField(const SdfAbstractDataSpecId& id,
         oldValuePtr ? *oldValuePtr : GetField(id, fieldName);
     const VtValue& newValue = _GetVtValue(value);
 
-    Sdf_ChangeManager::Get().DidChangeField(
-        SdfLayerHandle(this),
-        id.GetFullSpecPath(), fieldName, oldValue, newValue);
+    if (fastUpdates) {
+        Sdf_ChangeManager::Get()
+            .DidFastUpdate(SdfLayerHandle(this),
+                id.GetFullSpecPath(),
+                false /*hasCompositionDependents*/);
+    }
+    else {
+        Sdf_ChangeManager::Get().DidChangeField(
+            SdfLayerHandle(this),
+            id.GetFullSpecPath(), fieldName, oldValue, newValue);
+    }
 
     _data->Set(id, fieldName, value);
 }
@@ -3712,9 +3721,11 @@ SdfLayer::_PrimSetFields(VtArray<SdfAbstractDataSpecId*> ids,
 #endif
 }
 
+// #nv begin #fast-updates
 template void SdfLayer::_PrimSetField(
     const SdfAbstractDataSpecId&, const TfToken&, 
-    const VtValue&, const VtValue *, bool);
+    const VtValue&, const VtValue *, bool, bool);
+// nv end
 template void SdfLayer::_PrimSetFields(
     VtArray<SdfAbstractDataSpecId*> ids,
     const TfToken& fieldName,
@@ -3722,9 +3733,11 @@ template void SdfLayer::_PrimSetFields(
     VtArray<VtValue> oldValues,
     bool useDelegate);
 
+// #nv begin #fast-updates
 template void SdfLayer::_PrimSetField(
     const SdfAbstractDataSpecId&, const TfToken&, 
-    const SdfAbstractDataConstValue&, const VtValue *, bool);
+    const SdfAbstractDataConstValue&, const VtValue *, bool, bool);
+// nv end
 
 template <class T>
 void
