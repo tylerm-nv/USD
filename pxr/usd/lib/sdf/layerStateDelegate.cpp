@@ -45,16 +45,19 @@ SdfLayerStateDelegateBase::IsDirty()
     return _IsDirty();
 }
 
+// #nv begin #fast-updates
 void 
 SdfLayerStateDelegateBase::SetField(
     const SdfAbstractDataSpecId& id,
     const TfToken& field,
     const VtValue& value,
-    const VtValue *oldValue)
+    const VtValue *oldValue,
+    bool fastUpdates)
 {
     _OnSetField(id, field, value);
-    _layer->_PrimSetField(id, field, value, oldValue, /* useDelegate = */ false);
+    _layer->_PrimSetField(id, field, value, oldValue, /* useDelegate = */ false, fastUpdates);
 }
+// nv end
 
 void 
 SdfLayerStateDelegateBase::SetField(
