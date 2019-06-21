@@ -453,8 +453,9 @@ UsdImagingMeshAdapter::UpdateRestPoints(UsdPrim const& prim, SdfPath const& cach
 void
 UsdImagingMeshAdapter::UpdateSkinningBinding(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
     const GfMatrix4d& bindTransform,
-    const VtIntArray& jointIndices, const VtFloatArray jointWeights,
-    int numInfluencesPerPoint, bool hasConstantInfluences
+    const VtIntArray& jointIndices, const VtFloatArray& jointWeights,
+    int numInfluencesPerPoint, bool hasConstantInfluences,
+    const TfToken& skinningMethod, const VtFloatArray& skinningBlendWeights, bool hasConstantSkinningBlendWeights
 )
 {
     UsdImagingValueCache* valueCache = _GetValueCache();
@@ -463,6 +464,9 @@ UsdImagingMeshAdapter::UpdateSkinningBinding(UsdPrim const& prim, SdfPath const&
     valueCache->GetJointWeights(cachePath) = jointWeights;
     valueCache->GetNumInfluencesPerPoint(cachePath) = numInfluencesPerPoint;
     valueCache->GetHasConstantInfluences(cachePath) = hasConstantInfluences;
+    valueCache->GetSkinningMethod(cachePath) = skinningMethod;
+    valueCache->GetSkinningBlendWeights(cachePath) = skinningBlendWeights;
+    valueCache->GetHasConstantSkinningBlendWeights(cachePath) = hasConstantSkinningBlendWeights;
 }
 
 void

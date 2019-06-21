@@ -166,6 +166,40 @@ UsdSkelBindingAPI::CreateJointWeightsAttr(VtValue const &defaultValue, bool writ
 }
 
 UsdAttribute
+UsdSkelBindingAPI::GetSkinningMethodAttr() const
+{
+    return GetPrim().GetAttribute(UsdSkelTokens->skelSkinningMethod);
+}
+
+UsdAttribute
+UsdSkelBindingAPI::CreateSkinningMethodAttr(VtValue const &defaultValue, bool writeSparsely) const
+{
+    return UsdSchemaBase::_CreateAttr(UsdSkelTokens->skelSkinningMethod,
+                       SdfValueTypeNames->Token,
+                       /* custom = */ false,
+                       SdfVariabilityUniform,
+                       defaultValue,
+                       writeSparsely);
+}
+
+UsdAttribute
+UsdSkelBindingAPI::GetSkinningBlendWeightsAttr() const
+{
+    return GetPrim().GetAttribute(UsdSkelTokens->primvarsSkelSkinningBlendWeights);
+}
+
+UsdAttribute
+UsdSkelBindingAPI::CreateSkinningBlendWeightsAttr(VtValue const &defaultValue, bool writeSparsely) const
+{
+    return UsdSchemaBase::_CreateAttr(UsdSkelTokens->primvarsSkelSkinningBlendWeights,
+                       SdfValueTypeNames->FloatArray,
+                       /* custom = */ false,
+                       SdfVariabilityUniform,
+                       defaultValue,
+                       writeSparsely);
+}
+
+UsdAttribute
 UsdSkelBindingAPI::GetBlendShapesAttr() const
 {
     return GetPrim().GetAttribute(UsdSkelTokens->skelBlendShapes);
@@ -242,6 +276,8 @@ UsdSkelBindingAPI::GetSchemaAttributeNames(bool includeInherited)
         UsdSkelTokens->skelJoints,
         UsdSkelTokens->primvarsSkelJointIndices,
         UsdSkelTokens->primvarsSkelJointWeights,
+        UsdSkelTokens->skelSkinningMethod,
+        UsdSkelTokens->primvarsSkelSkinningBlendWeights,
         UsdSkelTokens->skelBlendShapes,
     };
     static TfTokenVector allNames =
@@ -332,6 +368,26 @@ UsdSkelBindingAPI::SetRigidJointInfluence(int jointIndex, float weight) const
     return jointIndicesPv.Set(VtIntArray(1, jointIndex)) &&
            jointWeightsPv.Set(VtFloatArray(1, weight));
 }
+
+//+NV_CHANGE FRZHANG
+UsdGeomPrimvar
+UsdSkelBindingAPI::GetSkinningBlendWeightsPrimvar() const
+{
+    return UsdGeomPrimvar(GetSkinningBlendWeightsAttr());
+}
+
+
+UsdGeomPrimvar
+UsdSkelBindingAPI::CreateSkinningBlendWeightsPrimvar(bool constant,
+    int elementSize) const
+{
+    return UsdGeomImageable(GetPrim()).CreatePrimvar(
+        UsdSkelTokens->primvarsSkelSkinningBlendWeights,
+        SdfValueTypeNames->FloatArray,
+        constant ? UsdGeomTokens->constant : UsdGeomTokens->vertex,
+        elementSize);
+}
+//-NV_CHANGE FRZHANG
 
 
 namespace {

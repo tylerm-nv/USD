@@ -78,6 +78,20 @@ _CreateJointWeightsAttr(UsdSkelBindingAPI &self,
 }
         
 static UsdAttribute
+_CreateSkinningMethodAttr(UsdSkelBindingAPI &self,
+                                      object defaultVal, bool writeSparsely) {
+    return self.CreateSkinningMethodAttr(
+        UsdPythonToSdfType(defaultVal, SdfValueTypeNames->Token), writeSparsely);
+}
+        
+static UsdAttribute
+_CreateSkinningBlendWeightsAttr(UsdSkelBindingAPI &self,
+                                      object defaultVal, bool writeSparsely) {
+    return self.CreateSkinningBlendWeightsAttr(
+        UsdPythonToSdfType(defaultVal, SdfValueTypeNames->FloatArray), writeSparsely);
+}
+        
+static UsdAttribute
 _CreateBlendShapesAttr(UsdSkelBindingAPI &self,
                                       object defaultVal, bool writeSparsely) {
     return self.CreateBlendShapesAttr(
@@ -142,6 +156,20 @@ void wrapUsdSkelBindingAPI()
              &This::GetJointWeightsAttr)
         .def("CreateJointWeightsAttr",
              &_CreateJointWeightsAttr,
+             (arg("defaultValue")=object(),
+              arg("writeSparsely")=false))
+        
+        .def("GetSkinningMethodAttr",
+             &This::GetSkinningMethodAttr)
+        .def("CreateSkinningMethodAttr",
+             &_CreateSkinningMethodAttr,
+             (arg("defaultValue")=object(),
+              arg("writeSparsely")=false))
+        
+        .def("GetSkinningBlendWeightsAttr",
+             &This::GetSkinningBlendWeightsAttr)
+        .def("CreateSkinningBlendWeightsAttr",
+             &_CreateSkinningBlendWeightsAttr,
              (arg("defaultValue")=object(),
               arg("writeSparsely")=false))
         
@@ -237,6 +265,13 @@ WRAP_CUSTOM {
 
         .def("SetRigidJointInfluence", &This::SetRigidJointInfluence,
              (arg("jointIndex"), arg("weight")=1.0f))
+
+        //+NV_CHANGE FRZHANG
+        .def("GetSkinningBlendWeightPrimvar", &This::GetSkinningBlendWeightsPrimvar)
+
+        .def("CreateSkinningBlendWeightPrimvar", &This::CreateSkinningBlendWeightsPrimvar,
+            (arg("constant"), arg("elementSize") = -1))
+        //-NV_CHANGE FRZHANG
 
         .def("GetSkeleton", &_GetSkeleton)
 

@@ -29,6 +29,8 @@ UsdSkelTokensType::UsdSkelTokensType() :
     bindTransforms("bindTransforms", TfToken::Immortal),
     blendShapes("blendShapes", TfToken::Immortal),
     blendShapeWeights("blendShapeWeights", TfToken::Immortal),
+    classicLinear("ClassicLinear", TfToken::Immortal),
+    dualQuaternion("DualQuaternion", TfToken::Immortal),
     jointNames("jointNames", TfToken::Immortal),
     joints("joints", TfToken::Immortal),
     normalOffsets("normalOffsets", TfToken::Immortal),
@@ -37,6 +39,7 @@ UsdSkelTokensType::UsdSkelTokensType() :
     primvarsSkelGeomBindTransform("primvars:skel:geomBindTransform", TfToken::Immortal),
     primvarsSkelJointIndices("primvars:skel:jointIndices", TfToken::Immortal),
     primvarsSkelJointWeights("primvars:skel:jointWeights", TfToken::Immortal),
+    primvarsSkelSkinningBlendWeights("primvars:skel:skinningBlendWeights", TfToken::Immortal),
     restTransforms("restTransforms", TfToken::Immortal),
     rotations("rotations", TfToken::Immortal),
     scales("scales", TfToken::Immortal),
@@ -45,12 +48,16 @@ UsdSkelTokensType::UsdSkelTokensType() :
     skelBlendShapeTargets("skel:blendShapeTargets", TfToken::Immortal),
     skelJoints("skel:joints", TfToken::Immortal),
     skelSkeleton("skel:skeleton", TfToken::Immortal),
+    skelSkinningMethod("skel:skinningMethod", TfToken::Immortal),
     translations("translations", TfToken::Immortal),
     weight("weight", TfToken::Immortal),
+    weightedBlend("WeightedBlend", TfToken::Immortal),
     allTokens({
         bindTransforms,
         blendShapes,
         blendShapeWeights,
+        classicLinear,
+        dualQuaternion,
         jointNames,
         joints,
         normalOffsets,
@@ -59,6 +66,7 @@ UsdSkelTokensType::UsdSkelTokensType() :
         primvarsSkelGeomBindTransform,
         primvarsSkelJointIndices,
         primvarsSkelJointWeights,
+        primvarsSkelSkinningBlendWeights,
         restTransforms,
         rotations,
         scales,
@@ -67,8 +75,10 @@ UsdSkelTokensType::UsdSkelTokensType() :
         skelBlendShapeTargets,
         skelJoints,
         skelSkeleton,
+        skelSkinningMethod,
         translations,
-        weight
+        weight,
+        weightedBlend
     })
 {
 }

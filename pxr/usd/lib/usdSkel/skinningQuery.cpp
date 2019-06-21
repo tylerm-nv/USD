@@ -61,6 +61,10 @@ UsdSkelSkinningQuery::UsdSkelSkinningQuery(
     const UsdAttribute& jointIndices,
     const UsdAttribute& jointWeights,
     const UsdAttribute& geomBindTransform,
+    //+NV_CHANGE FRZHANG
+    const UsdAttribute& skinningMethod,
+    const UsdAttribute& skinningBlendWeights,
+    //-NV_CHANGE FRZHANG
     const UsdAttribute& joints,
     const UsdAttribute& blendShapes,
     const UsdRelationship& blendShapeTargets)
@@ -69,6 +73,10 @@ UsdSkelSkinningQuery::UsdSkelSkinningQuery(
       _jointIndicesPrimvar(jointIndices),
       _jointWeightsPrimvar(jointWeights),
       _geomBindTransformAttr(geomBindTransform),
+      //+NV_CHANGE FRZHANG
+      _skinningMethodAttr(skinningMethod),
+      _skinningBlendWeightsPrimvar(skinningBlendWeights),
+      //-NV_CHANGE FRZHANG
       _blendShapes(blendShapes),
       _blendShapeTargets(blendShapeTargets)
 {

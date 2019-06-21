@@ -2433,18 +2433,21 @@ bool UsdImagingDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& res
 
 /*virtual*/
 bool
-UsdImagingDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences)
+UsdImagingDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences, TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights)
 {
 	SdfPath usdPath = GetPathForUsd(id);
 	if (_valueCache.ExtractJointIndices(usdPath, &jointIndices) 
 		&& _valueCache.ExtractJointWeights(usdPath, &jointWeights)
 		&& _valueCache.ExtractNumInfluencesPerPoint(usdPath, &numInfluencesPerPoint)
 		&& _valueCache.ExtractHasConstantInfluences(usdPath, &hasConstantInfluences)
+        && _valueCache.ExtractSkinningMethod(usdPath, &skinningMethod)
+        && _valueCache.ExtractSkinningBlendWeights(usdPath, &skinningBlendWeights)
+        && _valueCache.ExtractHasConstantSkinningBlendWeights(usdPath, &hasConstantSkinningBlendWeights)
 		)
 	{
 		return true;
 	}
-	return HdSceneDelegate::GetSkinningBlendValues(id, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences);
+	return HdSceneDelegate::GetSkinningBlendValues(id, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences, skinningMethod, skinningBlendWeights, hasConstantSkinningBlendWeights);
 }
 
 /*virtual*/
