@@ -35,6 +35,7 @@
 #include <map>
 #include <unordered_map>
 #include <iosfwd>
+#include <vector>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -47,8 +48,16 @@ class SdfFastUpdateList
 public:
     SdfFastUpdateList() : hasCompositionDependents(false) {}
     bool hasCompositionDependents;
-    SdfPathVector propertyPaths;
+    struct FastUpdate {
+        SdfPath path;
+        VtValue value;
+    };
+    std::vector<FastUpdate> fastUpdates;
 };
+
+inline bool operator==(const SdfFastUpdateList::FastUpdate &lhs, const SdfFastUpdateList::FastUpdate &rhs) {
+    return (lhs.path == rhs.path) && (rhs.value == rhs.value);
+}
 
 typedef std::map<SdfLayerHandle, SdfFastUpdateList> SdfLayerFastUpdatesMap;
 // nv end

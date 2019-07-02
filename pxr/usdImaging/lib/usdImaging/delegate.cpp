@@ -835,16 +835,16 @@ UsdImagingDelegate::ApplyPendingFastUpdates()
     _visCache.Clear();
     _drawModeCache.Clear();
 
-    SdfPathVector fastUpdates;
-    std::swap(fastUpdates, _pathsToFastUpdate);
+    std::vector<SdfFastUpdateList::FastUpdate> fastUpdates;
+    std::swap(fastUpdates, _fastUpdates);
 
     TfTokenVector dummyInfoFields;
 
     UsdImagingDelegate::_Worker worker;
     UsdImagingIndexProxy indexProxy(this, &worker);
 
-    for (const auto &path : fastUpdates) {
-        _RefreshObject(path, dummyInfoFields, &indexProxy);
+    for (const auto &itr : fastUpdates) {
+        _RefreshObject(itr.path, dummyInfoFields, &indexProxy);
     }
 
     _ExecuteWorkForVariabilityUpdate(&worker);
@@ -858,7 +858,7 @@ UsdImagingDelegate::ApplyPendingUpdates()
     HF_MALLOC_TAG_FUNCTION();
 
     // #nv begin #fast-updates
-    if (!_pathsToFastUpdate.empty()) {
+    if (!_fastUpdates.empty()) {
         ApplyPendingFastUpdates();
     }
     // nv end
@@ -959,9 +959,9 @@ UsdImagingDelegate::_OnObjectsChanged(UsdNotice::ObjectsChanged const& notice,
                         sender->GetRootLayer()->GetIdentifier().c_str());
 
     // #nv begin #fast-updates
-    const SdfPathVector &fastUpdates = notice.GetFastUpdates();
+    const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates = notice.GetFastUpdates();
     if (!fastUpdates.empty()) {
-        _pathsToFastUpdate.insert(_pathsToFastUpdate.end(), fastUpdates.begin(), fastUpdates.end());
+        _fastUpdates.insert(_fastUpdates.end(), fastUpdates.begin(), fastUpdates.end());
     }
     // nv end
 
@@ -1008,9 +1008,9 @@ UsdImagingDelegate::_OnObjectsChanged(UsdNotice::ObjectsChanged const& notice,
         }
 
         // #nv begin #fast-updates
-        TF_FOR_ALL(it, _pathsToFastUpdate) {
+        TF_FOR_ALL(it, _fastUpdates) {
             TF_DEBUG(USDIMAGING_CHANGES).Msg(" - Fast update queued: %s\n",
-                it->GetText());
+                it->path.GetText());
         }
         // nv end
 
@@ -2313,7 +2313,7 @@ UsdImagingDelegate::IsInInvisedPaths(SdfPath const &usdPath) const
 bool
 UsdImagingDelegate::HasPendingFastUpdates() const
 {
-    return !(_pathsToFastUpdate.empty());
+    return !(_fastUpdates.empty());
 }
 // nv end
 

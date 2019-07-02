@@ -176,7 +176,7 @@ Sdf_ChangeManager::_SendNotices()
     // +nv #begin #fast-updates
     SdfLayerFastUpdatesMap fastUpdates;
     fastUpdates.swap(_data.local().fastUpdates);
-    if (fastUpdates.size() == 1 && changes.empty()) {
+    if (fastUpdates.size() == 1 && !fastUpdates.begin()->second.hasCompositionDependents && changes.empty()) {
         // Optimal case-- the change block contains only fast updates for a single layer.
         TF_DEBUG(SDF_CHANGES).Msg("Sending only fast updates for layer %s\n",
             fastUpdates.begin()->first->GetIdentifier().c_str());
@@ -194,11 +194,11 @@ Sdf_ChangeManager::_SendNotices()
         // to changes in attribute defaults and timesamples.
         TF_FOR_ALL(itr, fastUpdates) {
             SdfLayerChangeListMap::iterator candidate = changes.find(itr->first);
-            TF_FOR_ALL(itr2, itr->second.propertyPaths) {
+            TF_FOR_ALL(itr2, itr->second.fastUpdates) {
                 if (candidate == changes.end()) {
-                    changes[itr->first].FastUpdateFallback(*itr2);
-                } else if (candidate->second.GetEntryList().find(*itr2) == candidate->second.GetEntryList().end()) {
-                    candidate->second.FastUpdateFallback(*itr2);
+                    changes[itr->first].FastUpdateFallback(itr2->path);
+                } else if (candidate->second.GetEntryList().find(itr2->path) == candidate->second.GetEntryList().end()) {
+                    candidate->second.FastUpdateFallback(itr2->path);
                 }
             }
         }
@@ -496,14 +496,14 @@ Sdf_ChangeManager::DidChangeField(const SdfLayerHandle &layer,
 
 // +nv #begin #fast-updates
 void
-Sdf_ChangeManager::DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path,
+Sdf_ChangeManager::DidFastUpdate(const SdfLayerHandle &layer, const SdfPath &path, const VtValue &value,
                                  bool hasCompositionDependents)
 {
     if (!layer->_ShouldNotify())
         return;
 
     SdfLayerFastUpdatesMap &fastUpdates = _data.local().fastUpdates;
-    fastUpdates[layer].propertyPaths.push_back(path);
+    fastUpdates[layer].fastUpdates.push_back({ path, value });
     if (hasCompositionDependents)
         fastUpdates[layer].hasCompositionDependents = true;
 }

@@ -1160,6 +1160,7 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     Sdf_ChangeManager::Get()
         .DidFastUpdate(SdfLayerHandle(this),
             fieldHandle->GetSpecId().GetFullSpecPath(),
+            value,
             fieldHandle->HasCompositionDependents());
 
     _data->SetTimeSample(fieldHandle, time, value);
@@ -3281,6 +3282,7 @@ SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const Vt
             Sdf_ChangeManager::Get()
                 .DidFastUpdate(SdfLayerHandle(this),
                     fieldHandle->GetSpecId().GetFullSpecPath(),
+                    value,
                     fieldHandle->HasCompositionDependents());
         } else {
             Sdf_ChangeManager::Get().DidChangeField(
@@ -3675,6 +3677,7 @@ SdfLayer::_PrimSetField(const SdfAbstractDataSpecId& id,
         Sdf_ChangeManager::Get()
             .DidFastUpdate(SdfLayerHandle(this),
                 id.GetFullSpecPath(),
+                newValue,
                 false /*hasCompositionDependents*/);
     }
     else {

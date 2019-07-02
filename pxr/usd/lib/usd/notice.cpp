@@ -173,10 +173,10 @@ UsdNotice::ObjectsChanged::HasChangedFields(const SdfPath &path) const
 }
 
 // #nv begin #fast-updates
-const SdfPathVector &
+const std::vector<SdfFastUpdateList::FastUpdate> &
 UsdNotice::ObjectsChanged::GetFastUpdates() const
 {
-    static SdfPathVector emptyFastUpdates;
+    static std::vector<SdfFastUpdateList::FastUpdate> emptyFastUpdates;
     return _fastUpdates ? *_fastUpdates : emptyFastUpdates;
 }
 // nv end

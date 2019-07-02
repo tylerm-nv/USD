@@ -120,7 +120,7 @@ public:
         ObjectsChanged(const UsdStageWeakPtr &stage,
                        const _PathsToChangesMap *resyncChanges,
                        const _PathsToChangesMap *infoChanges,
-                       const SdfPathVector *fastUpdates)
+                       const std::vector<SdfFastUpdateList::FastUpdate> *fastUpdates)
             : StageNotice(stage)
             , _resyncChanges(resyncChanges)
             , _infoChanges(infoChanges)
@@ -286,7 +286,7 @@ public:
         USD_API bool HasChangedFields(const SdfPath &path) const;
 
         // #nv begin #fast-updates
-        USD_API const SdfPathVector& GetFastUpdates() const;
+        USD_API const std::vector<SdfFastUpdateList::FastUpdate>& GetFastUpdates() const;
         // nv end
 
     private:
@@ -294,7 +294,7 @@ public:
         const _PathsToChangesMap *_infoChanges;
 
         // #nv begin #fast-updates
-        const SdfPathVector *_fastUpdates;
+        const std::vector<SdfFastUpdateList::FastUpdate>*_fastUpdates;
         // nv end
     };
 

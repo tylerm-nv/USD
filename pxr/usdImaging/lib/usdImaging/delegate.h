@@ -582,7 +582,7 @@ protected:
         bool checkVariability = true);
 
     UsdImaging_XformCache _xformCache;
-    SdfPathVector _pathsToFastUpdate;
+    std::vector<SdfFastUpdateList::FastUpdate> _fastUpdates;
 
 // nv end
 private:
