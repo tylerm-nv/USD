@@ -3839,62 +3839,13 @@ UsdStage::_HandleLayersDidChange(
 
         UsdStageWeakPtr self(this);
 
-        // Filter out all changes to objects beneath instances and remap
-        // them to the corresponding object in the instance's master.
-        auto remapChangesToMasters = [this](SdfPathVector* changes) {
-            SdfPathVector masterChanges;
-            for (auto it = changes->begin(); it != changes->end(); ) {
-                if (_IsObjectDescendantOfInstance(*it)) {
-                    const SdfPath primIndexPath =
-                        it->GetAbsoluteRootOrPrimPath();
-                    for (const SdfPath& pathInMaster :
-                        _instanceCache->GetPrimsInMastersUsingPrimIndexPath(
-                            primIndexPath)) {
-                        masterChanges.push_back(it->ReplacePrefix(primIndexPath, pathInMaster));
-                    }
-                    it = changes->erase(it);
-                    continue;
-                }
-                ++it;
-            }
-
-            changes->insert(changes->end(), masterChanges.begin(), masterChanges.end());
-        };
-
         // SdfChangeManager should never send fast updates for more than 1 layer at once.
         if (TF_VERIFY(fastUpdates.size() == 1)) {
-            if (!fastUpdates.begin()->second.hasCompositionDependents) {
-                // If the fast updates have no composition dependents, we can send the
-                // unmodified property paths straight to the notice.
-                UsdNotice::ObjectsChanged(
-                    self, &recomposeChanges, &otherInfoChanges, &fastUpdates.begin()->second.propertyPaths).Send(self);
-            } else {
-                // We need to perform namespace transformations for when the edited layer's
-                // namespace does not match that of the composed stage (e.g., via references
-                // and inherits), and also remap instance edits to masters.
-                // Unfortunately there is no cheap heuristic that can detect when this is
-                // not needed, as that would mean that we could past the SdfPathVector
-                // reference directly from the SdfNotice to the UsdNotice.
-                SdfPathVector remappedFastUpdates;
-                remappedFastUpdates.reserve(fastUpdates.begin()->second.propertyPaths.size());
-                TF_FOR_ALL(pathItr, fastUpdates.begin()->second.propertyPaths) {
-                    _AddDependentPaths(fastUpdates.begin()->first, *pathItr,
-                        *_cache, &remappedFastUpdates, nullptr /* extraData*/);
-                }
+            UsdNotice::ObjectsChanged(
+                self, &recomposeChanges, &otherInfoChanges, &fastUpdates.begin()->second.fastUpdates).Send(self);
 
-                // Need to uniquify contents, for example, in the case where a prim references
-                // a prim which itself inherits from a class prim.
-                std::sort(remappedFastUpdates.begin(), remappedFastUpdates.end(), SdfPath::FastLessThan());
-                remappedFastUpdates.erase(
-                    std::unique(remappedFastUpdates.begin(), remappedFastUpdates.end()), remappedFastUpdates.end());
-
-                remapChangesToMasters(&remappedFastUpdates);
-                UsdNotice::ObjectsChanged(
-                    self, &recomposeChanges, &otherInfoChanges, &remappedFastUpdates).Send(self);
-            }
             // Receivers can now refresh their caches... or just dirty them
             UsdNotice::StageContentsChanged(self).Send(self);
-
             return;
         }
     }

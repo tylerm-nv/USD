@@ -71,7 +71,7 @@ public:
                         const VtValue & oldValue, const VtValue & newValue );
 
     // #nv begin #fast-updates
-    void DidFastUpdate(const SdfLayerHandle &layer, const SdfPath & path, bool hasCompositionDependents);
+    void DidFastUpdate(const SdfLayerHandle &layer, const SdfPath &path, const VtValue &value, bool hasCompositionDependents);
     // nv end
 
     void DidChangeAttributeTimeSamples(const SdfLayerHandle &layer,
