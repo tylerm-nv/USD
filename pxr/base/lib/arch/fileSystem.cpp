@@ -937,21 +937,21 @@ static inline Mapping
 Arch_MapFileImpl(ArchFile* file, std::string *errMsg);
 
 template <>
-static inline ArchConstFileMapping
+inline ArchConstFileMapping
 Arch_MapFileImpl<ArchConstFileMapping>(ArchFile* file, std::string *errMsg)
 {
 	return ArchMapFileReadOnly(file, errMsg);
 }
 
 template <>
-static inline ArchMutableFileMapping
+inline ArchMutableFileMapping
 Arch_MapFileImpl<ArchMutableFileMapping>(ArchFile* file, std::string *errMsg)
 {
 	return ArchMapFileReadWrite(file, errMsg);
 }
 
 template <class Mapping>
-static inline Mapping
+inline Mapping
 Arch_MapFileImpl(std::string const& path, std::string *errMsg)
 {
     _UniqueFILE f(ArchOpenFile(path.c_str(), "rb"));
