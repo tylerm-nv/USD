@@ -2071,8 +2071,12 @@ public:
 //nv end
 
 // #nv begin #fast-updates
+    // Checks whether the given field handle has composition dependents
+    // (e.g., lives on a class or referenced prim), and starts tracking
+    // it internally for fast updates and recomposition changes
+    // if it is a new field handle.
     USD_API
-    void CheckFieldForCompositionDependents(const SdfLayerHandle &layer, SdfAbstractDataFieldAccessHandle fieldHandle);
+    void CheckFieldForCompositionDependents(const SdfLayerHandle &layer, SdfAbstractDataFieldAccessHandle fieldHandle, bool isNewHandle = true);
 // nv end
 
 private:
@@ -2130,8 +2134,12 @@ private:
     //nv end
 
     // #nv begin #fast-updates
-    // Field handles to check for composition dependents when recomposing a stage.
-    std::map<SdfLayerHandle, std::set<SdfAbstractDataFieldAccessHandle> > _fieldHandles;
+    // Field handle cache for fast field access.
+    struct FieldHandleEntry {
+        SdfAbstractDataFieldAccessHandle defaultHandle;
+        SdfAbstractDataFieldAccessHandle timeSamplesHandle;
+    };
+    std::map<SdfLayerHandle, std::unordered_map<SdfPath, struct FieldHandleEntry, SdfPath::Hash> > _fieldHandles;
     // nv end
 
     friend class UsdAPISchemaBase;

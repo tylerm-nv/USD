@@ -88,10 +88,20 @@ public:
 
     // Open/close change blocks. SdfChangeBlock provides stack-based management
     // of change blocks and should be preferred over this API.
+    // #nv begin fast-updates
+    // The fastUpdates flag will enable fast updates for all authoring made
+    // within this change block.
     SDF_API
-    void OpenChangeBlock();
+    void OpenChangeBlock(bool fastUpdates=false);
+    // nv end
     SDF_API
     void CloseChangeBlock();
+
+    // #nv begin #fast-updates
+    // Indicates whether a change block with fast updates enabled is in scope.
+    SDF_API
+    bool IsFastUpdating();
+    // nv end
 
 private:
     Sdf_ChangeManager();
@@ -112,6 +122,7 @@ private:
 
         // #nv begin #fast-updates
         SdfLayerFastUpdatesMap fastUpdates;
+        int highestFastUpdateDepth;
         // nv end
     };
 

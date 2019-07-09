@@ -625,6 +625,8 @@ public:
     // #nv begin #fast-updates
     SDF_API
     void SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue& value);
+    SDF_API
+    void SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const SdfAbstractDataConstValue& value);
     // nv end
 
     SDF_API
@@ -1393,6 +1395,9 @@ public:
     SDF_API
     void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time,
                        const VtValue & value);
+    SDF_API
+    void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time,
+                       const SdfAbstractDataConstValue& value);
     // nv end
 
     SDF_API
