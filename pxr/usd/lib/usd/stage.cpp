@@ -1395,6 +1395,7 @@ UsdStage::_CreatePropertySpecForEditing(const UsdProperty &prop)
 SdfAttributeSpecHandle
 UsdStage::_CreateAttributeSpecForEditing(const UsdAttribute &attr)
 {
+    TRACE_FUNCTION();
     return _CreatePropertySpecForEditing<SdfAttributeSpec>(attr);
 }
 
@@ -1514,8 +1515,67 @@ bool
 UsdStage::_SetValueImpl(
     UsdTimeCode time, const UsdAttribute &attr, const T& newValue)
 {
+    // #nv begin #fast-updates
+    // For now, we only support fast updates on prims that require no compositon remapping.
+    bool fastUpdates = SdfChangeBlock::IsFastUpdating() &&(GetEditTarget().GetMapFunction() == PcpMapFunction::Identity());
+    if (fastUpdates) {
+        auto GetOrInsertFieldHandle = [this](SdfLayerHandle layer, UsdAttribute attr, bool forDefaults, FieldHandleEntry *entry) {
+            auto path = attr.GetPath();
+            auto &fieldName = forDefaults ? SdfFieldKeys->Default : SdfFieldKeys->TimeSamples;
+            _CreateAttributeSpecForEditing(attr);
+            auto fieldHandle = layer->CreateFieldHandle(path, fieldName);
+            CheckFieldForCompositionDependents(layer, fieldHandle, false);
+            if (forDefaults) {
+                entry->defaultHandle = fieldHandle;
+            }
+            else {
+                entry->timeSamplesHandle = fieldHandle;
+            }
+            return fieldHandle;
+        };
+
+        auto &layer = GetEditTarget().GetLayer();
+        auto path = attr.GetPath();
+        bool forDefaults = time.IsDefault();
+        SdfAbstractDataFieldAccessHandle fieldHandle;
+        auto layerLookup = _fieldHandles.find(layer);
+        if (layerLookup != _fieldHandles.end()) {
+            auto fieldLookup = layerLookup->second.find(path);
+            if (fieldLookup != layerLookup->second.end()) {
+                if (forDefaults) {
+                    if (fieldLookup->second.defaultHandle) {
+                        fieldHandle = fieldLookup->second.defaultHandle;
+                    }
+                    else {
+                        fieldHandle = GetOrInsertFieldHandle(layer, attr, true, &(layerLookup->second[path]));
+                    }
+                } else {
+                    if (fieldLookup->second.timeSamplesHandle) {
+                        fieldHandle = fieldLookup->second.timeSamplesHandle;
+                    }
+                    else {
+                        fieldHandle = GetOrInsertFieldHandle(layer, attr, false, &(layerLookup->second[path]));
+                    }
+                }
+            } else {
+                fieldHandle = GetOrInsertFieldHandle(layer, attr, forDefaults, &(layerLookup->second[path]));
+            }
+        } else {
+            fieldHandle = GetOrInsertFieldHandle(layer, attr, forDefaults, &(_fieldHandles[layer][path]));
+        }
+        if (forDefaults) {
+            layer->SetField(fieldHandle, newValue);
+        } else {
+            layer->SetTimeSample(fieldHandle, time.GetValue(), newValue);
+        }
+
+        return true;
+    }
+    // nv end
+
     // if we are setting a value block, we don't want type checking
     if (!Usd_ValueContainsBlock(&newValue)) {
+    
         // Do a type check.  Obtain typeName.
         TfToken typeName;
         SdfAbstractDataTypedValue<TfToken> abstrToken(&typeName);
@@ -1570,8 +1630,8 @@ UsdStage::_SetValueImpl(
     if (time.IsDefault()) {
 		SdfPath path = attrSpec->GetPath();
         attrSpec->GetLayer()->SetField(path,
-                                       SdfFieldKeys->Default,
-                                       newValue);
+            SdfFieldKeys->Default,
+            newValue);
     } else {
         // XXX: should this loft the underlying values up when
         // authoring over a weaker layer?
@@ -3649,6 +3709,15 @@ UsdStage::_RemoveProperty(const SdfPath &path)
     return true;
 }
 
+// #nv begin #fast-updates
+static void
+_AddToChangedPaths(std::vector<SdfFastUpdateList::FastUpdate> *fastUpdates, const SdfPath& p,
+    const VtValue& data)
+{
+    fastUpdates->push_back({ p, data });
+}
+// nv end
+
 template <class... Values>
 static void
 _AddToChangedPaths(SdfPathVector *paths, const SdfPath& p, 
@@ -3669,6 +3738,18 @@ _Stringify(const SdfPathVector& paths)
 {
     return TfStringify(paths);
 }
+
+// #nv begin #fast-updates
+static std::string
+_Stringify(const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates)
+{
+    SdfPathVector paths;
+    for (auto itr : fastUpdates) {
+        paths.push_back(itr.path);
+    }
+    return _Stringify(paths);
+}
+// nv end
 
 template <class ChangedPaths>
 static std::string
@@ -3841,8 +3922,61 @@ UsdStage::_HandleLayersDidChange(
 
         // SdfChangeManager should never send fast updates for more than 1 layer at once.
         if (TF_VERIFY(fastUpdates.size() == 1)) {
-            UsdNotice::ObjectsChanged(
-                self, &recomposeChanges, &otherInfoChanges, &fastUpdates.begin()->second.fastUpdates).Send(self);
+            if (!fastUpdates.begin()->second.hasCompositionDependents) {
+                // If the fast updates have no composition dependents, we can send the
+                // unmodified change contents straight to the notice.
+                UsdNotice::ObjectsChanged(
+                    self, &recomposeChanges, &otherInfoChanges, &fastUpdates.begin()->second.fastUpdates).Send(self);
+            } else {
+                // We need to perform namespace transformations for when the edited layer's
+                // namespace does not match that of the composed stage (e.g., via references
+                // and inherits), and also remap instance edits to masters.
+                std::vector<SdfFastUpdateList::FastUpdate> remappedFastUpdates;
+                TF_FOR_ALL(fastUpdateItr, fastUpdates.begin()->second.fastUpdates) {
+                    _AddDependentPaths(fastUpdates.begin()->first, fastUpdateItr->path,
+                        *_cache, &remappedFastUpdates, fastUpdateItr->value);
+                }
+
+                // Need to uniquify contents, for example, in the case where a prim references
+                // a prim which itself inherits from a class prim.
+                struct FastUpdateFastLessThan {
+                    bool operator()(const SdfFastUpdateList::FastUpdate& a, const SdfFastUpdateList::FastUpdate& b) const {
+                        return SdfPath::FastLessThan()(a.path, b.path);
+                    }
+                };
+                std::sort(remappedFastUpdates.begin(), remappedFastUpdates.end(), FastUpdateFastLessThan());
+                remappedFastUpdates.erase(
+                    std::unique(remappedFastUpdates.begin(), remappedFastUpdates.end()), remappedFastUpdates.end());
+
+                // Filter out all changes to objects beneath instances and remap
+                // them to the corresponding object in the instance's master.
+                auto remapChangesToMasters = [this](std::vector<SdfFastUpdateList::FastUpdate>* changes) {
+                    std::vector<SdfFastUpdateList::FastUpdate> masterChanges;
+                    for (auto it = changes->begin(); it != changes->end(); ) {
+                        if (_IsObjectDescendantOfInstance(it->path)) {
+                            const SdfPath primIndexPath =
+                                it->path.GetAbsoluteRootOrPrimPath();
+                            for (const SdfPath& pathInMaster :
+                                _instanceCache->GetPrimsInMastersUsingPrimIndexPath(
+                                    primIndexPath)) {
+                                masterChanges.push_back(
+                                    { it->path.ReplacePrefix(primIndexPath, pathInMaster),
+                                    it->value });
+                            }
+                            it = changes->erase(it);
+                            continue;
+                        }
+                        ++it;
+                    }
+
+                    changes->insert(changes->end(), masterChanges.begin(), masterChanges.end());
+
+                };
+
+                remapChangesToMasters(&remappedFastUpdates);
+                UsdNotice::ObjectsChanged(
+                    self, &recomposeChanges, &otherInfoChanges, &remappedFastUpdates).Send(self);
+            }
 
             // Receivers can now refresh their caches... or just dirty them
             UsdNotice::StageContentsChanged(self).Send(self);
@@ -3968,13 +4102,13 @@ UsdStage::_HandleLayersDidChange(
         std::vector<_PathsToChangesMap::value_type> masterChanges;
         for (auto it = changes->begin(); it != changes->end(); ) {
             if (_IsObjectDescendantOfInstance(it->first)) {
-                const SdfPath primIndexPath = 
+                const SdfPath primIndexPath =
                     it->first.GetAbsoluteRootOrPrimPath();
                 for (const SdfPath& pathInMaster :
-                     _instanceCache->GetPrimsInMastersUsingPrimIndexPath(
-                         primIndexPath)) {
+                    _instanceCache->GetPrimsInMastersUsingPrimIndexPath(
+                        primIndexPath)) {
                     masterChanges.emplace_back(
-                        it->first.ReplacePrefix(primIndexPath, pathInMaster), 
+                        it->first.ReplacePrefix(primIndexPath, pathInMaster),
                         it->second);
                 }
                 it = changes->erase(it);
@@ -4026,11 +4160,19 @@ UsdStage::_HandleLayersDidChange(
         TF_FOR_ALL(itr, _fieldHandles) {
             auto fieldHandleItr = itr->second.begin();
             while (fieldHandleItr != itr->second.end()) {
-                if (*fieldHandleItr) {
-                    CheckFieldForCompositionDependents(itr->first, *fieldHandleItr);
-                    fieldHandleItr++;
+                bool gotHandle = false;
+                if (fieldHandleItr->second.defaultHandle) {
+                    CheckFieldForCompositionDependents(itr->first, fieldHandleItr->second.defaultHandle);
+                    gotHandle = true;
+                    //fieldHandleItr++;
                 }
-                else {
+                if (fieldHandleItr->second.timeSamplesHandle) {
+                    CheckFieldForCompositionDependents(itr->first, fieldHandleItr->second.timeSamplesHandle);
+                    gotHandle = true;
+                }
+                if (gotHandle) {
+                    fieldHandleItr++;
+                }  else {
                     fieldHandleItr = itr->second.erase(fieldHandleItr);
                 }
             }
@@ -4673,7 +4815,8 @@ bool UsdStage::IsMutenessStateGlobal() const
 // #nv begin #fast-updates
 void
 UsdStage::CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
-                                             SdfAbstractDataFieldAccessHandle fieldHandle)
+                                             SdfAbstractDataFieldAccessHandle fieldHandle,
+                                             bool isNewHandle)
 {
     if (!layer || !fieldHandle)
         return;
@@ -4684,7 +4827,14 @@ UsdStage::CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
     bool hasCompositionDependents = dependentPaths.size() > 1 || *dependentPaths.begin() != specId.GetFullSpecPath();
     fieldHandle->SetHasCompositionDependents(hasCompositionDependents);
 
-    _fieldHandles[layer].insert(fieldHandle);
+    if (isNewHandle) {
+        if (fieldHandle->GetFieldName() == SdfFieldKeys->Default) {
+            _fieldHandles[layer][fieldHandle->GetSpecId().GetFullSpecPath()].defaultHandle = fieldHandle;
+        }
+        else if (fieldHandle->GetFieldName() == SdfFieldKeys->TimeSamples) {
+            _fieldHandles[layer][fieldHandle->GetSpecId().GetFullSpecPath()].timeSamplesHandle = fieldHandle;
+        }
+    }
 }
 // nv end
 

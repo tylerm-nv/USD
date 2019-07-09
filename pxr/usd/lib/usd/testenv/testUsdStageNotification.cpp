@@ -546,10 +546,19 @@ void TestFastUpdates(const std::string &fileExtension)
     SdfPath refAttrPath = referencingPrim->GetPath().AppendProperty(attr->GetNameToken());
     VtValue doubleVal(9.0);
     {
-        printf("Fast updates on references should fall back to the non-fast change processing codepath.\n");
+        printf("Fast updates on references should propagate as expected\n");
+        std::vector<SdfFastUpdateList::FastUpdate> expectedFastUpdates;
+        expectedFastUpdates.push_back({ attr->GetPath(), doubleVal });
+        expectedFastUpdates.push_back({ refAttrPath, doubleVal });
         _NoticeTester tester(stage);
-        tester.AddTest([](Notice const &n) {
-            return TF_AXIOM(n.GetFastUpdates().empty());
+        tester.AddTest([expectedFastUpdates](Notice const &n) {
+            bool result = true;
+            auto &fastUpdates = n.GetFastUpdates();
+            TF_FOR_ALL(itr, expectedFastUpdates) {
+                result = result && std::find(fastUpdates.begin(), fastUpdates.end(), *itr) != fastUpdates.end();
+            }
+            return TF_AXIOM(result);
+
         });
         layer->SetField(fieldHandle, doubleVal);
 
@@ -597,10 +606,21 @@ void TestFastUpdates(const std::string &fileExtension)
     TF_AXIOM(fieldHandle->HasCompositionDependents());
     SdfPath inheritsAttrPath = prim->GetPath().AppendProperty(attr->GetNameToken());
     {
-        printf("Fast updates on inherits should fall back to the non-fast change processing codepath.\n");
+        printf("Fast updates on inherits should propagate as expected\n");
+        SdfPathVector expectedPaths = { attr->GetPath(), refAttrPath, inheritsAttrPath };
+        std::vector<SdfFastUpdateList::FastUpdate> expectedFastUpdates;
+        for (auto attrPath : expectedPaths) {
+            expectedFastUpdates.push_back({ attrPath, doubleVal });
+        }
         _NoticeTester tester(stage);
-        tester.AddTest([](Notice const &n) {
-            return TF_AXIOM(n.GetFastUpdates().empty());
+        tester.AddTest([expectedFastUpdates](Notice const &n) {
+            bool result = true;
+            auto &fastUpdates = n.GetFastUpdates();
+            TF_FOR_ALL(itr, expectedFastUpdates) {
+                result = result && std::find(fastUpdates.begin(), fastUpdates.end(), *itr) != fastUpdates.end();
+            }
+            return TF_AXIOM(result);
+
         });
         layer->SetField(fieldHandle, doubleVal);
     }

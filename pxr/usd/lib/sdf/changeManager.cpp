@@ -43,7 +43,10 @@ PXR_NAMESPACE_OPEN_SCOPE
 TF_INSTANTIATE_SINGLETON(Sdf_ChangeManager);
 
 Sdf_ChangeManager::_Data::_Data()
-    : changeBlockDepth(0)
+    : changeBlockDepth(0),
+    // #nv begin #fast-updates
+    highestFastUpdateDepth(0)
+    // nv end
 {
 }
 
@@ -87,9 +90,12 @@ Sdf_ChangeManager::_SendNoticesForChangeList( const SdfLayerHandle & layer,
 }
 
 void
-Sdf_ChangeManager::OpenChangeBlock()
+Sdf_ChangeManager::OpenChangeBlock(bool fastUpdates)
 {
     ++_data.local().changeBlockDepth;
+    if (fastUpdates && _data.local().highestFastUpdateDepth == 0) {
+        _data.local().highestFastUpdateDepth = _data.local().changeBlockDepth;
+    }
 }
 
 void
@@ -104,14 +110,31 @@ Sdf_ChangeManager::CloseChangeBlock()
         // Send notices with no change block open.
         --changeBlockDepth;
         TF_VERIFY(changeBlockDepth == 0);
+        // #nv begin #fast-updates
+        _data.local().highestFastUpdateDepth = 0;
+        // nv end
         _SendNotices();
     }
     else {
         // Not outermost.
         TF_VERIFY(changeBlockDepth > 0);
         --changeBlockDepth;
+        // #nv begin #fast-updates
+        if (changeBlockDepth < _data.local().highestFastUpdateDepth) {
+            _data.local().highestFastUpdateDepth = 0;
+        }
+        // nv end
     }
 }
+
+// #nv begin #fast-updates
+bool Sdf_ChangeManager::IsFastUpdating()
+{
+    // Const methods can't seem to read _data?
+    return _data.local().changeBlockDepth > 0 &&
+        _data.local().highestFastUpdateDepth > 0;
+}
+// nv end
 
 void
 Sdf_ChangeManager::RemoveSpecIfInert(const SdfSpec& spec)
@@ -176,7 +199,7 @@ Sdf_ChangeManager::_SendNotices()
     // +nv #begin #fast-updates
     SdfLayerFastUpdatesMap fastUpdates;
     fastUpdates.swap(_data.local().fastUpdates);
-    if (fastUpdates.size() == 1 && !fastUpdates.begin()->second.hasCompositionDependents && changes.empty()) {
+    if (fastUpdates.size() == 1 && changes.empty()) {
         // Optimal case-- the change block contains only fast updates for a single layer.
         TF_DEBUG(SDF_CHANGES).Msg("Sending only fast updates for layer %s\n",
             fastUpdates.begin()->first->GetIdentifier().c_str());
