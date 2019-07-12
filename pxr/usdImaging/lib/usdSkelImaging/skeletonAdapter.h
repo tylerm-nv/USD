@@ -98,6 +98,16 @@ public:
                                       const SdfPath& cachePath,
                                       const TfToken& propertyName) override;
 
+    //+NV_CHANGE FRZHANG : back porting commit 4ea8b04 to fix skel mesh resync/remove
+    USDSKELIMAGING_API
+    virtual void ProcessPrimResync(SdfPath const& usdPath,
+            UsdImagingIndexProxy* index) override;
+
+    USDSKELIMAGING_API
+    virtual void ProcessPrimRemoval(SdfPath const& primPath,
+            UsdImagingIndexProxy* index) override;
+    //-NV_CHANGE FRZHNAG
+
     USDSKELIMAGING_API
     void MarkDirty(const UsdPrim& prim,
                    const SdfPath& cachePath,
@@ -195,6 +205,9 @@ private:
     // ---------------------------------------------------------------------- //
     bool _IsAffectedByTimeVaryingSkelAnim(const SdfPath& skinnedPrimPath)
         const;
+
+    void _RemoveSkinnedPrimAndComputations(const SdfPath& cachePath,
+        UsdImagingIndexProxy* index);
 
     // ---------------------------------------------------------------------- //
     /// Handlers for the skinning computations
