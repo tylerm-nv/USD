@@ -1239,6 +1239,10 @@ UsdImagingDelegate::_ResyncPrim(SdfPath const& rootPath,
         }
     }
 
+
+    //+NV_CHANGE FRZHANG : fix skelmesh resync
+    SdfPath rootPathToRepopulate = rootPath;
+    //-NV_CHANGE FRZHANG
     // Apply changes.
     TF_FOR_ALL(primIt, affectedPrims) {
         SdfPath const& usdPath = *primIt;
@@ -1258,6 +1262,15 @@ UsdImagingDelegate::_ResyncPrim(SdfPath const& rootPath,
         //  * Schedule the prim to be repopulated
         // Note: primInfo may be invalid after this call
         if (repopulateFromRoot) {
+            //+NV_CHANGE FRZHANG : fix skelmesh resync
+            //affectedPrims are all decenstor of rootPath, so only calculator ancestor in single direction, otherwise should calculate comman ancestor
+            //Doing rootpath calculate beffore prim removal
+            SdfPath resyncRootPath = primInfo->adapter->GetPrimResyncRootPath(usdPath);
+            if (resyncRootPath != usdPath && rootPathToRepopulate.HasPrefix(resyncRootPath))
+            {
+                rootPathToRepopulate = resyncRootPath;
+            }
+            //-NV_CHANGE FRZHANG
             primInfo->adapter->ProcessPrimRemoval(usdPath, proxy);
         } else {
             primInfo->adapter->ProcessPrimResync(usdPath, proxy);
@@ -1265,7 +1278,7 @@ UsdImagingDelegate::_ResyncPrim(SdfPath const& rootPath,
     }
 
     if (repopulateFromRoot) {
-        proxy->Repopulate(rootPath);
+        proxy->Repopulate(rootPathToRepopulate);
     }
 }
 

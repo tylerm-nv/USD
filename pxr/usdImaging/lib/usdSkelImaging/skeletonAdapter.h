@@ -106,6 +106,11 @@ public:
     USDSKELIMAGING_API
     virtual void ProcessPrimRemoval(SdfPath const& primPath,
             UsdImagingIndexProxy* index) override;
+
+    //+NV_CHANGE FRZHANG : fix skelmesh resync
+    USDSKELIMAGING_API
+    virtual SdfPath GetPrimResyncRootPath(SdfPath const& primPath) override;
+    //-NV_CHANGE FRZHANG
     //-NV_CHANGE FRZHNAG
 
     USDSKELIMAGING_API

@@ -159,6 +159,15 @@ UsdImagingPrimAdapter::ProcessPrimRemoval(SdfPath const& primPath,
     index->RemovePrimInfo(/*usdPrimPath*/primPath);
 }
 
+//+NV_CHANGE FRZHANG : fix skelmesh resync
+/*virtual*/
+SdfPath
+UsdImagingPrimAdapter::GetPrimResyncRootPath(SdfPath const& primPath)
+{
+    return primPath;
+}
+//-NV_CHANGE FRZHANG 
+
 /*virtual*/
 void
 UsdImagingPrimAdapter::MarkRefineLevelDirty(UsdPrim const& prim,

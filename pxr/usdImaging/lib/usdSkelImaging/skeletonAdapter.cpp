@@ -529,6 +529,33 @@ UsdSkelImagingSkeletonAdapter::ProcessPrimRemoval(
     // entries as well (unlike the pattern followed in PrimAdapter)
     _RemovePrim(primPath, index);
 }
+
+//+NV_CHANGE FRZHANG : fix skelmesh resync
+/*virtual*/
+SdfPath
+UsdSkelImagingSkeletonAdapter::GetPrimResyncRootPath(SdfPath const& primPath)
+{
+    // Do this prior to removal of cache entries.
+    bool isSkelPath = _skelBindingMap.find(primPath) != _skelBindingMap.end();
+    bool isCallbackForPrimsOnTheStage = isSkelPath ||
+        _IsSkinnedPrimPath(primPath);
+
+    // find the skelRoot of this skinned Mesh.
+    // This is probably not accurate, use usdSkelAPI to find the skelRoot might be better.
+    // But we're short of the required information.
+    if (isCallbackForPrimsOnTheStage) {
+        SdfPath skelRootPath;
+        UsdPrim prim = _GetPrim(primPath);
+        while (prim) {
+            prim = prim.GetParent();
+            if (prim.IsValid() && prim.IsA<UsdSkelRoot>()) {
+                return prim.GetPath();
+            }
+        }
+    }
+    return primPath;
+}
+//-NV_CHANGE FRZHANG 
 //-NV_CHANGE FRZHANG
 
 void
