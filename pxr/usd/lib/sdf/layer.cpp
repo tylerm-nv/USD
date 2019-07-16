@@ -1327,12 +1327,20 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     }
 
     // TODO(USD):optimization: Analyze the affected time interval.
+    // For now, time samples do not trigger special change notification for fast updates.
+    // Current use cases for fast updates are focused on streaming updates to attribute defaults.
+    Sdf_ChangeManager::Get()
+        .DidChangeAttributeTimeSamples(SdfLayerHandle(this),
+            fieldHandle->GetSpecId().GetFullSpecPath());
+
+#if 0
     // TODO (fast-updates): Indicate affected time interval in change notice.
     Sdf_ChangeManager::Get()
         .DidFastUpdate(SdfLayerHandle(this),
             fieldHandle->GetSpecId().GetFullSpecPath(),
             value,
             fieldHandle->HasCompositionDependents());
+#endif
 
     _data->SetTimeSample(fieldHandle, time, value);
 }
