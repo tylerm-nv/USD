@@ -189,6 +189,11 @@ public:
     virtual void ProcessPrimRemoval(SdfPath const& primPath,
                                    UsdImagingIndexProxy* index);
 
+    //+NV_CHANGE FRZHANG : fix skelmesh resync
+    USDIMAGING_API
+    virtual SdfPath GetPrimResyncRootPath(SdfPath const& primPath);
+    //-NV_CHANGE FRZHANG
+
 
     virtual void MarkDirty(UsdPrim const& prim,
                            SdfPath const& cachePath,
