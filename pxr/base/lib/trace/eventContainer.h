@@ -145,22 +145,7 @@ public:
         }
 
         bool operator == (const const_iterator& other) const {
-<<<<<<< HEAD
-            // + NV_CHANGE ALUK/SSANTOLERI
-
-            if (_outer != other._outer)
-                return false;
-
-            // Only compare _inner when the _outer actually match.
-            // Debug will fail asserts otherwise (VC14/15) since they
-            // can be from incompatible containers.
-            return (_innerExists && other._innerExists) ?
-                (_inner == other._inner) :
-                (_innerExists == other._innerExists);
-            // - NV_CHANGE ALUK/SSANTOLERI
-=======
             return _event == other._event;
->>>>>>> upstream/master
         }
 
         const_iterator& operator ++() {

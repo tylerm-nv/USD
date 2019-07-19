@@ -220,13 +220,8 @@ class TestUsdSkelCache(unittest.TestCase):
         query = _GetSkinningQuery(rootPath+"/Model1/NonRigidScope1/A")
         assert query
         assert query.IsRigidlyDeformed()
-<<<<<<< HEAD
-        assert query.GetMapper()
-        self.assertEqual(query.GetJointOrder(),
-=======
         assert query.GetJointMapper()
-        self.assertEquals(query.GetJointOrder(),
->>>>>>> upstream/master
+        self.assertEqual(query.GetJointOrder(),
                           Vt.TokenArray(["A", "B", "C"]))
 
         query = _GetSkinningQuery(rootPath+"/Model1/NonRigidScope1/B")
@@ -237,13 +232,8 @@ class TestUsdSkelCache(unittest.TestCase):
         query = _GetSkinningQuery(rootPath+"/Model1/NonRigidScope2/A")
         assert query
         assert query.IsRigidlyDeformed()
-<<<<<<< HEAD
-        assert query.GetMapper()
-        self.assertEqual(query.GetJointOrder(),
-=======
         assert query.GetJointMapper()
-        self.assertEquals(query.GetJointOrder(),
->>>>>>> upstream/master
+        self.assertEqual(query.GetJointOrder(),
                           Vt.TokenArray(["A", "B", "C"]))
 
         query = _GetSkinningQuery(rootPath+"/Model1/NonRigidScope2/B")

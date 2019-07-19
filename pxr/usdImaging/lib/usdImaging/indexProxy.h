@@ -182,16 +182,12 @@ public:
         , _worker(worker)
     {}
 
-<<<<<<< HEAD
 private:
     friend class UsdImagingDelegate;
 
-    SdfPathVector const& _GetPathsToRepopulate() { return _pathsToRepopulate; }
-=======
     SdfPathVector const& _GetUsdPathsToRepopulate() {
         return _usdPathsToRepopulate;
     }
->>>>>>> upstream/master
     void _ProcessRemovals();
 
     void _AddTask(SdfPath const& usdPath);   

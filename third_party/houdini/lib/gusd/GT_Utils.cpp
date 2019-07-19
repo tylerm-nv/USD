@@ -133,36 +133,6 @@ struct GtDataToUsdTypename
                              SdfValueTypeNames->Int4);
         }
 
-<<<<<<< HEAD
-        //#nv begin #houdini
-
-        // TexCoord2f
-        m_typeLookup[KeyType(GT_STORE_REAL32, GT_TYPE_TEXTURE, 2, false)]
-            = SdfValueTypeNames->TexCoord2f;
-        m_typeLookup[KeyType(GT_STORE_REAL32, GT_TYPE_TEXTURE, 2, true)]
-            = SdfValueTypeNames->TexCoord2fArray;
-
-        // TexCoord3f
-        m_typeLookup[KeyType(GT_STORE_REAL32, GT_TYPE_TEXTURE, 3, false)]
-            = SdfValueTypeNames->TexCoord3f;
-        m_typeLookup[KeyType(GT_STORE_REAL32, GT_TYPE_TEXTURE, 3, true)]
-            = SdfValueTypeNames->TexCoord3fArray;
-
-        // TexCoord2h
-        m_typeLookup[KeyType(GT_STORE_REAL16, GT_TYPE_TEXTURE, 2, false)]
-            = SdfValueTypeNames->TexCoord2h;
-        m_typeLookup[KeyType(GT_STORE_REAL16, GT_TYPE_TEXTURE, 2, true)]
-            = SdfValueTypeNames->TexCoord2hArray;
-
-        // TexCoord3h
-        m_typeLookup[KeyType(GT_STORE_REAL16, GT_TYPE_TEXTURE, 3, false)]
-            = SdfValueTypeNames->TexCoord3h;
-        m_typeLookup[KeyType(GT_STORE_REAL16, GT_TYPE_TEXTURE, 3, true)]
-            = SdfValueTypeNames->TexCoord3hArray;
-
-        //nv end
-
-=======
         DefineTypeLookup(GT_STORE_REAL16, GT_TYPE_NONE, -1,
                          SdfValueTypeNames->Half);
         DefineTypeLookup(GT_STORE_REAL32, GT_TYPE_NONE, -1,
@@ -284,7 +254,6 @@ struct GtDataToUsdTypename
         // String
         DefineTypeLookup(GT_STORE_STRING, GT_TYPE_NONE, -1,
                          SdfValueTypeNames->String);
->>>>>>> upstream/master
     }
 
     SdfValueTypeName operator()(const GT_DataArrayHandle& gtData, bool isArray) const

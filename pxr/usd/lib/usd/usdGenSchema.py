@@ -723,12 +723,8 @@ def GatherTokens(classes, libName, libTokens):
 
     # Add tokens from all classes to the token set
     for cls in classes:
-<<<<<<< HEAD
-        for attr in list(cls.attrs.values()):
-=======
         # Add tokens from attributes to the token set
-        for attr in cls.attrs.values():
->>>>>>> upstream/master
+        for attr in list(cls.attrs.values()):
 
             # Add Attribute Names to token set
             cls.tokens.add(attr.name)
@@ -751,21 +747,16 @@ def GatherTokens(classes, libName, libTokens):
                            (cls.cppClassName, _ProperCase(attr.name))
                     cls.tokens.add(tokenId)
                     _AddToken(tokenDict, tokenId, val, desc)
-<<<<<<< HEAD
-                    
-        # Add Relationship Names to token set
-        for rel in list(cls.rels.values()):
-=======
 
+                    
         # Add tokens from relationships to the token set
-        for rel in cls.rels.values():
->>>>>>> upstream/master
+        for rel in list(cls.rels.values()):
             cls.tokens.add(rel.name)
             _AddToken(tokenDict, rel.name, rel.rawName, cls.cppClassName)
             
         # Add schema tokens to token set
         schemaTokens = cls.customData.get("schemaTokens", {})
-        for token, tokenInfo in schemaTokens.iteritems():
+        for token, tokenInfo in schemaTokens.items():
             cls.tokens.add(token)
             _AddToken(tokenDict, token, tokenInfo.get("value", token),
                       _SanitizeDoc(tokenInfo.get("doc", 
@@ -780,16 +771,10 @@ def GatherTokens(classes, libName, libTokens):
                       "Property namespace prefix for the %s schema." % cls.cppClassName)
 
     # Add library-wide tokens to token set
-<<<<<<< HEAD
     for token, tokenInfo in libTokens.items():
-        _AddToken(tokenDict, token, tokenInfo.get("value", token), _SanitizeDoc(tokenInfo.get("doc",
-            "Special token for the %s library." % libName), ' '))
-=======
-    for token, tokenInfo in libTokens.iteritems():
         _AddToken(tokenDict, token, tokenInfo.get("value", token), 
                   _SanitizeDoc(tokenInfo.get("doc",
                       "Special token for the %s library." % libName), ' '))
->>>>>>> upstream/master
 
     return sorted(list(tokenDict.values()), key=lambda token: token.id.lower())
 

@@ -549,8 +549,8 @@ protected:
         {
         }
 
-    void AddTask(UsdImagingDelegate* delegate, SdfPath const& usdPath) {
-            _tasks.push_back(_Task(delegate, usdPath));
+        void AddTask(UsdImagingDelegate* delegate, SdfPath const& cachePath) {
+            _tasks.push_back(_Task(delegate, cachePath));
         }
 
         size_t GetTaskCount() {
@@ -583,8 +583,7 @@ protected:
     // If \p path is a prim path, changedPrimInfoFields will be populated
     // with the list of scene description fields that caused this prim to
     // be refreshed.
-    USDIMAGING_API
-    void _RefreshObject(SdfPath const& path,
+    void _RefreshUsdObject(SdfPath const& usdPath,
         TfTokenVector const& changedPrimInfoFields,
         UsdImagingIndexProxy* proxy,
         bool checkVariability = true);
@@ -623,19 +622,6 @@ private:
     void _OnUsdObjectsChanged(UsdNotice::ObjectsChanged const&,
                               UsdStageWeakPtr const& sender);
 
-<<<<<<< HEAD
-=======
-    // The lightest-weight update, it does fine-grained invalidation of
-    // individual properties at the given path (prim or property).
-    //
-    // If \p path is a prim path, changedPrimInfoFields will be populated
-    // with the list of scene description fields that caused this prim to
-    // be refreshed.
-    void _RefreshUsdObject(SdfPath const& usdPath, 
-                           TfTokenVector const& changedPrimInfoFields,
-                           UsdImagingIndexProxy* proxy);
-
->>>>>>> upstream/master
     // Heavy-weight invalidation of an entire prim subtree. All cached data is
     // reconstructed for all prims below \p rootPath.
     //

@@ -73,17 +73,6 @@ UsdImagingMeshAdapter::Populate(UsdPrim const& prim,
     // Check for any UsdGeomSubset children and record this adapter as
     // the delegate for their paths.
     if (UsdGeomImageable imageable = UsdGeomImageable(prim)) {
-<<<<<<< HEAD
-        for (const UsdGeomSubset &subset :
-            UsdGeomSubset::GetAllGeomSubsets(imageable)) {
-            index->AddPrimInfo(subset.GetPath(),
-                subset.GetPrim().GetParent(),
-                shared_from_this());
-            // Ensure the bound material has been populated.
-            if (UsdPrim materialPrim =
-                prim.GetStage()->GetPrimAtPath(
-                    GetMaterialId(subset.GetPrim()))) {
-=======
         for (const UsdGeomSubset &subset:
              UsdGeomSubset::GetAllGeomSubsets(imageable)) {
             index->AddHdPrimInfo(subset.GetPath(),
@@ -93,7 +82,6 @@ UsdImagingMeshAdapter::Populate(UsdPrim const& prim,
             if (UsdPrim materialPrim =
                 prim.GetStage()->GetPrimAtPath(
                 GetMaterialUsdPath(subset.GetPrim()))) {
->>>>>>> upstream/master
                 UsdImagingPrimAdapterSharedPtr materialAdapter =
                     index->GetMaterialAdapter(materialPrim);
                 if (materialAdapter) {
@@ -103,11 +91,7 @@ UsdImagingMeshAdapter::Populate(UsdPrim const& prim,
         }
     }
     return _AddRprim(HdPrimTypeTokens->mesh,
-<<<<<<< HEAD
-        prim, index, GetMaterialId(prim), instancerContext);
-=======
                      prim, index, GetMaterialUsdPath(prim), instancerContext);
->>>>>>> upstream/master
 }
 
 void
@@ -159,11 +143,9 @@ UsdImagingMeshAdapter::TrackVariability(UsdPrim const& prim,
                 HdChangeTracker::DirtyNormals,
                 UsdImagingTokens->usdVaryingNormals,
                 timeVaryingBits,
-<<<<<<< HEAD
-                /*isInherited*/false);
-=======
                 /*isInherited*/false,
                 &normalsExists);
+        }
         if (!normalsExists) {
             UsdGeomPrimvar pv = _GetInheritedPrimvar(prim, HdTokens->normals);
             if (pv && pv.ValueMightBeTimeVarying()) {
@@ -179,7 +161,6 @@ UsdImagingMeshAdapter::TrackVariability(UsdPrim const& prim,
                     UsdImagingTokens->usdVaryingNormals,
                     timeVaryingBits,
                     /*isInherited*/false);
->>>>>>> upstream/master
         }
     }
 
@@ -317,15 +298,11 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
             // First check for "primvars:normals"
             UsdGeomPrimvarsAPI primvarsApi(prim);
             UsdGeomPrimvar pv = primvarsApi.GetPrimvar(
-<<<<<<< HEAD
-                UsdImagingTokens->primvarsNormals);
-=======
                     UsdImagingTokens->primvarsNormals);
             if (!pv) {
                 // If it's not found locally, see if it's inherited
                 pv = _GetInheritedPrimvar(prim, HdTokens->normals);
             }
->>>>>>> upstream/master
             if (pv) {
                 _ComputeAndMergePrimvar(prim, cachePath, pv, time, valueCache);
             }

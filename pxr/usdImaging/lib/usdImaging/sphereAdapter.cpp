@@ -246,7 +246,6 @@ UsdImagingSphereAdapter::GetMeshTransform(UsdPrim const& prim,
     return xf;
 }
 
-<<<<<<< HEAD
 // #nv begin #fast-updates
 HdDirtyBits
 UsdImagingSphereAdapter::ProcessPropertyChange(UsdPrim const& prim,
@@ -260,7 +259,7 @@ UsdImagingSphereAdapter::ProcessPropertyChange(UsdPrim const& prim,
     return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
 }
 // nv end
-=======
+
 size_t
 UsdImagingSphereAdapter::SampleTransform(
     UsdPrim const& prim, SdfPath const& cachePath,
@@ -281,7 +280,6 @@ UsdImagingSphereAdapter::SampleTransform(
 
     return numSamples;
 }
->>>>>>> upstream/master
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

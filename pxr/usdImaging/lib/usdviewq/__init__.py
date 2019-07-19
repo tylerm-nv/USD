@@ -24,15 +24,9 @@
 from __future__ import print_function
 import sys, argparse, os
 
-<<<<<<< HEAD
 from .qt import QtWidgets
-from .common import Timer, Complexities
+from .common import Timer
 from .appController import AppController
-=======
-from qt import QtWidgets
-from common import Timer
-from appController import AppController
->>>>>>> upstream/master
 
 from pxr import UsdAppUtils
 
@@ -226,23 +220,14 @@ class Launcher(object):
                 if not camPath.IsAbsolutePath():
                     # perhaps we should error here? For now just pre-pending
                     # root, and printing warning...
-<<<<<<< HEAD
-                    print("WARNING: camera path %r was not " \
-                                         "absolute, prepending %r to make " \
-                                         "it absolute" % \
-                                         (str(camPath),
-                                          str(Sdf.Path.absoluteRootPath)), file=sys.stderr)
-                    camPath = camPath.MakeAbsolutePath(Sdf.Path.absoluteRootPath)
-                arg_parse_result.camera = camPath
-=======
+
                     from pxr import Sdf
-                    print >> sys.stderr, (
+                    print(
                         "WARNING: camera path %r was not absolute, prepending "
                         "%r to make it absolute" % (str(camPath),
-                            str(Sdf.Path.absoluteRootPath)))
+                            str(Sdf.Path.absoluteRootPath)), file=sys.stderr)
                     arg_parse_result.camera = camPath.MakeAbsolutePath(
                         Sdf.Path.absoluteRootPath)
->>>>>>> upstream/master
 
         if arg_parse_result.clearSettings and arg_parse_result.defaultSettings:
             raise InvalidUsdviewOption(

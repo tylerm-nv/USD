@@ -291,18 +291,11 @@ class TestSdfParsing(unittest.TestCase):
 
             print('\nTest %s' % layerFile)
 
-<<<<<<< HEAD
             print('\tReading...')
-            layer = Sdf.Layer.FindOrOpen( layerFile )
-            self.assertTrue(layer is not None)
-            print('\tWriting...')
-=======
-            print '\tReading...'
             layer = Sdf.Layer.FindOrOpen(layerFile)
             self.assertTrue(layer is not None,
                             "failed to open @%s@" % layerFile)
-            print '\tWriting...'
->>>>>>> upstream/master
+            print('\tWriting...')
             try:
                 self.assertTrue(layer.Export( layerFileOut.name ))
             except Exception as e:

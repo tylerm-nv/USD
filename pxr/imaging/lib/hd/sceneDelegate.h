@@ -396,7 +396,6 @@ public:
     HD_API
     virtual VtArray<TfToken> GetCategories(SdfPath const& id);
 
-<<<<<<< HEAD
 	//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
 	HD_API
 	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform);
@@ -407,7 +406,7 @@ public:
 	HD_API
 	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld);
 	//-NV_CHANGE FRZHANG
-=======
+
     /// Returns the categories for all instances in the instancer.
     HD_API
     virtual std::vector<VtArray<TfToken>>
@@ -416,7 +415,6 @@ public:
     /// Returns the coordinate system bindings, or a nullptr if none are bound.
     HD_API
     virtual HdIdVectorSharedPtr GetCoordSysBindings(SdfPath const& id);
->>>>>>> upstream/master
 
     // -----------------------------------------------------------------------//
     /// \name Motion samples
