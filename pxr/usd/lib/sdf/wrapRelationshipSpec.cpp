@@ -25,24 +25,18 @@
 
 #include "pxr/pxr.h"
 #include "pxr/usd/sdf/relationshipSpec.h"
-#include "pxr/usd/sdf/attributeSpec.h"
 #include "pxr/usd/sdf/path.h"
 #include "pxr/usd/sdf/primSpec.h"
 #include "pxr/usd/sdf/pySpec.h"
 #include "pxr/usd/sdf/types.h"
 
-#include "pxr/base/tf/iterator.h"
-#include "pxr/base/tf/pyContainerConversions.h"
-#include "pxr/base/tf/pyResultConversions.h"
-#include "pxr/base/tf/pyUtils.h"
-
 #include <boost/python.hpp>
-#include <boost/python/slice.hpp>
 
 using namespace boost::python;
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
+<<<<<<< HEAD
 namespace {
 
 class Sdf_RelationalAttributesProxy {
@@ -1104,13 +1098,11 @@ _WrapInsertAttributeForTargetPathWithIndex(
 
 } // anonymous namespace 
 
+=======
+>>>>>>> upstream/master
 void wrapRelationshipSpec()
 {    
     typedef SdfRelationshipSpec This;
-
-    TfPyContainerConversions::from_python_sequence<
-        std::vector< SdfAttributeSpecHandle >,
-        TfPyContainerConversions::variable_capacity_policy >();
 
     class_<This, SdfHandle<This>, 
            bases<SdfPropertySpec>, boost::noncopyable>
@@ -1140,43 +1132,15 @@ void wrapRelationshipSpec()
             "value or as a set of list editing operations.  See PathListEditor \n"
             "for more information.")
 
-        .add_property("targetAttributes",
-            &_WrapGetRelationalAttributes,
-            "A dictionary of the attributes for each target path, keyed by path.\n\n"
-            "Each dictionary value is a dictionary of attributes,"
-            "keyed by attribute name.  The targetAttributes property itself "
-            "is read-only, but the attributes for a particular target may be "
-            "modified just as you might modify a prim's attributes.")
-
-        .add_property("targetAttributeOrders",
-            &_WrapGetTargetAttributeOrders,
-            &_WrapSetTargetAttributeOrders,
-            "A dictionary of relational attribute order name lists for each "
-            "target path, keyed by path.\n\n")
-
         .add_property("noLoadHint",
             &This::GetNoLoadHint,
             &This::SetNoLoadHint,
             "whether the target must be loaded to load the prim this\n"
             "relationship is attached to.")
 
-        .def("GetTargetPathForAttribute", &_WrapGetTargetPathForAttribute)
         .def("ReplaceTargetPath", &This::ReplaceTargetPath)
         .def("RemoveTargetPath", &This::RemoveTargetPath,
              (arg("preserveTargetOrder") = false))
-        .def("InsertAttributeForTargetPath",
-             &_WrapInsertAttributeForTargetPath)
-        .def("InsertAttributeForTargetPath",
-             &_WrapInsertAttributeForTargetPathWithIndex)
-
-        .def("HasAttributeOrderForTargetPath",
-             &This::HasAttributeOrderForTargetPath)
-        .def("GetAttributeOrderForTargetPath",
-             &This::GetAttributeOrderForTargetPath)
-        .def("GetOrCreateAttributeOrderForTargetPath",
-             &This::GetOrCreateAttributeOrderForTargetPath)
-        .def("GetAttributeOrderTargetPaths",
-             &This::GetAttributeOrderTargetPaths)
 
         // property keys
         .setattr("TargetsKey", SdfFieldKeys->TargetPaths)

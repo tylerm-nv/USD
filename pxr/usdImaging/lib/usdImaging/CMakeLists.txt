@@ -37,6 +37,7 @@ pxr_library(usdImaging
         basisCurvesAdapter
         capsuleAdapter
         coneAdapter
+        coordSysAdapter
         cubeAdapter
         cylinderAdapter
         cylinderLightAdapter

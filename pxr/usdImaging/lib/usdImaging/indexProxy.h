@@ -50,9 +50,9 @@ public:
     /// Returns true if an entry to track the prim was added.
     ///
     /// "cachePath" is the index path minus the delegate prefix (i.e. the result
-    /// of GetPathForUsd()).
+    /// of ConvertIndexPathToCachePath()).
     /// usdPrim reference the prim to track in usd.
-    /// If adapter is null, AddPrimInfo will assign an appropriate adapter based
+    /// If adapter is null, AddHdPrimInfo will assign an appropriate adapter based
     /// off the type of the UsdPrim.  However, this can be overridden
     /// (for instancing), by specifying a specific adapter.
     ///
@@ -64,7 +64,7 @@ public:
     /// twice without causing an error.  However, the UsdPrim and Adpater have
     /// to be the same as what is already inserted in the tracking.
     USDIMAGING_API
-    bool AddPrimInfo(SdfPath const& cachePath,
+    bool AddHdPrimInfo(SdfPath const& cachePath,
                      UsdPrim const& usdPrim,
                      UsdImagingPrimAdapterSharedPtr const& adapter);
 
@@ -113,8 +113,8 @@ public:
     
     // Designates that the given prim should no longer be tracked and thus
     // removed from the tracking structure.
-    void RemovePrimInfo(SdfPath const& cachePath) {
-        _primInfoToRemove.push_back(cachePath);
+    void RemoveHdPrimInfo(SdfPath const& cachePath) {
+        _hdPrimInfoToRemove.push_back(cachePath);
     }
 
     // Removes the Rprim at the specified cache path.
@@ -182,10 +182,16 @@ public:
         , _worker(worker)
     {}
 
+<<<<<<< HEAD
 private:
     friend class UsdImagingDelegate;
 
     SdfPathVector const& _GetPathsToRepopulate() { return _pathsToRepopulate; }
+=======
+    SdfPathVector const& _GetUsdPathsToRepopulate() {
+        return _usdPathsToRepopulate;
+    }
+>>>>>>> upstream/master
     void _ProcessRemovals();
 
     void _AddTask(SdfPath const& usdPath);   
@@ -199,12 +205,12 @@ private:
 
     UsdImagingDelegate* _delegate;
     UsdImagingDelegate::_Worker* _worker;
-    SdfPathVector _pathsToRepopulate;
+    SdfPathVector _usdPathsToRepopulate;
     SdfPathVector _rprimsToRemove;
     _TypeAndPathVector _sprimsToRemove;
     _TypeAndPathVector _bprimsToRemove;
     SdfPathVector _instancersToRemove;
-    SdfPathVector _primInfoToRemove;
+    SdfPathVector _hdPrimInfoToRemove;
 };
 
 

@@ -201,6 +201,7 @@ for layerPath in args.layer:
                 errors += targetErrors
                 if len(targets) > 0:
                     targetsMap[propPath] = targets
+<<<<<<< HEAD
 
                 # Pcp doesn't provide any methods for composing relational
                 # attribute names, so fake it ourselves. Walk the property
@@ -223,6 +224,8 @@ for layerPath in args.layer:
                         relAttrs.append(propPath.AppendTarget(target)
                                         .AppendRelationalAttribute(name))
                 properties = relAttrs + properties
+=======
+>>>>>>> upstream/master
             elif isinstance(propIndex.propertyStack[0], Sdf.AttributeSpec):
                 (conns, connErrors) = \
                     pcpCache.ComputeAttributeConnectionPaths(propPath)
