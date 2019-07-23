@@ -525,21 +525,14 @@ public:
 
 // #nv begin #fast-updates
 protected:
-
-    // The lightest-weight update, it does fine-grained invalidation of
-    // individual properties at the given path (prim or property).
-    //
-    // If \p path is a prim path, changedPrimInfoFields will be populated
-    // with the list of scene description fields that caused this prim to
-    // be refreshed.
     USDIMAGING_API
-    void _RefreshUsdObject(SdfPath const& usdPath,
-        TfTokenVector const& changedPrimInfoFields,
-        UsdImagingIndexProxy* proxy,
-        bool checkVariability = true);
+    void _RefreshObjectsForFastUpdates(
+        const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
+        bool refreshVariability);
 
     UsdImaging_XformCache _xformCache;
     std::vector<SdfFastUpdateList::FastUpdate> _fastUpdates;
+// nv end
 
 private:
     // Internal friend class.
@@ -572,6 +565,19 @@ private:
     // ---------------------------------------------------------------------- //
     void _OnUsdObjectsChanged(UsdNotice::ObjectsChanged const&,
                               UsdStageWeakPtr const& sender);
+
+    // The lightest-weight update, it does fine-grained invalidation of
+    // individual properties at the given path (prim or property).
+    //
+    // If \p path is a prim path, changedPrimInfoFields will be populated
+    // with the list of scene description fields that caused this prim to
+    // be refreshed.
+    // #nv begin #fast-updates
+    void _RefreshObject(SdfPath const& path,
+        TfTokenVector const& changedPrimInfoFields,
+        UsdImagingIndexProxy* proxy,
+        bool checkVariability = true);
+    // nv end
 
     // Heavy-weight invalidation of an entire prim subtree. All cached data is
     // reconstructed for all prims below \p rootPath.

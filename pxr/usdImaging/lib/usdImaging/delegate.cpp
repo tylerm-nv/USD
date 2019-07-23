@@ -889,16 +889,27 @@ UsdImagingDelegate::ApplyPendingFastUpdates()
     std::vector<SdfFastUpdateList::FastUpdate> fastUpdates;
     std::swap(fastUpdates, _fastUpdates);
 
+    _RefreshObjectsForFastUpdates(fastUpdates, true);
+}
+
+void
+UsdImagingDelegate::_RefreshObjectsForFastUpdates(
+    const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
+    bool refreshVariability)
+{
     TfTokenVector dummyInfoFields;
 
     UsdImagingDelegate::_Worker worker;
     UsdImagingIndexProxy indexProxy(this, &worker);
 
     for (const auto &itr : fastUpdates) {
-        _RefreshUsdObject(itr.path, dummyInfoFields, &indexProxy);
+        _RefreshObject(itr.path, dummyInfoFields, &indexProxy);
     }
 
-    _ExecuteWorkForVariabilityUpdate(&worker);
+    if (refreshVariability) {
+        _ExecuteWorkForVariabilityUpdate(&worker);
+    }
+
 }
 // nv end
 
@@ -951,12 +962,12 @@ UsdImagingDelegate::ApplyPendingUpdates()
 
         for (SdfPath const& usdPath: usdPathsToResync) {
             if (usdPath.IsPropertyPath()) {
-                _RefreshUsdObject(usdPath, TfTokenVector(), &indexProxy);
+                _RefreshObject(usdPath, TfTokenVector(), &indexProxy);
             } else if (usdPath.IsTargetPath()) {
                 // TargetPaths are their own path type, when they change, resync
                 // the relationship at which they're rooted; i.e. per-target
                 // invalidation is not supported.
-                _RefreshUsdObject(usdPath.GetParentPath(), TfTokenVector(),
+                _RefreshObject(usdPath.GetParentPath(), TfTokenVector(),
                                &indexProxy);
             } else if (usdPath.IsAbsoluteRootOrPrimPath()) {
                 _ResyncUsdPrim(usdPath, &indexProxy);
@@ -981,7 +992,7 @@ UsdImagingDelegate::ApplyPendingUpdates()
             if (usdPath.IsPropertyPath() || usdPath.IsAbsoluteRootOrPrimPath()){
                 // Note that changedPrimInfoFields will be empty if the
                 // path is a property path.
-                _RefreshUsdObject(usdPath, changedPrimInfoFields, &indexProxy);
+                _RefreshObject(usdPath, changedPrimInfoFields, &indexProxy);
 
                 // If any objects were removed as a result of the refresh (if it
                 // internally decided to resync), they must be ejected now,
@@ -1349,7 +1360,7 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
 }
 
 void 
-UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath, 
+UsdImagingDelegate::_RefreshObject(SdfPath const& usdPath, 
                                       TfTokenVector const& changedInfoFields,
                                       UsdImagingIndexProxy* proxy,
                                       bool checkVariability)
