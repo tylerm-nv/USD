@@ -525,57 +525,6 @@ public:
 
 // #nv begin #fast-updates
 protected:
-    // Internal friend class.
-    class _Worker {
-    public:
-        typedef std::vector<std::pair<SdfPath, int> > ResultVector;
-
-    private:
-        struct _Task {
-            _Task() : delegate(nullptr) { }
-            _Task(UsdImagingDelegate* delegate_, const SdfPath& path_)
-                : delegate(delegate_)
-                , path(path_)
-            {
-            }
-
-            UsdImagingDelegate* delegate;
-            SdfPath path;
-        };
-        std::vector<_Task> _tasks;
-
-    public:
-        _Worker()
-        {
-        }
-
-        void AddTask(UsdImagingDelegate* delegate, SdfPath const& cachePath) {
-            _tasks.push_back(_Task(delegate, cachePath));
-        }
-
-        size_t GetTaskCount() {
-            return _tasks.size();
-        }
-
-        // Disables value cache mutations for all imaging delegates that have
-        // added tasks to this worker.
-    void DisableValueCacheMutations();
-
-        // Enables value cache mutations for all imaging delegates that have
-        // added tasks to this worker.
-    void EnableValueCacheMutations();
-
-        // Preps all tasks for parallel update.
-    void UpdateVariabilityPrep();
-
-        // Populates prim variability and initial state.
-        // Used as a parallel callback method for use with WorkParallelForN.
-    void UpdateVariability(size_t start, size_t end);
-
-        // Updates prim data on time change.
-        // Used as a parallel callback method for use with WorkParallelForN.
-    void UpdateForTime(size_t start, size_t end);
-    };
 
     // The lightest-weight update, it does fine-grained invalidation of
     // individual properties at the given path (prim or property).
@@ -592,8 +541,9 @@ protected:
     UsdImaging_XformCache _xformCache;
     std::vector<SdfFastUpdateList::FastUpdate> _fastUpdates;
 
-// nv end
 private:
+    // Internal friend class.
+    class _Worker;
     friend class UsdImagingIndexProxy;
     friend class UsdImagingPrimAdapter;
 
