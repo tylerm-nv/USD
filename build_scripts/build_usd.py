@@ -21,6 +21,10 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 #
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from distutils.spawn import find_executable
 
 import argparse
@@ -38,7 +42,12 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import urllib2
+try:
+    # python 2
+    from urllib2 import urlopen
+except:
+    # python 3
+    from urllib.request import urlopen
 import zipfile
 
 # Helpers for printing output
@@ -68,7 +77,7 @@ def PrintError(error):
     if verbosity >= 3 and sys.exc_info()[1] is not None:
         import traceback
         traceback.print_exc()
-    print "ERROR:", error
+    print ("ERROR:", error)
 
 # Helpers for determining platform
 def Windows():
@@ -136,29 +145,46 @@ def GetPythonInfo():
     if Windows():
         return None
 
-    # We also skip all this on Linux. The below code gets the wrong answer on
-    # certain distributions like Ubuntu, which organizes libraries based on
-    # multiarch. The below code yields /usr/lib/libpython2.7.so, but
-    # the library is actually in /usr/lib/x86_64-linux-gnu. Since the problem
-    # this function is intended to solve primarily occurs on macOS, so it's
-    # simpler to just skip this for now.
     if Linux():
-        return None
+        try:
+            import distutils.sysconfig
 
-    try:
-        import distutils.sysconfig
+            pythonExecPath = sys.executable
+            pythonLibDir = distutils.sysconfig.get_config_var('LIBDIR')
+            pythonLibName = distutils.sysconfig.get_config_var('LDLIBRARY')
+            pythonLibPath = os.path.join(pythonLibDir, pythonLibName)
+            if not os.path.isfile(pythonLibPath):
+                fileFound = False
+                # Search for python lib under lib path. Certain distributions
+                # such as Ubuntu store it in a subdirectory
+                for path, _, filenames in os.walk(pythonLibDir):
+                    for filename in filenames:
+                        if filename == pythonLibName:
+                            pythonLibPath = os.path.abspath(os.path.join(path, filename))
+                            fileFound = True
+                            break
+                    if fileFound:
+                        break
+                if not fileFound:
+                    return None
+            pythonIncludeDir = distutils.sysconfig.get_python_inc()
+        except:
+            return None
+    else:
+        try:
+            import distutils.sysconfig
 
-        pythonExecPath = None
-        pythonLibPath = None
+            pythonExecPath = None
+            pythonLibPath = None
 
-        pythonPrefix = distutils.sysconfig.PREFIX
-        if pythonPrefix:
-            pythonExecPath = os.path.join(pythonPrefix, 'bin', 'python')
-            pythonLibPath = os.path.join(pythonPrefix, 'lib', 'libpython2.7.dylib')
+            pythonPrefix = distutils.sysconfig.PREFIX
+            if pythonPrefix:
+                pythonExecPath = os.path.join(pythonPrefix, 'bin', 'python')
+                pythonLibPath = os.path.join(pythonPrefix, 'lib', 'libpython2.7.dylib')
 
-        pythonIncludeDir = distutils.sysconfig.get_python_inc()
-    except:
-        return None
+            pythonIncludeDir = distutils.sysconfig.get_python_inc()
+        except:
+            return None
 
     if pythonExecPath and pythonIncludeDir and pythonLibPath:
         # Ensure that the paths are absolute, since depending on the version of
@@ -193,7 +219,7 @@ def Run(cmd, logCommandOutput = True):
             p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, 
                                  stderr=subprocess.STDOUT)
             while True:
-                l = p.stdout.readline()
+                l = p.stdout.readline().decode('utf-8')
                 if l != "":
                     logfile.write(l)
                     PrintCommandOutput(l)
@@ -348,7 +374,7 @@ def DownloadFileWithPowershell(url, outputFilename):
     Run(cmd,logCommandOutput=False)
 
 def DownloadFileWithUrllib(url, outputFilename):
-    r = urllib2.urlopen(url)
+    r = urlopen(url)
     with open(outputFilename, "wb") as outfile:
         outfile.write(r.read())
 
@@ -524,7 +550,7 @@ ZLIB = Dependency("zlib", InstallZlib, "include/zlib.h")
 # boost
 
 if Linux():
-    BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.55.0/boost_1_55_0.tar.gz"
+    BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
     BOOST_VERSION_FILE = "include/boost/version.hpp"
 elif MacOS():
     BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.gz"
@@ -554,8 +580,18 @@ def InstallBoost(context, force, buildArgs):
     with CurrentWorkingDirectory(DownloadURL(BOOST_URL, context, force, 
                                              dontExtract)):
         bootstrap = "bootstrap.bat" if Windows() else "./bootstrap.sh"
-        Run('{bootstrap} --prefix="{instDir}"'
-            .format(bootstrap=bootstrap, instDir=context.instDir))
+        bootstrap_cmdline = '{bootstrap} --prefix="{instDir}"'.format(
+            bootstrap=bootstrap, instDir=context.instDir)
+
+        pythonInfo = None
+        if context.buildPython:
+            pythonInfo = GetPythonInfo()
+        if pythonInfo:
+            # set python executable to running interpreter
+            # (pyExec, pyLib, pyInc) = pythonInfo
+            pyExec = pythonInfo[0]
+            bootstrap_cmdline += ' --with-python="{pyExec}"'.format(pyExec=pyExec)
+        Run(bootstrap_cmdline)
 
         # b2 supports at most -j64 and will error if given a higher value.
         num_procs = min(64, context.numJobs)
@@ -1062,6 +1098,8 @@ def InstallUSD(context, force, buildArgs):
 
         if context.buildPython:
             extraArgs.append('-DPXR_ENABLE_PYTHON_SUPPORT=ON')
+            if sys.version[0] == '3':
+                extraArgs.append('-DPXR_PYTHON_MAJOR_3=ON')
 
             # CMake has trouble finding the executable, library, and include
             # directories when there are multiple versions of Python installed.
@@ -1527,6 +1565,7 @@ class InstallContext:
         # - usdview
         self.buildUsdview = (self.buildUsdImaging and 
                              self.buildPython and 
+                             sys.version[0] == '2' and
                              args.build_usdview)
 
         # - Imaging plugins
