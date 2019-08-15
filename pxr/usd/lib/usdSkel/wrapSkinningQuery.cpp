@@ -171,7 +171,14 @@ void wrapUsdSkelSkinningQuery()
             return_value_policy<return_by_value>())
         //-NV_CHANGE FRZHANG
 
+        // deprecated
         .def("GetMapper", &This::GetMapper,
+             return_value_policy<return_by_value>())
+
+        .def("GetJointMapper", &This::GetJointMapper,
+             return_value_policy<return_by_value>())
+
+        .def("GetBlendShapeMapper", &This::GetBlendShapeMapper,
              return_value_policy<return_by_value>())
 
         .def("GetJointOrder", &_GetJointOrder)
