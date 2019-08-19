@@ -608,6 +608,11 @@ pxr_register_test(testUsdCreateAttributeCpp
     EXPECTED_RETURN_CODE 0
 )
 
+pxr_register_test(testUsdHardToReach
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdHardToReach"
+    EXPECTED_RETURN_CODE 0
+)
+
 pxr_register_test(testUsdInstancing
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdInstancing"
@@ -618,6 +623,11 @@ pxr_register_test(testUsdInstancing
 pxr_register_test(testUsdInstanceProxy
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdInstanceProxy"
+    EXPECTED_RETURN_CODE 0
+)
+
+pxr_register_test(testUsdIntegerCoding
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdIntegerCoding"
     EXPECTED_RETURN_CODE 0
 )
 
@@ -839,6 +849,11 @@ pxr_register_test(testUsdSchemaRegistry
 pxr_register_test(testUsdUsdzFileFormat
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUsdzFileFormat"
+    EXPECTED_RETURN_CODE 0
+)
+
+pxr_register_test(testUsdUsdzResolver
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUsdzResolver"
     EXPECTED_RETURN_CODE 0
 )
 
