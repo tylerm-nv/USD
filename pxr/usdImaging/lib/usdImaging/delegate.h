@@ -583,6 +583,7 @@ protected:
     // If \p path is a prim path, changedPrimInfoFields will be populated
     // with the list of scene description fields that caused this prim to
     // be refreshed.
+    USDIMAGING_API
     void _RefreshUsdObject(SdfPath const& usdPath,
         TfTokenVector const& changedPrimInfoFields,
         UsdImagingIndexProxy* proxy,
