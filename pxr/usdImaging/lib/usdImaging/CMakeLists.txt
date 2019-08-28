@@ -81,7 +81,22 @@ pxr_build_test(testUsdImagingFastUpdates
         testenv/testUsdImagingFastUpdates.cpp
 )
 
+pxr_build_test(testUsdImagingPopulate_Perf
+    LIBRARIES
+        trace
+        hd
+        usd
+        usdImaging
+        usdUtils
+    CPPFILES
+        testenv/testUsdImagingPopulate_Perf.cpp
+)
+
 pxr_register_test(testUsdImagingFastUpdates
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdImagingFastUpdates"
+)
+
+pxr_register_test(testUsdImagingPopulate_Perf
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdImagingPopulate_Perf"
 )
 # nv end
