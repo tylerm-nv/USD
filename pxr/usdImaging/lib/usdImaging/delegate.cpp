@@ -293,66 +293,98 @@ UsdImagingDelegate::_GetHdPrimInfo(const SdfPath &cachePath)
 // Parallel Dispatch
 // -------------------------------------------------------------------------- //
 
+class UsdImagingDelegate::_Worker {
+public:
+    typedef std::vector<std::pair<SdfPath, int> > ResultVector;
 
+private:
+    struct _Task {
+        _Task() : delegate(nullptr) { }
+        _Task(UsdImagingDelegate* delegate_, const SdfPath& path_)
+            : delegate(delegate_)
+            , path(path_)
+        {
+        }
 
-void UsdImagingDelegate::_Worker::DisableValueCacheMutations() {
-    TF_FOR_ALL(it, _tasks) {
-        it->delegate->_valueCache.DisableMutation();
+        UsdImagingDelegate* delegate;
+        SdfPath path;
+    };
+    std::vector<_Task> _tasks;
+
+public:
+    _Worker()
+    {
     }
-}
 
-void UsdImagingDelegate::_Worker::EnableValueCacheMutations() {
-    TF_FOR_ALL(it, _tasks) {
-        it->delegate->_valueCache.EnableMutation();
+    void AddTask(UsdImagingDelegate* delegate, SdfPath const& cachePath) {
+        _tasks.push_back(_Task(delegate, cachePath));
     }
-}
 
-// Preps all tasks for parallel update.
-void UsdImagingDelegate::_Worker::UpdateVariabilityPrep() {
-    TF_FOR_ALL(it, _tasks) {
-        UsdImagingDelegate* delegate = it->delegate;
-        SdfPath const& cachePath = it->path;
+    size_t GetTaskCount() {
+        return _tasks.size();
+    }
 
-        _HdPrimInfo *primInfo = delegate->_GetHdPrimInfo(cachePath);
-        if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
-            _AdapterSharedPtr const& adapter = primInfo->adapter;
-            if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
-                adapter->TrackVariabilityPrep(primInfo->usdPrim, cachePath);
-            }
+    // Disables value cache mutations for all imaging delegates that have
+    // added tasks to this worker.
+    void DisableValueCacheMutations() {
+        TF_FOR_ALL(it, _tasks) {
+            it->delegate->_valueCache.DisableMutation();
         }
     }
-}
 
+    // Enables value cache mutations for all imaging delegates that have
+    // added tasks to this worker.
+    void EnableValueCacheMutations() {
+        TF_FOR_ALL(it, _tasks) {
+            it->delegate->_valueCache.EnableMutation();
+        }
+    }
 
-// Populates prim variability and initial state.
-// Used as a parallel callback method for use with WorkParallelForN.
-void UsdImagingDelegate::_Worker::UpdateVariability(size_t start, size_t end) {
-    for (size_t i = start; i < end; i++) {
-        UsdImagingDelegate* delegate = _tasks[i].delegate;
-        UsdImagingIndexProxy indexProxy(delegate, nullptr);
-        SdfPath const& cachePath = _tasks[i].path;
+    // Preps all tasks for parallel update.
+    void UpdateVariabilityPrep() {
+        TF_FOR_ALL(it, _tasks) {
+            UsdImagingDelegate* delegate = it->delegate;
+            SdfPath const& cachePath = it->path;
 
-        _HdPrimInfo *primInfo = delegate->_GetHdPrimInfo(cachePath);
-        if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
-            _AdapterSharedPtr const& adapter = primInfo->adapter;
-            if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
-                adapter->TrackVariability(primInfo->usdPrim,
-                                            cachePath,
-                                            &primInfo->timeVaryingBits);
-                if (primInfo->timeVaryingBits != HdChangeTracker::Clean) {
-                    adapter->MarkDirty(primInfo->usdPrim,
-                                        cachePath,
-                                        primInfo->timeVaryingBits,
-                                        &indexProxy);
+            _HdPrimInfo *primInfo = delegate->_GetHdPrimInfo(cachePath);
+            if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
+                _AdapterSharedPtr const& adapter = primInfo->adapter;
+                if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
+                    adapter->TrackVariabilityPrep(primInfo->usdPrim, cachePath);
                 }
             }
         }
     }
-}
 
-// Updates prim data on time change.
-// Used as a parallel callback method for use with WorkParallelForN.
-void UsdImagingDelegate::_Worker::UpdateForTime(size_t start, size_t end) {
+    // Populates prim variability and initial state.
+    // Used as a parallel callback method for use with WorkParallelForN.
+    void UpdateVariability(size_t start, size_t end) {
+        for (size_t i = start; i < end; i++) {
+            UsdImagingDelegate* delegate = _tasks[i].delegate;
+            UsdImagingIndexProxy indexProxy(delegate, nullptr);
+            SdfPath const& cachePath = _tasks[i].path;
+
+            _HdPrimInfo *primInfo = delegate->_GetHdPrimInfo(cachePath);
+            if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
+                _AdapterSharedPtr const& adapter = primInfo->adapter;
+                if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
+                    adapter->TrackVariability(primInfo->usdPrim,
+                                              cachePath,
+                                              &primInfo->timeVaryingBits);
+                    if (primInfo->timeVaryingBits != HdChangeTracker::Clean) {
+                        adapter->MarkDirty(primInfo->usdPrim,
+                                           cachePath,
+                                           primInfo->timeVaryingBits,
+                                           &indexProxy);
+                    }
+                }
+            }
+        }
+    }
+
+    // Updates prim data on time change.
+    // Used as a parallel callback method for use with WorkParallelForN.
+    void UpdateForTime(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
             UsdImagingDelegate* delegate = _tasks[i].delegate;
             UsdTimeCode const& time = delegate->_time;
@@ -367,12 +399,13 @@ void UsdImagingDelegate::_Worker::UpdateForTime(size_t start, size_t end) {
                                            time,
                                            primInfo->dirtyBits);
 
-                // Prim is now clean
-                primInfo->dirtyBits = 0;
+                    // Prim is now clean
+                    primInfo->dirtyBits = 0;
+                }
             }
         }
     }
-}
+};
 
 void 
 UsdImagingDelegate::_AddTask(
@@ -856,16 +889,27 @@ UsdImagingDelegate::ApplyPendingFastUpdates()
     std::vector<SdfFastUpdateList::FastUpdate> fastUpdates;
     std::swap(fastUpdates, _fastUpdates);
 
+    _RefreshObjectsForFastUpdates(fastUpdates, true);
+}
+
+void
+UsdImagingDelegate::_RefreshObjectsForFastUpdates(
+    const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
+    bool refreshVariability)
+{
     TfTokenVector dummyInfoFields;
 
     UsdImagingDelegate::_Worker worker;
     UsdImagingIndexProxy indexProxy(this, &worker);
 
     for (const auto &itr : fastUpdates) {
-        _RefreshUsdObject(itr.path, dummyInfoFields, &indexProxy);
+        _RefreshObject(itr.path, dummyInfoFields, &indexProxy);
     }
 
-    _ExecuteWorkForVariabilityUpdate(&worker);
+    if (refreshVariability) {
+        _ExecuteWorkForVariabilityUpdate(&worker);
+    }
+
 }
 // nv end
 
@@ -918,12 +962,12 @@ UsdImagingDelegate::ApplyPendingUpdates()
 
         for (SdfPath const& usdPath: usdPathsToResync) {
             if (usdPath.IsPropertyPath()) {
-                _RefreshUsdObject(usdPath, TfTokenVector(), &indexProxy);
+                _RefreshObject(usdPath, TfTokenVector(), &indexProxy);
             } else if (usdPath.IsTargetPath()) {
                 // TargetPaths are their own path type, when they change, resync
                 // the relationship at which they're rooted; i.e. per-target
                 // invalidation is not supported.
-                _RefreshUsdObject(usdPath.GetParentPath(), TfTokenVector(),
+                _RefreshObject(usdPath.GetParentPath(), TfTokenVector(),
                                &indexProxy);
             } else if (usdPath.IsAbsoluteRootOrPrimPath()) {
                 _ResyncUsdPrim(usdPath, &indexProxy);
@@ -948,7 +992,7 @@ UsdImagingDelegate::ApplyPendingUpdates()
             if (usdPath.IsPropertyPath() || usdPath.IsAbsoluteRootOrPrimPath()){
                 // Note that changedPrimInfoFields will be empty if the
                 // path is a property path.
-                _RefreshUsdObject(usdPath, changedPrimInfoFields, &indexProxy);
+                _RefreshObject(usdPath, changedPrimInfoFields, &indexProxy);
 
                 // If any objects were removed as a result of the refresh (if it
                 // internally decided to resync), they must be ejected now,
@@ -1316,7 +1360,7 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
 }
 
 void 
-UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath, 
+UsdImagingDelegate::_RefreshObject(SdfPath const& usdPath, 
                                       TfTokenVector const& changedInfoFields,
                                       UsdImagingIndexProxy* proxy,
                                       bool checkVariability)

@@ -176,14 +176,13 @@ public:
     UsdImagingPrimAdapterSharedPtr GetMaterialAdapter(
         UsdPrim const& materialPrim);
 
+private:
+    friend class UsdImagingDelegate;
     UsdImagingIndexProxy(UsdImagingDelegate* delegate,
-        UsdImagingDelegate::_Worker* worker)
+                            UsdImagingDelegate::_Worker* worker) 
         : _delegate(delegate)
         , _worker(worker)
     {}
-
-private:
-    friend class UsdImagingDelegate;
 
     SdfPathVector const& _GetUsdPathsToRepopulate() {
         return _usdPathsToRepopulate;
