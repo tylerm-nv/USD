@@ -57,12 +57,28 @@ SdfLayerHandleVector
 SdfNotice::BaseLayersDidChange::GetLayers() const
 {
     SdfLayerHandleVector layers;
-    layers.reserve(_map->size());
-    TF_FOR_ALL(i, *_map) {
-        // XXX:bug 20833 It should be ok to return expired layers here.
-        if (i->first)
-            layers.push_back(i->first);
+    // #nv begin #fast-updates
+    size_t layerCount = (_map && !_map->empty()) ? _map->size() : 0;
+    if (layerCount == 0 && _fastUpdates) {
+        layerCount = _fastUpdates->size();
     }
+    layers.reserve(layerCount);
+
+    if (_map) {
+        TF_FOR_ALL(i, *_map) {
+            // XXX:bug 20833 It should be ok to return expired layers here.
+            if (i->first)
+                layers.push_back(i->first);
+        }
+    }
+    if (_fastUpdates) {
+        TF_FOR_ALL(i, *_fastUpdates) {
+            // XXX:bug 20833 It should be ok to return expired layers here.
+            if (i->first)
+                layers.push_back(i->first);
+        }
+    }
+    // nv end
     return layers;
 }
 
@@ -75,7 +91,7 @@ SdfNotice::BaseLayersDidChange::GetChangeListMap() const {
 }
 
 const SdfLayerFastUpdatesMap &
-SdfNotice::LayersDidChangeSentPerLayer::GetFastUpdates() const
+SdfNotice::BaseLayersDidChange::GetFastUpdates() const
 {
     static SdfLayerFastUpdatesMap emptyFastUpdatesMap;
     return _fastUpdates ? *_fastUpdates : emptyFastUpdatesMap;
