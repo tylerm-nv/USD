@@ -42,13 +42,25 @@ if(PXR_ENABLE_PYTHON_SUPPORT)
     if(PXR_PYTHON_MAJOR_3)
         find_package(PythonInterp 3.0 REQUIRED)
         find_package(PythonLibs 3.0 REQUIRED)
+        # depending on the version of boost, it may be something like "python3" or "python36"
+        find_package(Boost REQUIRED)
+        if(Boost_VERSION LESS 106700)
+            set(BOOST_PYTHON_COMPONENT_NAME "python3")
+        else()
+            set(BOOST_PYTHON_COMPONENT_NAME "python${PYTHON_VERSION_NODOT}")
+        endif()
     else()
         # We are generally but not completely 2.6 compliant.
         find_package(PythonInterp 2.7 REQUIRED)
         find_package(PythonLibs 2.7 REQUIRED)
+        # depending on the version of boost, it may be something like "python" or "python27"
+        find_package(Boost REQUIRED)
+        if(Boost_VERSION LESS 106700)
+            set(BOOST_PYTHON_COMPONENT_NAME "python")
+        else()
+            set(BOOST_PYTHON_COMPONENT_NAME "python${PYTHON_VERSION_NODOT}")
+        endif()
     endif()
-
-    set(BOOST_PYTHON_COMPONENT_NAME "python${PYTHON_VERSION_NODOT}")
 
     # --Boost
     find_package(Boost
@@ -58,7 +70,12 @@ if(PXR_ENABLE_PYTHON_SUPPORT)
         REQUIRED
     )
 
-    set(Boost_PYTHON_LIBRARY "${Boost_PYTHON${PYTHON_VERSION_NODOT}_LIBRARY}")
+    # variable names are different depending on version of boost
+    if(Boost_PYTHON3_LIBRARY)
+        set(Boost_PYTHON_LIBRARY "${Boost_PYTHON3_LIBRARY}")
+    else()
+        set(Boost_PYTHON_LIBRARY "${Boost_PYTHON${PYTHON_VERSION_NODOT}_LIBRARY}")
+    endif()
 
     # --Jinja2
     find_package(Jinja2)
