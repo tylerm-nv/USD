@@ -73,7 +73,7 @@ if(PXR_ENABLE_PYTHON_SUPPORT)
     # variable names are different depending on version of boost
     if(Boost_PYTHON3_LIBRARY)
         set(Boost_PYTHON_LIBRARY "${Boost_PYTHON3_LIBRARY}")
-    else()
+    elseif(NOT Boost_PYTHON_LIBRARY)
         set(Boost_PYTHON_LIBRARY "${Boost_PYTHON${PYTHON_VERSION_NODOT}_LIBRARY}")
     endif()
 
