@@ -903,7 +903,7 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     UsdImagingIndexProxy indexProxy(this, &worker);
 
     for (const auto &itr : fastUpdates) {
-        _RefreshObject(itr.path, dummyInfoFields, &indexProxy);
+        _RefreshObject(itr.path, dummyInfoFields, &indexProxy, refreshVariability);
     }
 
     if (refreshVariability) {
