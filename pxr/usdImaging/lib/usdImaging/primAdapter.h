@@ -570,6 +570,14 @@ protected:
     USDIMAGING_API
     bool _DoesDelegateSupportCoordSys() const;
 
+    //+NV_CHANGE FRZHANG
+    USDIMAGING_API
+    bool _UseNVGPUSkinningComputations() const;
+
+    USDIMAGING_API
+    bool _ShouldGenerateJointMesh() const;
+    //-NV_CHANGE FRZHANG
+
     // Conversion functions between usd and hydra enums.
     USDIMAGING_API
     static HdInterpolation _UsdToHdInterpolation(TfToken const& usdInterp);

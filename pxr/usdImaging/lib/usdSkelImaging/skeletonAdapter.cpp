@@ -97,11 +97,6 @@ TF_DEFINE_PRIVATE_TOKENS(
 TF_DEFINE_ENV_SETTING(USDSKELIMAGING_FORCE_CPU_COMPUTE, 0,
     "Use Hydra ExtCPU computations for skinning.");
 
-//+NV_CHANGE FRZHANG : usd nv gpuskinning instead of hydra skinning compute.
-TF_DEFINE_ENV_SETTING(USDSKELIMAGING_FORCE_NVGPUSKINNING, 0,
-    "Use NVIDIA GPUSKining computations for skinning.");
-//-NV_CHANGE FRZHANG
-
 TF_REGISTRY_FUNCTION(TfType)
 {
     using Adapter = UsdSkelImagingSkeletonAdapter;
@@ -109,15 +104,6 @@ TF_REGISTRY_FUNCTION(TfType)
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
 
-//+NV_CHANGE FRZHANG
-static bool
-_IsNVGPUSkinningComputations()
-{
-    static bool enabled
-        = (TfGetEnvSetting(USDSKELIMAGING_FORCE_NVGPUSKINNING) == 1);
-    return enabled;
-}
-//-NV_CHANGE FRZHANG
 // XXX: Temporary way to force CPU comps. Ideally, this is a render delegate
 // opinion, or should be handled in Hydra ExtComputation.
 static bool
@@ -125,9 +111,6 @@ _IsEnabledCPUComputations()
 {
     static bool enabled
         = (TfGetEnvSetting(USDSKELIMAGING_FORCE_CPU_COMPUTE) == 1);
-    //+NV_CHANGE FRZHANG
-    enabled = enabled && !_IsNVGPUSkinningComputations();
-    //-NV_CHANGE FRZHANG
     return enabled;
 }
 
@@ -136,9 +119,6 @@ _IsEnabledAggregatorComputation()
 {
     // XXX: Aggregated comps don't work with CPU comps yet.
     static bool enabled = !_IsEnabledCPUComputations();
-    //+NV_CHANGE FRZHANG
-    enabled = enabled && !_IsNVGPUSkinningComputations();
-    //-NV_CHANGE FRZHANG
     return enabled;
 }
 
@@ -182,7 +162,7 @@ UsdSkelImagingSkeletonAdapter::Populate(
         SdfPath instancer = instancerContext ?
             instancerContext->instancerCachePath : SdfPath();
         //+NV_CHANGE FRZHANG
-        if (!_IsNVGPUSkinningComputations())
+        if (_ShouldGenerateJointMesh())
         {
             //-NV_CHANGE FRZHANG
                // Insert mesh prim to visualize the bone mesh for the skeleton.
@@ -225,7 +205,7 @@ UsdSkelImagingSkeletonAdapter::Populate(
 
             //+NV_CHANGE FRZHANG : skip adding Sprim for the hydra skinning computation.
             affectedSkinnedPrimPath.insert(skinnedPrimPath);
-            if (_IsNVGPUSkinningComputations())
+            if (_UseNVGPUSkinningComputations())
             {     
                 continue;
             }
@@ -450,7 +430,7 @@ UsdSkelImagingSkeletonAdapter::ProcessPropertyChange(
             }
 
             //+NV_CHANGE FRZHANG
-            if (_IsNVGPUSkinningComputations())
+            if (_UseNVGPUSkinningComputations())
             {
                 dirtyBits |= HdChangeTracker::NV_DirtySkinningBinding;
             }
@@ -461,7 +441,7 @@ UsdSkelImagingSkeletonAdapter::ProcessPropertyChange(
     }
 
     //+NV_CHANGE FRZHANG
-    if(_IsNVGPUSkinningComputations() && _IsSkelAnimPrimPath(cachePath)){
+    if(_UseNVGPUSkinningComputations() && _IsSkelAnimPrimPath(cachePath)){
         if (propertyName == UsdSkelTokens->translations
             || propertyName == UsdSkelTokens->rotations
             || propertyName == UsdSkelTokens->scales
@@ -563,7 +543,6 @@ UsdSkelImagingSkeletonAdapter::GetPrimResyncRootPath(SdfPath const& primPath)
     return primPath;
 }
 //-NV_CHANGE FRZHANG 
-//-NV_CHANGE FRZHANG
 
 void
 UsdSkelImagingSkeletonAdapter::MarkDirty(const UsdPrim& prim,
@@ -587,18 +566,25 @@ UsdSkelImagingSkeletonAdapter::MarkDirty(const UsdPrim& prim,
         if (dirty & HdChangeTracker::DirtyTransform ||
             dirty & HdChangeTracker::DirtyPrimvar) {
           
-            TF_DEBUG(USDIMAGING_COMPUTATIONS).Msg(
-                "[SkeletonAdapter::MarkDirty] Propagating dirtyness from "
-                "skinned prim %s to its computations\n", cachePath.GetText());
-            
-            index->MarkSprimDirty(_GetSkinningComputationPath(cachePath),
-                HdExtComputation::DirtySceneInput);
+            //+NV_CHANGE FRZHANG : skip adding Sprim for the hydra skinning computation.
+            if (!_UseNVGPUSkinningComputations())
+            //-NV_CHANGE FRZHANG : skip adding Sprim for the hydra skinning computation.
+            {
 
-            if (_IsEnabledAggregatorComputation()) {
-                index->MarkSprimDirty(
-                    _GetSkinningInputAggregatorComputationPath(cachePath),
+                TF_DEBUG(USDIMAGING_COMPUTATIONS).Msg(
+                    "[SkeletonAdapter::MarkDirty] Propagating dirtyness from "
+                    "skinned prim %s to its computations\n", cachePath.GetText());
+
+                index->MarkSprimDirty(_GetSkinningComputationPath(cachePath),
                     HdExtComputation::DirtySceneInput);
+
+                if (_IsEnabledAggregatorComputation()) {
+                    index->MarkSprimDirty(
+                        _GetSkinningInputAggregatorComputationPath(cachePath),
+                        HdExtComputation::DirtySceneInput);
+                }
             }
+
         }
 
     } else if (_IsSkinningComputationPath(cachePath) ||
@@ -613,7 +599,7 @@ UsdSkelImagingSkeletonAdapter::MarkDirty(const UsdPrim& prim,
 
     }
     //+NV_CHANGE_FRZHANG
-    else if (_IsNVGPUSkinningComputations() && _IsSkelAnimPrimPath(cachePath))
+    else if (_UseNVGPUSkinningComputations() && _IsSkelAnimPrimPath(cachePath))
     {
         if (dirty & HdChangeTracker::NV_DirtySkelAnimXform)
         {
@@ -1305,7 +1291,11 @@ UsdSkelImagingSkeletonAdapter::_RemoveSkinnedPrimAndComputations(
     index->RemoveSprim(HdPrimTypeTokens->extComputation, compPath);
     index->RemoveHdPrimInfo(compPath);
     
-    if (_IsEnabledAggregatorComputation()) {
+    if (_IsEnabledAggregatorComputation() 
+        //+NV_CHANGE FRZHANG
+        && !_UseNVGPUSkinningComputations()
+        //-NV_CHANGE FRZHANG
+        ) {
         SdfPath aggrCompPath =
             _GetSkinningInputAggregatorComputationPath(cachePath);
         index->RemoveSprim(HdPrimTypeTokens->extComputation, aggrCompPath);
@@ -1586,6 +1576,10 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinningComputationForTime(
         "skinnedPrim path: <%s> , computation path: <%s>\n",
         skinnedPrim.GetPath().GetText(),
         computationPath.GetText());
+
+    //+NV_CHANGE FRZHANG
+    TF_VERIFY(!_UseNVGPUSkinningComputations());
+    //-NV_CHANGE FRZHANG
 
     UsdImagingValueCache* valueCache = _GetValueCache();
 
@@ -1875,6 +1869,10 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinningInputAggregatorComputationForTime(
         skinnedPrim.GetPath().GetText(),
         computationPath.GetText());
 
+    //+NV_CHANGE FRZHANG
+    TF_VERIFY(!_UseNVGPUSkinningComputations());
+    //-NV_CHANGE FRZHANG
+
     // Note: We expect this to run only when the skeleton prim is added/resync'd
     UsdImagingValueCache* valueCache = _GetValueCache();
 
@@ -2073,7 +2071,7 @@ UsdSkelImagingSkeletonAdapter::_TrackSkinnedPrimVariability(
     if (_IsAffectedByTimeVaryingSkelAnim(cachePath)) {
         //+NV_CHANGE FRZHANG : dirty the skelXform instead of points in nv gpu skinning.
         //(*timeVaryingBits) |= HdChangeTracker::DirtyPoints;
-        if (_IsNVGPUSkinningComputations())
+        if (_UseNVGPUSkinningComputations())
         {
             (*timeVaryingBits) |= HdChangeTracker::NV_DirtySkelAnimXform;
         }
@@ -2108,7 +2106,7 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
     // Register points as a computed primvar on the skinned prim.
     if ((requestedBits & HdChangeTracker::DirtyPoints)
         //+NV_CHANGE FRZHANG
-        && !_IsNVGPUSkinningComputations()
+        && !_UseNVGPUSkinningComputations()
         //-NV_CHANGE FRZHANG
         ) {
         UsdImagingValueCache* valueCache = _GetValueCache();
@@ -2152,7 +2150,7 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
         time, requestedBits, instancerContext);
 
     //+NV_CHANGE FRZHANG : nv gpu skinning input update.
-    if (_IsNVGPUSkinningComputations())
+    if (_UseNVGPUSkinningComputations())
     {
         auto meshAdapter = boost::dynamic_pointer_cast<
             UsdImagingMeshAdapter> (adapter);

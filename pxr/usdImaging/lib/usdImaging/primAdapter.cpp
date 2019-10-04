@@ -658,6 +658,20 @@ UsdImagingPrimAdapter::_DoesDelegateSupportCoordSys() const
     return _delegate->_coordSysEnabled;
 }
 
+//+NV_CHANGE FRZHANG
+bool
+UsdImagingPrimAdapter::_UseNVGPUSkinningComputations() const
+{
+    return _delegate->UseNVGPUSkinningComputations();
+} 
+
+bool
+UsdImagingPrimAdapter::_ShouldGenerateJointMesh() const
+{
+    return _delegate->ShouldGenerateJointMesh();
+}
+//-NV_CHANGE FRZHANG
+
 bool 
 UsdImagingPrimAdapter::_IsVarying(UsdPrim prim,
                                   TfToken const& attrName, 

@@ -85,8 +85,8 @@ PXR_NAMESPACE_OPEN_SCOPE
     (nonperiodic)                               \
     (normals)                                   \
 	/*NV_CHANGE FRZHANG*/						\
-	(skinningBinding)							\
-	(skelAnimXforms)							\
+	(NVGPUSkinning)							    \
+	(generateJointMesh)							\
 	/*_NV_CHANGE FRZHANG*/						\
     (params)                                    \
     (patchParam)                                \

@@ -2534,6 +2534,26 @@ UsdImagingDelegate::Get(SdfPath const& id, TfToken const& key)
 
 //+NV_CHANGE FRZHANG  : GPU SKinning value fetch
 /*virtual*/
+bool UsdImagingDelegate::UseNVGPUSkinningComputations()
+{
+    if (GetRenderIndex().GetRenderDelegate())
+    {
+        return GetRenderIndex().GetRenderDelegate()->GetRenderSetting<bool>(HdTokens->NVGPUSkinning, false);
+    }
+    return HdSceneDelegate::UseNVGPUSkinningComputations();
+}
+
+/*virtual*/
+bool UsdImagingDelegate::ShouldGenerateJointMesh()
+{
+    if (GetRenderIndex().GetRenderDelegate())
+    {
+        return GetRenderIndex().GetRenderDelegate()->GetRenderSetting<bool>(HdTokens->generateJointMesh, true);
+    }
+    return HdSceneDelegate::ShouldGenerateJointMesh();
+}
+
+/*virtual*/
 bool UsdImagingDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform)
 {
 	SdfPath usdPath = ConvertIndexPathToCachePath(id);
