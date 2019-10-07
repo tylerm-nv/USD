@@ -32,6 +32,13 @@
 #include "pxr/usd/usdShade/material.h"
 #include "pxr/usd/usdShade/shader.h"
 
+// #nv begin #new-MDL-schema
+#include "pxr/usd/ar/resolver.h"
+#include "pxr/usd/sdr/registry.h"
+#include "pxr/usd/sdr/shaderNode.h"
+#include "pxr/usd/sdr/shaderProperty.h"
+// #nv end
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 TF_REGISTRY_FUNCTION(TfType)
@@ -40,6 +47,52 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType t = TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
+
+// #nv begin #new-MDL-schema
+// Code mostly taken and modified from 
+//   https://github.com/PixarAnimationStudios/USD/commit/8d5b5cb2537ea753e4612fa279f80af4db14daea#diff-689043832c982d6e538e9fc97a42ab76R50
+// So likely it will be available in future USD release.
+static void
+_GetShaderNodeForSourceTypeFallbackNV(
+    UsdShadeShader const& shader,
+    TfToken const& networkSelector,
+    TfToken* identifier,
+    TfToken* subIdentifier)
+{
+    TfToken implSource = shader.GetImplementationSource();
+
+    if (implSource == UsdShadeTokens->id) {
+        TfToken shaderId;
+
+        if (shader.GetShaderId(&shaderId)) {
+            auto &shaderReg = SdrRegistry::GetInstance();
+            if (SdrShaderNodeConstPtr sdrNode = 
+                    shaderReg.GetShaderNodeByIdentifierAndType(shaderId, 
+                        networkSelector)) {
+                *identifier = TfToken(sdrNode->GetSourceURI());
+            }
+        }
+    } else if (implSource == UsdShadeTokens->sourceAsset) {
+        SdfAssetPath sourceAsset;
+        if (shader.GetSourceAsset(&sourceAsset, networkSelector)) {
+            std::string path = sourceAsset.GetResolvedPath();
+            if (path.empty()) {
+                path = ArGetResolver().Resolve(sourceAsset.GetAssetPath());
+            }
+            if (path.empty()) {
+                path = sourceAsset.GetAssetPath();
+            }
+            *identifier = TfToken(path);
+        }
+        shader.GetSourceAssetSubIdentifier(subIdentifier, networkSelector);
+    } else if (implSource == UsdShadeTokens->sourceCode) {
+        std::string sourceCode;
+        if (shader.GetSourceCode(&sourceCode, networkSelector)) {
+            *identifier = TfToken(sourceCode);
+        }
+    }  
+}
+// #nv end
 
 UsdImagingMaterialAdapter::~UsdImagingMaterialAdapter()
 {
@@ -220,6 +273,9 @@ void _ExtractPrimvarsFromNode(UsdShadeShader const & shadeNode,
 static
 void _WalkGraph(UsdShadeShader const & shadeNode, 
                HdMaterialNetwork *materialNetwork,
+// #nv begin #new-MDL-schema               
+               TfToken const& networkSelector,
+// #nv end               
                const TfTokenVector &shaderSourceTypes)
 {
     // Store the path of the node
@@ -252,7 +308,9 @@ void _WalkGraph(UsdShadeShader const & shadeNode,
             // part of the shading node graph.
             if (sourceType == UsdShadeAttributeType::Output) {
                 UsdShadeShader connectedNode(source);
-                _WalkGraph(connectedNode, materialNetwork, shaderSourceTypes);
+// #nv begin #new-MDL-schema                
+                _WalkGraph(connectedNode, materialNetwork, networkSelector, shaderSourceTypes);
+// #nv end                
             }
         }
     }
@@ -277,7 +335,16 @@ void _WalkGraph(UsdShadeShader const & shadeNode,
         // optimize what what is needed from a prim when making data 
         // accessible for renderers.
         _ExtractPrimvarsFromNode(shadeNode, node, materialNetwork);
-    } else {
+    } 
+
+ // #nv begin #new-MDL-schema   
+    if (node.identifier.IsEmpty()) {
+        _GetShaderNodeForSourceTypeFallbackNV(
+            shadeNode, networkSelector, &node.identifier, &node.subIdentifier);
+    }  
+// #nv end
+
+    if (node.identifier.IsEmpty()) {
         TF_WARN("UsdShade Shader without an id: %s.", node.path.GetText());
         node.identifier = TfToken("PbsNetworkMaterialStandIn_2");
     }
@@ -336,10 +403,16 @@ UsdImagingMaterialAdapter::_GetMaterialNetworkMap(UsdPrim const &usdPrim,
     const TfToken context = _GetMaterialNetworkSelector();
     if (UsdShadeShader s = material.ComputeSurfaceSource(context)) {
         _WalkGraph(s, &materialNetworkMap->map[UsdImagingTokens->bxdf],
+// #nv begin #new-MDL-schema        
+                  context, 
+// #nv end                  
                   _GetShaderSourceTypes());
     }
     if (UsdShadeShader d = material.ComputeDisplacementSource(context)) {
         _WalkGraph(d, &materialNetworkMap->map[UsdImagingTokens->displacement],
+// #nv begin #new-MDL-schema
+                  context, 
+// #nv end
                   _GetShaderSourceTypes());
     }
 }
