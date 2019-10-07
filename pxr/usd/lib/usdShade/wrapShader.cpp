@@ -160,6 +160,19 @@ _WrapGetSourceAsset(const UsdShadeShader &shader,
     return object();
 }
 
+// #nv begin #new-MDL-schema
+static object 
+_WrapGetSourceAssetSubIdentifier(const UsdShadeShader &shader,
+                    const TfToken &sourceType)
+{
+    TfToken subIdentifier;
+    if (shader.GetSourceAssetSubIdentifier(&subIdentifier, sourceType)) {
+        return object(subIdentifier);
+    }
+    return object();
+}
+// #nv end
+
 static object 
 _WrapGetSourceCode(const UsdShadeShader &shader,
                    const TfToken &sourceType)
@@ -183,6 +196,11 @@ WRAP_CUSTOM {
         .def("SetSourceAsset", &UsdShadeShader::SetSourceAsset,
             (arg("sourceAsset"), 
              arg("sourceType")=UsdShadeTokens->universalSourceType))
+// #nv begin #new-MDL-schema
+        .def("SetSourceAssetSubIdentifier", &UsdShadeShader::SetSourceAssetSubIdentifier,
+            (arg("sourceAssetSubIdentifier"), 
+             arg("sourceType")=UsdShadeTokens->universalSourceType))
+// #nv end
         .def("SetSourceCode", &UsdShadeShader::SetSourceCode,
             (arg("sourceCode"), 
              arg("sourceType")=UsdShadeTokens->universalSourceType))
@@ -190,6 +208,10 @@ WRAP_CUSTOM {
         .def("GetShaderId", _WrapGetShaderId)
         .def("GetSourceAsset", _WrapGetSourceAsset, 
              arg("sourceType")=UsdShadeTokens->universalSourceType)
+// #nv begin #new-MDL-schema
+        .def("GetSourceAssetSubIdentifier", _WrapGetSourceAssetSubIdentifier, 
+             arg("sourceType")=UsdShadeTokens->universalSourceType)
+// #nv end
         .def("GetSourceCode", _WrapGetSourceCode, 
              arg("sourceType")=UsdShadeTokens->universalSourceType)
 

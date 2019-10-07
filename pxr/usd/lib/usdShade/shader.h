@@ -429,6 +429,35 @@ public:
         SdfAssetPath *sourceAsset,
         const TfToken &sourceType=UsdShadeTokens->universalSourceType) const;
 
+// #nv begin #new-MDL-schema
+    /// Sets the shader's source-asset-subIdentifier token value to 
+    /// \p sourceAssetSubIdentifier for the given source type, \p sourceType.
+    USDSHADE_API
+    bool SetSourceAssetSubIdentifier(
+        const TfToken &sourceAssetSubIdentifier,
+        const TfToken &sourceType=UsdShadeTokens->universalSourceType) const;
+
+    /// Fetches the shader's source asset value for the specified 
+    /// \p sourceAssetSubIdentifier value from the 
+    /// <b>info:<i>sourceType:</i>sourceAsset:subIdentifier</b> attribute, 
+    /// if the shader's <i>info:implementationSource</i> is <b>sourceAsset</b>. 
+    /// 
+    /// If the <i>sourceAssetSubIdentifier</i> attribute corresponding to the 
+    /// requested <i>sourceType</i> isn't present on the shader, then the 
+    /// <i>universal</i> <i>fallback</i> sourceAsset attribute, i.e. 
+    /// <i>info:sourceAssetSubIdentifier</i> is consulted, if present, to get
+    ///  the source asset path.
+    /// 
+    /// Returns <b>true</b> if source asset subIdentifier value was fetched 
+    /// successfully into \p sourceAsset. Returns false otherwise.
+    /// 
+    /// \sa GetImplementationSource()
+    USDSHADE_API
+    bool GetSourceAssetSubIdentifier(
+        TfToken *sourceAssetSubIdentifier,
+        const TfToken &sourceType=UsdShadeTokens->universalSourceType) const;
+// #nv end
+
     /// Sets the shader's source-code value to \p sourceCode for the given 
     /// source type, \p sourceType.
     /// 
