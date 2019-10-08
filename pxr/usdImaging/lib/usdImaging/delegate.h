@@ -333,6 +333,17 @@ public:
 	USDIMAGING_API
 	const UsdImagingValueCache& ValueCache() const { return _valueCache; }
 
+    //+NV_CHANGE FRZHANG
+    //If use NV_GPUSkinning computation path, in this case don't generate usd's skinning computation sprim.
+    //Caution if you want to set this value in render delegate's RenderSettings, please do this before scene populate at the beging of the app.
+    //we're not support dynamically change this flag.
+    USDIMAGING_API
+    virtual bool UseNVGPUSkinningComputations() override;
+    //If don't generate joint mesh in skeletonAdaptor, in this case don't generate usd hydra's jointmesh Rprim.
+    //Caution if you want to set this value in render delegate's RenderSettings, please do this before scene populate at the beging of the app.
+    //we're not support dynamically change this flag.
+    USDIMAGING_API
+    virtual bool ShouldGenerateJointMesh() override;
 
 	USDIMAGING_API
 	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform) override;

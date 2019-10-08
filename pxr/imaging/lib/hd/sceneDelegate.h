@@ -397,6 +397,10 @@ public:
     virtual VtArray<TfToken> GetCategories(SdfPath const& id);
 
 	//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+    HD_API
+    virtual bool UseNVGPUSkinningComputations();
+    HD_API
+    virtual bool ShouldGenerateJointMesh();
 	HD_API
 	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform);
 	HD_API
