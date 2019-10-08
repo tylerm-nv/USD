@@ -1219,9 +1219,15 @@ UsdSkelImagingSkeletonAdapter::_UpdateBoneMeshForTime(
             HdPrimvarRoleTokens->point);
 
         valueCache->GetColor(cachePath) =
-            _GetSkeletonDisplayColor(prim, time);
+            //+NV_CHANGE FRZHANG : displaycolor should be Vec3fArray
+            //_GetSkeletonDisplayColor(prim, time);
+            VtVec3fArray(1,_GetSkeletonDisplayColor(prim, time));
+            //_NV_CHANGE FRZHANG
         valueCache->GetOpacity(cachePath) =
-            _GetSkeletonDisplayOpacity(prim, time);
+            //+NV_CHANGE FRZHANG : displayopacity should be VtFloatArray
+            //_GetSkeletonDisplayOpacity(prim, time);
+            VtFloatArray(1,_GetSkeletonDisplayOpacity(prim, time));
+            //-NV_CHANGE FRZHANG
 
         _MergePrimvar(&valueCache->GetPrimvars(cachePath),
             HdTokens->displayColor,
