@@ -184,7 +184,8 @@ _TestSdfFieldDataAccess()
     auto layer = SdfLayer::CreateAnonymous();
     auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     auto attr = SdfAttributeSpec::New(prim, "dummyAttr", SdfValueTypeNames->Double);
-    auto specId = SdfAbstractDataSpecId(&attr->GetPath());
+    auto attrPath = attr->GetPath();
+    auto specId = SdfAbstractDataSpecId(&attrPath);
     auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     {
@@ -218,7 +219,8 @@ _TestSdfFieldDataAccess()
     layer = SdfLayer::CreateAnonymous();
     prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     attr = SdfAttributeSpec::New(prim, "dummyAttr", SdfValueTypeNames->Double);
-    specId = SdfAbstractDataSpecId(&attr->GetPath());
+    attrPath = attr->GetPath();
+    specId = SdfAbstractDataSpecId(&attrPath);
     fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->TimeSamples);
     TF_AXIOM(fieldHandle);
     SdfBatchNamespaceEdit nsEdits;
