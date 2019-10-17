@@ -208,6 +208,8 @@ if(PXR_ENABLE_OSL_SUPPORT)
     find_package(OSL REQUIRED)
 endif()
 
+find_package(MdlSdk REQUIRED)
+
 # ----------------------------------------------
 
 set(BUILD_SHARED_LIBS "${build_shared_libs}")
