@@ -77,6 +77,7 @@ pxr_build_test(testUsdImagingFastUpdates
         hd
         usd
         usdImaging
+        ${GLEW_LIBRARY}
     CPPFILES
         testenv/testUsdImagingFastUpdates.cpp
 )
@@ -88,6 +89,7 @@ pxr_build_test(testUsdImagingPopulate_Perf
         usd
         usdImaging
         usdUtils
+        ${GLEW_LIBRARY}
     CPPFILES
         testenv/testUsdImagingPopulate_Perf.cpp
 )

@@ -527,7 +527,8 @@ void TestFastUpdates(const std::string &fileExtension)
     auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     auto attrName = "dummyAttr";
     auto attr = SdfAttributeSpec::New(prim, attrName, SdfValueTypeNames->Double);
-    auto specId = SdfAbstractDataSpecId(&attr->GetPath());
+    auto attrPath = attr->GetPath();
+    auto specId = SdfAbstractDataSpecId(&attrPath);
     auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     auto stage = UsdStage::Open(layer);
@@ -599,7 +600,8 @@ void TestFastUpdates(const std::string &fileExtension)
     TF_AXIOM(classPrim);
     prim->GetInheritPathList().Prepend(classPrim->GetPath());
     attr = SdfAttributeSpec::New(classPrim, attrName, SdfValueTypeNames->Double);
-    specId = SdfAbstractDataSpecId(&attr->GetPath());
+    attrPath = attr->GetPath();
+    specId = SdfAbstractDataSpecId(&attrPath);
     fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     stage->CheckFieldForCompositionDependents(layer, fieldHandle);
