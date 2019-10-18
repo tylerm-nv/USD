@@ -595,7 +595,6 @@ public:
     VtValue GetField(const SdfPath& path,
                      const TfToken& fieldName) const;
 
-<<<<<<< HEAD
     // #nv begin #fast-updates
     SDF_API
     VtValue GetField(const SdfAbstractDataFieldAccessHandle &fieldHandle) const;
@@ -607,10 +606,7 @@ public:
     void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle);
     // nv end
 
-    /// Return the value for the given \a id and \a fieldName. Returns the
-=======
     /// Return the value for the given \a path and \a fieldName. Returns the
->>>>>>> v19.11-rc2
     /// provided \a defaultValue value if none is set.
     template <class T>
     inline T GetFieldAs(const SdfPath& path, 
@@ -643,15 +639,7 @@ public:
     void SetField(const SdfPath& path, const TfToken& fieldName,
         const SdfAbstractDataConstValue& value);
 
-<<<<<<< HEAD
-	SDF_API
-	void SetFields(VtArray<SdfAbstractDataSpecId*> ids, const TfToken& fieldName,
-		VtArray<const SdfAbstractDataConstValue*> values);
-
-    /// Set the value of the given \a id and \a fieldName.
-=======
     /// Set the value of the given \a path and \a fieldName.
->>>>>>> v19.11-rc2
     template <class T>
     void SetField(const SdfPath& path, const TfToken& fieldName, 
         const T& val) 
@@ -709,64 +697,6 @@ public:
                                   const TfToken& fieldName,
                                   const TfToken& keyPath);
 
-<<<<<<< HEAD
-    /// Convenience API that takes an SdfPath instead of an
-    /// SdfAbstractDataSpecId. See documentation above for details.
-    SDF_API
-    SdfSpecType GetSpecType(const SdfPath& path) const;
-    SDF_API
-    bool HasSpec(const SdfPath& path) const;
-
-    SDF_API
-    std::vector<TfToken> ListFields(const SdfPath& path) const;
-
-    template <class T>
-    bool HasField(const SdfPath& path,
-                  const TfToken& fieldName, T* value) const;
-    SDF_API
-    bool HasField(const SdfPath& path, const TfToken& fieldName) const;
-
-    std::type_info const &GetFieldTypeid(
-        const SdfPath &path, const TfToken &fieldName) const {
-        SdfAbstractDataSpecId specId(&path);
-        return GetFieldTypeid(specId, fieldName);
-    }
-
-    template <class T>
-    bool HasFieldDictKey(const SdfPath& path, const TfToken& fieldName,
-                         const TfToken &keyPath, T* value) const;
-    SDF_API
-    bool HasFieldDictKey(const SdfPath& path, const TfToken& fieldName,
-                         const TfToken &keyPath) const;
-
-    SDF_API
-    VtValue GetField(const SdfPath& path, const TfToken& fieldName) const;
-    SDF_API
-    VtValue GetFieldDictValueByKey(
-        const SdfPath& path, const TfToken& fieldName,
-        const TfToken &keyPath) const;
-
-    template <class T>
-    T GetFieldAs(const SdfPath& path, const TfToken& fieldName, 
-                 const T& defaultValue = T()) const;
-
-    template <class T>
-    void SetField(const SdfPath& path, const TfToken& fieldName, const T& val);
-	//template <class T>
-	//void SetFields(VtArray<SdfPath> path, const TfToken& fieldName, VtArray<T> val);
-
-    template <class T>
-    void SetFieldDictValueByKey(const SdfPath& path, const TfToken& fieldName,
-                                const TfToken &keyPath, const T& val);
-
-    SDF_API
-    void EraseField(const SdfPath& path, const TfToken& fieldName);
-    SDF_API
-    void EraseFieldDictValueByKey(const SdfPath& path, const TfToken& fieldName,
-                                  const TfToken &keyPath);
-
-=======
->>>>>>> v19.11-rc2
     /// \name Traversal
     /// @{
 
@@ -1678,13 +1608,6 @@ private:
                        bool useDelegate = true,
                        bool fastUpdates = false);
     // nv end
-
-	template <class T>
-	void _PrimSetFields(VtArray<SdfAbstractDataSpecId*> ids,
-						const TfToken& fieldName,
-						VtArray<const T*> values,
-						VtArray<VtValue> oldValues,
-						bool useDelegate = true);
 
     // Inverse primitive for setting a single key in a dict-valued field.
     template <class T>

@@ -63,7 +63,7 @@ SdfData::EraseSpec(const SdfPath &path)
     _data.erase(i);
 
     // #nv begin #fast-updates
-    _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(id.GetFullSpecPath());
+    _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(path);
     if (fieldItr != _fieldHandles.end())
         _fieldHandles.erase(fieldItr);
     // nv end
@@ -85,7 +85,7 @@ SdfData::MoveSpec(const SdfPath &oldPath,
     _data.erase(old);
 
     // #nv begin #fast-updates
-    _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(oldId.GetFullSpecPath());
+    _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(oldPath);
     if (fieldItr != _fieldHandles.end())
         _fieldHandles.erase(fieldItr);
     // nv end
@@ -245,12 +245,10 @@ SdfData::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName)
 {
     TfAutoMallocTag2 tag("Sdf", "SdfData::CreateFieldHandle");
 
-    SdfAbstractDataSpecId id(&path);
-
-    VtValue *vtVal = _GetOrCreateFieldValue(id, fieldName);
+    VtValue *vtVal = _GetOrCreateFieldValue(path, fieldName);
 
     // Get existing handle if possible.
-    _AllFieldHandleHashTable::iterator allItr = _fieldHandles.find(id.GetFullSpecPath());
+    _AllFieldHandleHashTable::iterator allItr = _fieldHandles.find(path);
     if (allItr != _fieldHandles.end()) {
         _SpecFieldHandleHashTable::iterator specItr = allItr->second.find(fieldName);
         if (specItr != allItr->second.end()) {
@@ -258,7 +256,7 @@ SdfData::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName)
         }
     }
     _FieldHandleData *fieldHandle = new _FieldHandleData(path, fieldName, vtVal);
-    _fieldHandles[id.GetFullSpecPath()][fieldName] = TfCreateRefPtr(fieldHandle);
+    _fieldHandles[path][fieldName] = TfCreateRefPtr(fieldHandle);
     return TfCreateWeakPtr(fieldHandle);
 }
 
@@ -360,7 +358,7 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
 
     if (fieldsData != spec.fields.data()) {
         // The spec's vector of fields has moved, so we need to refresh affected live field handles.
-        _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+        _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[path];
         for (size_t j = 0, jEnd = spec.fields.size(); j != jEnd; ++j) {
             _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(spec.fields[j].first);
             if (fieldHandleItr != specFieldHandles.end()) {
@@ -390,7 +388,7 @@ SdfData::Erase(const SdfPath &path, const TfToken & field)
     }
 
     // Remove field handle if found.
-    _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+    _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[path];
     _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(field);
     if (fieldHandleItr != specFieldHandles.end()) {
         specFieldHandles.erase(fieldHandleItr);

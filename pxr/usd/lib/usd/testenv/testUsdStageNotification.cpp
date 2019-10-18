@@ -528,7 +528,6 @@ void TestFastUpdates(const std::string &fileExtension)
     auto attrName = "dummyAttr";
     auto attr = SdfAttributeSpec::New(prim, attrName, SdfValueTypeNames->Double);
     auto attrPath = attr->GetPath();
-    auto specId = SdfAbstractDataSpecId(&attrPath);
     auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     auto stage = UsdStage::Open(layer);
@@ -566,14 +565,13 @@ void TestFastUpdates(const std::string &fileExtension)
         // Retrieving the new value should get the same result regardless of whether it
         // goes through the faster field handle codepath or not.
         TF_AXIOM(layer->GetField(fieldHandle) == doubleVal);
-        TF_AXIOM(layer->GetField(specId, SdfFieldKeys->Default) == doubleVal);
+        TF_AXIOM(layer->GetField(attrPath, SdfFieldKeys->Default) == doubleVal);
 
         // There should be no spec for the referencing prim's attr, as it has no explicitly authored value.
         TF_AXIOM(!layer->GetAttributeAtPath(refAttrPath));
 
         // There should be no value for the referencing prim's attr, as it has no explicitly authored value.
-        auto refSpecId = SdfAbstractDataSpecId(&refAttrPath);
-        TF_AXIOM(layer->GetField(refSpecId, SdfFieldKeys->Default).IsEmpty());
+        TF_AXIOM(layer->GetField(refAttrPath, SdfFieldKeys->Default).IsEmpty());
 
         // The composed value of the referencing prim's attr should match the newly authored value.
         VtValue getVal;
@@ -601,7 +599,6 @@ void TestFastUpdates(const std::string &fileExtension)
     prim->GetInheritPathList().Prepend(classPrim->GetPath());
     attr = SdfAttributeSpec::New(classPrim, attrName, SdfValueTypeNames->Double);
     attrPath = attr->GetPath();
-    specId = SdfAbstractDataSpecId(&attrPath);
     fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     stage->CheckFieldForCompositionDependents(layer, fieldHandle);

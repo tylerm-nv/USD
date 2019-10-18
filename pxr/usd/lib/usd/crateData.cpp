@@ -277,7 +277,7 @@ public:
         }
 
         // #nv begin #fast-updates
-        _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(id.GetFullSpecPath());
+        _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(path);
         if (fieldItr != _fieldHandles.end())
             _fieldHandles.erase(fieldItr);
         // nv end
@@ -321,7 +321,7 @@ public:
         }
 
         // #nv begin #fast-updates
-        _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(oldId.GetFullSpecPath());
+        _AllFieldHandleHashTable::iterator fieldItr = _fieldHandles.find(oldPath);
         if (fieldItr != _fieldHandles.end())
             _fieldHandles.erase(fieldItr);
         // nv end
@@ -596,7 +596,7 @@ public:
         }
         // If the spec's vector of fields has moved, we need to refresh affected live field handles.
         if (fieldData != fields.data()) {
-            _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+            _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[path];
             for (size_t j = 0, jEnd = fields.size(); j != jEnd; ++j) {
                 _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(fields[j].first);
                 if (fieldHandleItr != specFieldHandles.end()) {
@@ -657,32 +657,25 @@ public:
 
     inline void Erase(const SdfPath& path, const TfToken & field) {
         _hashData ?
-<<<<<<< HEAD
-            _EraseHelper(*_hashData, id, field) :
-            _EraseHelper(_flatData, id, field);
+            _EraseHelper(*_hashData, path, field) :
+            _EraseHelper(_flatData, path, field);
 
         // #nv begin #fast-updates
         // Remove field handle if found.
-        _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[id.GetFullSpecPath()];
+        _SpecFieldHandleHashTable &specFieldHandles = _fieldHandles[path];
         _SpecFieldHandleHashTable::iterator fieldHandleItr = specFieldHandles.find(field);
         if (fieldHandleItr != specFieldHandles.end()) {
             specFieldHandles.erase(fieldHandleItr);
         }
         // nv end
-=======
-            _EraseHelper(*_hashData, path, field) :
-            _EraseHelper(_flatData, path, field);
->>>>>>> v19.11-rc2
     }
 
     // #nv begin #fast-updates
     inline SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName) {
         TfAutoMallocTag tag("Usd_CrateDataImpl::CreateFieldHandle");
 
-        auto id = SdfAbstractDataSpecId(&path);
-
         // Get existing handle if possible.
-        _AllFieldHandleHashTable::iterator allItr = _fieldHandles.find(id.GetFullSpecPath());
+        _AllFieldHandleHashTable::iterator allItr = _fieldHandles.find(path);
         if (allItr != _fieldHandles.end()) {
             _SpecFieldHandleHashTable::iterator specItr = allItr->second.find(fieldName);
             if (specItr != allItr->second.end()) {
@@ -691,17 +684,17 @@ public:
         }
 
         // Get existing location if available.
-        VtValue *fieldValLocation = _GetMutableFieldValue(id, fieldName);
+        VtValue *fieldValLocation = _GetMutableFieldValue(path, fieldName);
         if (!fieldValLocation) {
             // If there is no existing location, make one with an empty value.
             VtValue value = (fieldName == SdfFieldKeys->TimeSamples) ? VtValue(TimeSamples()) : VtValue();
             _hashData ?
-                _SetHelper(*_hashData, id, _hashLastSet, fieldName, value, &fieldValLocation) :
-                _SetHelper(_flatData, id, _flatLastSet, fieldName, value, &fieldValLocation);
+                _SetHelper(*_hashData, path, _hashLastSet, fieldName, value, &fieldValLocation) :
+                _SetHelper(_flatData, path, _flatLastSet, fieldName, value, &fieldValLocation);
         }
 
         _FieldHandleData *fieldHandle = new _FieldHandleData(path, fieldName, fieldValLocation);
-        _fieldHandles[id.GetFullSpecPath()][fieldName] = TfCreateRefPtr(fieldHandle);
+        _fieldHandles[path][fieldName] = TfCreateRefPtr(fieldHandle);
         return TfCreateWeakPtr(fieldHandle);
     }
 
@@ -1285,7 +1278,7 @@ private:
                 for (auto fieldsByName : specsByName.second) {
                     auto &fieldHandle = fieldsByName.second;
                     fieldHandle->vtValue =
-                        _GetMutableFieldValue(fieldHandle->GetSpecId(), fieldHandle->GetFieldName());
+                        _GetMutableFieldValue(fieldHandle->GetPath(), fieldHandle->GetFieldName());
                 }
             }
             // nv end

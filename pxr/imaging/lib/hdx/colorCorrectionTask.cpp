@@ -99,19 +99,13 @@ HdxColorCorrectionTask::~HdxColorCorrectionTask()
             _shaderProgram.reset();
         }
 
-<<<<<<< HEAD
-        if (_framebuffer != 0) {
-            glDeleteFramebuffers(1, &_framebuffer);
+        if (_copyFramebuffer != 0) {
+            glDeleteFramebuffers(1, &_copyFramebuffer);
         }
-=======
-    if (_copyFramebuffer != 0) {
-        glDeleteFramebuffers(1, &_copyFramebuffer);
-    }
 
-    if (_aovFramebuffer != 0) {
-        glDeleteFramebuffers(1, &_aovFramebuffer);
-    }
->>>>>>> v19.11-rc2
+        if (_aovFramebuffer != 0) {
+            glDeleteFramebuffers(1, &_aovFramebuffer);
+        }
 
         GLF_POST_PENDING_GL_ERRORS();
     }

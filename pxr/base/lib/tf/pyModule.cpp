@@ -127,13 +127,8 @@ private:
             for (size_t i = 0; i < lenItems; ++i) {
                 object value = items[i][1];
                 if (!visitedObjs->count(value.ptr())) {
-<<<<<<< HEAD
                     const std::string name = PyString_AsStdString(object(items[i][0]).ptr());
-                    bool keepGoing = callback(name.c_str(), obj, value);
-=======
-                    char const *name = PyString_AS_STRING(object(items[i][0]).ptr());
-                    bool keepGoing = (this->*callback)(name, obj, value);
->>>>>>> v19.11-rc2
+                    bool keepGoing = (this->*callback)(name.c_str(), obj, value);
                     visitedObjs->insert(value.ptr());
                     if (IsBoostPythonClass(value) && keepGoing) {
                         _WalkModule(value, callback, visitedObjs);

@@ -180,7 +180,6 @@ _TestSdfRelationshipTargetSpecEdits()
     TF_AXIOM(!layer->GetObjectAtPath(SdfPath("/Foo.rel[/Target]")));
 }
 
-<<<<<<< HEAD
 // #nv begin #fast-updates
 static void
 _TestSdfFieldDataAccess()
@@ -190,7 +189,6 @@ _TestSdfFieldDataAccess()
     auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     auto attr = SdfAttributeSpec::New(prim, "dummyAttr", SdfValueTypeNames->Double);
     auto attrPath = attr->GetPath();
-    auto specId = SdfAbstractDataSpecId(&attrPath);
     auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     {
@@ -204,14 +202,14 @@ _TestSdfFieldDataAccess()
     layer->SetField(fieldHandle, doubleVal);
     TF_AXIOM(layer->GetField(fieldHandle) == doubleVal);
     TF_AXIOM(layer->GetField(fieldHandle) ==
-        layer->GetField(specId, SdfFieldKeys->Default));
+        layer->GetField(attrPath, SdfFieldKeys->Default));
     doubleVal = VtValue(-7.6);
-    layer->SetField(specId, SdfFieldKeys->Default, doubleVal);
+    layer->SetField(attrPath, SdfFieldKeys->Default, doubleVal);
     TF_AXIOM(layer->GetField(fieldHandle) == doubleVal);
-    TF_AXIOM(layer->GetField(fieldHandle) == layer->GetField(specId, SdfFieldKeys->Default));
+    TF_AXIOM(layer->GetField(fieldHandle) == layer->GetField(attrPath, SdfFieldKeys->Default));
 
     // Field handle should go invalid if the underlying field is erased.
-    layer->SetField(specId, SdfFieldKeys->Default, VtValue());
+    layer->SetField(attrPath, SdfFieldKeys->Default, VtValue());
     TF_AXIOM(!fieldHandle);
 
     // Field handle should go invalid when the layer is deleted.
@@ -225,12 +223,11 @@ _TestSdfFieldDataAccess()
     prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     attr = SdfAttributeSpec::New(prim, "dummyAttr", SdfValueTypeNames->Double);
     attrPath = attr->GetPath();
-    specId = SdfAbstractDataSpecId(&attrPath);
     fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->TimeSamples);
     TF_AXIOM(fieldHandle);
     SdfBatchNamespaceEdit nsEdits;
     TfToken renamedDummyAttrToken("renamedDummyAttr");
-    nsEdits.Add(SdfNamespaceEdit::Rename(specId.GetFullSpecPath(), renamedDummyAttrToken));
+    nsEdits.Add(SdfNamespaceEdit::Rename(attrPath, renamedDummyAttrToken));
     TF_AXIOM(layer->CanApply(nsEdits));
     layer->Apply(nsEdits);
     TF_AXIOM(!fieldHandle);
@@ -280,7 +277,7 @@ _TestSdfFieldDataAccess()
     }
 }
 // nv end
-=======
+
 static void
 _TestSdfPathFindLongestPrefix()
 {
@@ -389,7 +386,6 @@ _TestSdfPathFindLongestPrefix()
     TF_AXIOM(SdfPathFindLongestStrictPrefix(
                  pathMap, SdfPath("/qix"))->first == SdfPath("/"));
 }
->>>>>>> v19.11-rc2
 
 int
 main(int argc, char **argv)

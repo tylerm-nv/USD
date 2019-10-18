@@ -54,14 +54,9 @@ SdfLayerStateDelegateBase::SetField(
     const VtValue *oldValue,
     bool fastUpdates)
 {
-<<<<<<< HEAD
-    _OnSetField(id, field, value);
-    _layer->_PrimSetField(id, field, value, oldValue, /* useDelegate = */ false, fastUpdates);
-=======
     _OnSetField(path, field, value);
     _layer->_PrimSetField(
-        path, field, value, oldValue, /* useDelegate = */ false);
->>>>>>> v19.11-rc2
+        path, field, value, oldValue, /* useDelegate = */ false, fastUpdates);
 }
 // nv end
 

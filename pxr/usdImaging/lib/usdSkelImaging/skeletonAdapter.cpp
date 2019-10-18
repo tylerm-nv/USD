@@ -190,12 +190,6 @@ UsdSkelImagingSkeletonAdapter::Populate(
         UsdSkelBinding const& binding = bindingIt->second;
         _SkelData* skelData = _GetSkelData(skelPath);
 
-<<<<<<< HEAD
-        for (UsdSkelSkinningQuery const& query : binding.GetSkinningTargets()) {
-
-            if (!query.HasBlendShapes() && !query.HasJointInfluences()) {
-                continue;
-=======
         // Find the path to the skel root from the first skinning target
         // (all bindings reference the same SkelRoot).
         // TODO: Would be more efficient to have the SkelRootAdapter directly
@@ -207,7 +201,6 @@ UsdSkelImagingSkeletonAdapter::Populate(
                     binding.GetSkinningTargets().front().GetPrim())) {
                 skelRootPath = skelRoot.GetPrim().GetPath();
                 skelData->skelRootPaths.insert(skelRootPath);
->>>>>>> v19.11-rc2
             }
         }
 
@@ -276,7 +269,7 @@ UsdSkelImagingSkeletonAdapter::Populate(
         }
         else
         {
-            index->AddHdPrimInfo(animPath, animQuery.GetPrim(), shared_from_this());
+            index->_AddHdPrimInfo(animPath, animQuery.GetPrim(), shared_from_this());
         }
         _skelAnimMap[animPath][skelPath] = affectedSkinnedPrimPath;
     }
@@ -1674,17 +1667,10 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinningComputationForTime(
                 });
             SdfPath skinnedPrimPath =
                 UsdImagingGprimAdapter::_ResolveCachePath(
-<<<<<<< HEAD
-                    skinnedPrim.GetPath(), instancerContext);
-            SdfPath aggrCompId =
-                _GetSkinningInputAggregatorComputationPath(skinnedPrimPath);
-
-=======
                             skinnedPrim.GetPath(), instancerContext);
             SdfPath renderIndexAggrCompId = _ConvertCachePathToIndexPath(
                 _GetSkinningInputAggregatorComputationPath(skinnedPrimPath));
             
->>>>>>> v19.11-rc2
             HdExtComputationInputDescriptorVector compInputDescs;
             for (auto const& input : compInputNames) {
                 compInputDescs.emplace_back(
@@ -2171,15 +2157,6 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
 
         HdExtComputationPrimvarDescriptorVector compPrimvars;
         compPrimvars.emplace_back(
-<<<<<<< HEAD
-            HdTokens->points,
-            HdInterpolationVertex,
-            HdPrimvarRoleTokens->point,
-            _GetSkinningComputationPath(skinnedPrimPath),
-            _tokens->skinnedPoints,
-            pointsType);
-
-=======
                         HdTokens->points,
                         HdInterpolationVertex,
                         HdPrimvarRoleTokens->point,
@@ -2188,7 +2165,6 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
                         _tokens->skinnedPoints,
                         pointsType);
         
->>>>>>> v19.11-rc2
         // Overwrite the entire entry (i.e., don't use emplace_back)
         computedPrimvarsEntry = compPrimvars;
     }
@@ -2437,12 +2413,6 @@ UsdSkelImagingSkeletonAdapter::_SkinnedPrimData::_SkinnedPrimData(
     : skelPath(skelQuery.GetPrim().GetPath()),
       skelRootPath(skelRootPath)
 {
-<<<<<<< HEAD
-
-    skelPath = skelQuery.GetPrim().GetPath();
-
-=======
->>>>>>> v19.11-rc2
     hasJointInfluences = skinningQuery.HasJointInfluences();
     if (hasJointInfluences) {
         if (skinningQuery.GetJointMapper()) {

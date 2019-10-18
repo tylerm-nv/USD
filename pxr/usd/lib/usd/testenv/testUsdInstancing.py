@@ -277,13 +277,8 @@ class TestUsdInstancing(unittest.TestCase):
              '/World/sets/Set_1/Prop_3', 
              '/__Master_2', '/__Master_3'])
 
-<<<<<<< HEAD
         print("-" * 60)
-        print("Readd inherit arc from referenced prop")
-=======
-        print "-" * 60
-        print "Re-add inherit arc from referenced prop"
->>>>>>> v19.11-rc2
+        print("Re-add inherit arc from referenced prop")
         propSpec.inheritPathList.Add('/_class_Prop')
 
         ValidateExpectedInstances(s, 
@@ -431,13 +426,8 @@ class TestUsdInstancing(unittest.TestCase):
             ['/__Master_1/Prop_1', '/__Master_1/Prop_2', '/__Master_1/Prop_3', 
              '/__Master_3', '/__Master_4',])
 
-<<<<<<< HEAD
         print("-" * 60)
-        print("Readd inherit arc from referenced prop")
-=======
-        print "-" * 60
-        print "Re-add inherit arc from referenced prop"
->>>>>>> v19.11-rc2
+        print("Re-add inherit arc from referenced prop")
         propSpec.inheritPathList.Add('/_class_Prop')
 
         ValidateExpectedInstances(s, 
@@ -574,25 +564,8 @@ class TestUsdInstancing(unittest.TestCase):
               '/__Master_2': ['/ModelGroup_1', '/ModelGroup_2'] })
         ValidateExpectedChanges(nl, ['/ModelGroup_2'])
 
-<<<<<<< HEAD
-        print("-" * 60)
-        print("Unloading nested instance in ModelGroup")
-        group_1.GetMaster().GetChild('Model').Unload()
-
-        ValidateExpectedInstances(s, 
-            { '/__Master_1': ['/Model_2'],
-              '/__Master_2': ['/ModelGroup_1', '/ModelGroup_2'] })
-        # XXX: This seems like a bug. Unloading the nested model in the master
-        # should result in a resync of the master path:
-        # ValidateExpectedChanges(nl, ['/__Master_2/Model'])
-        ValidateExpectedChanges(nl, ['/ModelGroup_1/Model'])
-
         print("-" * 60)
         print("Unloading instance /ModelGroup_1")
-=======
-        print "-" * 60
-        print "Unloading instance /ModelGroup_1"
->>>>>>> v19.11-rc2
         group_1.Unload()
 
         ValidateExpectedInstances(s, 

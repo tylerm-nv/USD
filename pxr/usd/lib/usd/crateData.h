@@ -74,8 +74,7 @@ public:
                      const SdfAbstractDataConstValue& value);
     virtual void Erase(const SdfPath& path, 
                        const TfToken& fieldName);
-<<<<<<< HEAD
-    virtual std::vector<TfToken> List(const SdfAbstractDataSpecId& id) const;
+    virtual std::vector<TfToken> List(const SdfPath& path) const;
 
     // #nv begin #fast-updates
     virtual SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
@@ -86,9 +85,6 @@ public:
 
     virtual bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const;
     // nv end
-=======
-    virtual std::vector<TfToken> List(const SdfPath& path) const;
->>>>>>> v19.11-rc2
     
     /// \name Time-sample API
     /// @{

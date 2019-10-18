@@ -127,12 +127,6 @@ protected:
 private:
     void _GetMeshTopology(UsdPrim const& prim, VtValue* topoHolder, 
             UsdTimeCode time) const;
-<<<<<<< HEAD
-    void _GetSubdivTags(UsdPrim const& prim, SubdivTags* tags, 
-            UsdTimeCode time) const ;
-
-=======
->>>>>>> v19.11-rc2
 };
 
 

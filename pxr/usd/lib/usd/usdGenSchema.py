@@ -54,10 +54,10 @@ class _Printer():
     def __PrintImpl(self, stream, *args):
         if len(args):
             for arg in args[:-1]:
-                print >>stream, arg,
-            print >>stream, args[-1]
+                print(arg, file=stream, end='')
+            print(args[-1], file=stream)
         else:
-             print >>stream, '\n'
+             print('\n', file=stream)
 
     def __call__(self, *args):
         if not self._quiet:
@@ -254,11 +254,7 @@ class PropInfo(object):
         self.apiName    = self.customData.get('apiName', self.name)
         self.apiGet     = self.customData.get('apiGetImplementation', self.CodeGen.Generated)
         if self.apiGet not in [self.CodeGen.Generated, self.CodeGen.Custom]:
-<<<<<<< HEAD
-            print(("Token '%s' is not valid." % self.apiGet))
-=======
             Print.Err("Token '%s' is not valid." % self.apiGet)
->>>>>>> v19.11-rc2
         self.rawName    = sdfProp.name
         self.doc        = _SanitizeDoc(sdfProp.documentation, '\n    /// ')
         self.custom     = sdfProp.custom
@@ -536,16 +532,6 @@ def _ValidateFields(spec):
 
     for key in invalidFields:
         if key == Sdf.RelationshipSpec.TargetsKey:
-<<<<<<< HEAD
-            print(("ERROR: Relationship targets on <%s> cannot be specified "
-                   "in a schema." % spec.path))
-        elif key == Sdf.AttributeSpec.ConnectionPathsKey:
-            print(("ERROR: Attribute connections on <%s> cannot be specified "
-                   "in a schema." % spec.path))
-        else:
-            print(("ERROR: Fallback values for '%s' on <%s> cannot be "
-                   "specified in a schema." % (key, spec.path)))
-=======
             Print.Err("ERROR: Relationship targets on <%s> cannot be "
                       "specified in a schema." % spec.path)
         elif key == Sdf.AttributeSpec.ConnectionPathsKey:
@@ -554,7 +540,6 @@ def _ValidateFields(spec):
         else:
             Print.Err("ERROR: Fallback values for '%s' on <%s> cannot be "
                       "specified in a schema." % (key, spec.path))
->>>>>>> v19.11-rc2
     return False
 
 def GetClassInfo(classes, cppClassName):
@@ -719,29 +704,13 @@ def _WriteFile(filePath, content, validate):
     if os.path.exists(filePath):
         existingContent = open(filePath, 'r').read()
         if existingContent == content:
-<<<<<<< HEAD
-            print('\tunchanged %s' % filePath)
-=======
             Print('\tunchanged %s' % filePath)
->>>>>>> v19.11-rc2
             return
 
         # In validation mode, we just want to see if the code being generated
         # would differ from the code that currently exists without writing
         # anything out. So just generate a diff and bail out immediately.
         if validate:
-<<<<<<< HEAD
-            print('Diff: ')
-            print('\n'.join(difflib.unified_diff(existingContent.split('\n'),
-                                                 content.split('\n'))))
-            print ('Error: validation failed, diffs found. '
-                   'Please rerun usdGenSchema.')
-            sys.exit(1)
-    else:
-        if validate:
-            print(('Error: validation failed, file %s does not exist. '
-                   'Please rerun usdGenSchema.' % os.path.basename(filePath)))
-=======
             Print('Diff: ')
             Print('\n'.join(difflib.unified_diff(
                                 existingContent.split('\n'),
@@ -754,22 +723,15 @@ def _WriteFile(filePath, content, validate):
             Print.Err('Error: validation failed, file %s does not exist. '
                       'Please rerun %s.' % 
                       (os.path.basename(filePath), PROGRAM_NAME))
->>>>>>> v19.11-rc2
             sys.exit(1)
 
     # Otherwise attempt to write to file.
     try:
         with open(filePath, 'w') as curfile:
             curfile.write(content)
-<<<<<<< HEAD
-            print('\t    wrote %s' % filePath)
-    except IOError as ioe:
-        print('\t', ioe)
-=======
             Print('\t    wrote %s' % filePath)
     except IOError as ioe:
         Print.Err('\t ', ioe)
->>>>>>> v19.11-rc2
 
 def _ExtractCustomCode(filePath, default=None):
     defaultTxt = default if default else ''
@@ -786,11 +748,7 @@ def _ExtractCustomCode(filePath, default=None):
             return parts[1]
                 
     except Exception as e:
-<<<<<<< HEAD
-        print(e)
-=======
         Print.Err(e)
->>>>>>> v19.11-rc2
         return defaultTxt
 
 
@@ -891,11 +849,7 @@ def GenerateCode(templatePath, codeGenPath, tokenData, classes, validate,
     #
     # Load Templates
     #
-<<<<<<< HEAD
-    print('Loading Templates from {0}'.format(templatePath))
-=======
     Print('Loading Templates from {0}'.format(templatePath))
->>>>>>> v19.11-rc2
     try:
         apiTemplate = env.get_template('api.h')
         headerTemplate = env.get_template('schemaClass.h')
@@ -912,21 +866,13 @@ def GenerateCode(templatePath, codeGenPath, tokenData, classes, validate,
                            .format(tse.filename, tse.lineno, tse.message))
 
     if useExportAPI:
-<<<<<<< HEAD
-        print('Writing API:')
-=======
         Print('Writing API:')
->>>>>>> v19.11-rc2
         _WriteFile(os.path.join(codeGenPath, 'api.h'),
                    apiTemplate.render(),
                    validate)
     
     if tokenData:
-<<<<<<< HEAD
-        print('Writing Schema Tokens:')
-=======
         Print('Writing Schema Tokens:')
->>>>>>> v19.11-rc2
         # tokens.h
         _WriteFile(os.path.join(codeGenPath, 'tokens.h'),
                    tokensHTemplate.render(tokens=tokenData), validate)
@@ -940,11 +886,7 @@ def GenerateCode(templatePath, codeGenPath, tokenData, classes, validate,
     #
     # Generate Schema Class Files
     #
-<<<<<<< HEAD
-    print('Generating Classes:')
-=======
     Print('Generating Classes:')
->>>>>>> v19.11-rc2
 
             
     for cls in classes:
@@ -997,21 +939,13 @@ def GenerateCode(templatePath, codeGenPath, tokenData, classes, validate,
             try:
                 info = json.loads(''.join(infoLines))
             except ValueError as ve:
-<<<<<<< HEAD
-                print('\t', ve, 'reading', plugInfoFile)
-=======
                 Print.Err('\t', 'reading', plugInfoFile)
->>>>>>> v19.11-rc2
         else:
             # use plugInfo.json template as starting point for new files,
             try:
                 info = json.loads(plugInfoTemplate.render())
             except ValueError as ve:
-<<<<<<< HEAD
-                print('\t', ve, 'from template', plugInfoTemplate.filename)
-=======
                 Print.Err('\t', ve, 'from template', plugInfoTemplate.filename)
->>>>>>> v19.11-rc2
 
         # pull the types dictionary.
         if 'Plugins' in info:
@@ -1022,13 +956,8 @@ def GenerateCode(templatePath, codeGenPath, tokenData, classes, validate,
                              .setdefault('Types', {}))
                     break
             else:
-<<<<<<< HEAD
-                print('\t', 'Could not find plugin metadata section for ', \
-                    env.globals['libraryName'])
-=======
                 Print.Err('\t', 'Could not find plugin metadata section for',
                           env.globals['libraryName'])
->>>>>>> v19.11-rc2
         else:
             types = info.setdefault('Types', {})
         # remove auto-generated types.
@@ -1120,11 +1049,7 @@ def GenerateRegistry(codeGenPath, filePath, classes, validate, env):
     pathsToDelete = []
     primsToKeep = set(cls.usdPrimTypeName for cls in classes)
     if not flatStage.RemovePrim('/GLOBAL'):
-<<<<<<< HEAD
-        print("WARNING: Could not remove GLOBAL prim.")
-=======
         Print.Err("ERROR: Could not remove GLOBAL prim.")
->>>>>>> v19.11-rc2
     allAppliedAPISchemas = []
     allMultipleApplyAPISchemas = []
     for p in flatStage.GetPseudoRoot().GetAllChildren():
@@ -1160,11 +1085,7 @@ def GenerateRegistry(codeGenPath, filePath, classes, validate, env):
     #
     # Generate Schematics
     #
-<<<<<<< HEAD
-    print('Generating Schematics:')
-=======
     Print('Generating Schematics:')
->>>>>>> v19.11-rc2
     layerSource = flatLayer.ExportToString()
 
     # Remove doxygen tags from schema registry docs.
@@ -1276,17 +1197,6 @@ if __name__ == '__main__':
     # Error Checking
     #
     if not os.path.isfile(schemaPath):
-<<<<<<< HEAD
-        print('Usage Error: First positional argument must be a USD schema file.')
-        parser.print_help()
-        sys.exit(1)
-    if not os.path.isdir(codeGenPath):
-        print('Usage Error: Second positional argument must be a directory to contain generated code.')
-        parser.print_help()
-        sys.exit(1)
-    if args.templatePath and not os.path.isdir(templatePath):
-        print('Usage Error: templatePath argument must be the path to the codegenTemplates.')
-=======
         Print.Err('Usage Error: First positional argument must be a USD schema file.')
         parser.print_help()
         sys.exit(1)
@@ -1296,7 +1206,6 @@ if __name__ == '__main__':
         sys.exit(1)
     if args.templatePath and not os.path.isdir(templatePath):
         Print.Err('Usage Error: templatePath argument must be the path to the codegenTemplates.')
->>>>>>> v19.11-rc2
         parser.print_help()
         sys.exit(1)
 
@@ -1319,17 +1228,10 @@ if __name__ == '__main__':
         tokenData = GatherTokens(classes, libName, libTokens)
         
         if args.validate:
-<<<<<<< HEAD
-            print('Validation on, any diffs found will cause failure.')
-
-        print('Processing schema classes:') 
-        print(', '.join([self.usdPrimTypeName for self in classes]))
-=======
             Print('Validation on, any diffs found will cause failure.')
 
         Print('Processing schema classes:')
         Print(', '.join(map(lambda self: self.usdPrimTypeName, classes)))
->>>>>>> v19.11-rc2
 
         #
         # Generate Code from Templates
@@ -1356,9 +1258,5 @@ if __name__ == '__main__':
                          args.validate, j2_env)
     
     except Exception as e:
-<<<<<<< HEAD
-        print("ERROR:", str(e))
-=======
         Print.Err("ERROR:", str(e))
->>>>>>> v19.11-rc2
         sys.exit(1)

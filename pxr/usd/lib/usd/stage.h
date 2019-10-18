@@ -1523,11 +1523,6 @@ public:
     USD_API
     std::vector<UsdPrim> GetMasters() const;
 
-    USD_API
-    bool SetValues(UsdTimeCode time, VtArray<UsdAttribute>& attrs,
-        VtArray<const SdfAbstractDataConstValue *>& newValues);
-
-
     /// @}
 
 private:
@@ -1626,18 +1621,6 @@ private:
     // Value & Metadata Authoring
     // --------------------------------------------------------------------- //
 
-<<<<<<< HEAD
-    bool _SetValue(UsdTimeCode time, const UsdAttribute &attr,
-                   const VtValue &newValue);
-    bool _SetValue(UsdTimeCode time, const UsdAttribute &attr,
-                   const SdfAbstractDataConstValue &newValue);
-    
-    template <class T>
-    bool _SetValueImpl(UsdTimeCode time, const UsdAttribute &attr, const T& value);
-    template <class T>
-    bool _SetValuesImpl(UsdTimeCode time, VtArray<UsdAttribute>& attrs, 
-                       VtArray<const T*>& values);
-=======
     template <class T>
     bool _SetValue(
         UsdTimeCode time, const UsdAttribute &attr, const T &newValue);
@@ -1651,7 +1634,6 @@ private:
     template <class T>
     bool _SetValueImpl(
         UsdTimeCode time, const UsdAttribute &attr, const T& value);
->>>>>>> v19.11-rc2
 
     bool _ClearValue(UsdTimeCode time, const UsdAttribute &attr);
 

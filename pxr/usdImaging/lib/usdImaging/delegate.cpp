@@ -1279,7 +1279,7 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
         return;
     }
 
-<<<<<<< HEAD
+#if 0 // Fix NV Skel!
     // Ensure we resync all prims that may have previously existed, but were
     // removed with this change.
     SdfPathVector affectedCachePaths;
@@ -1364,13 +1364,12 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
     if (repopulateFromRoot) {
         proxy->Repopulate(rootPathToRepopulate);
     }
-=======
+#endif
     // Otherwise, this is a totally new branch of the scene, so populate
     // from the resync target path.
     TF_DEBUG(USDIMAGING_CHANGES).Msg("  - affected new prim: <%s>\n",
         usdPath.GetText());
     proxy->Repopulate(usdPath);
->>>>>>> v19.11-rc2
 }
 
 void 
@@ -1524,16 +1523,8 @@ UsdImagingDelegate::_RefreshObject(SdfPath const& usdPath,
                 // Do nothing
             } else if (dirtyBits != HdChangeTracker::AllDirty) {
                 // Update Variability
-<<<<<<< HEAD
-                if (checkVariability) {
-                    adapter->TrackVariabilityPrep(primInfo->usdPrim, affectedCachePath);
-                    adapter->TrackVariability(primInfo->usdPrim, affectedCachePath,
-                        &primInfo->timeVaryingBits);
-                }
-=======
                 adapter->TrackVariability(primInfo->usdPrim, affectedCachePath,
                                           &primInfo->timeVaryingBits);
->>>>>>> v19.11-rc2
 
                 // Propagate the dirty bits back out to the change tracker.
                 HdDirtyBits combinedBits =

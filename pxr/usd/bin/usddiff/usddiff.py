@@ -207,19 +207,9 @@ def _runDiff(baseline, comparison, flatten, noeffect, brief):
             with open(tempComparison.name, "r") as f:
                 comparisonData = f.readlines()
 
-<<<<<<< HEAD
-            # Generate unified diff and output if there are any differences.
-            diff = list(difflib.unified_diff(
-                baselineData, comparisonData,
-                tempBaseline.name, tempComparison.name, n=0))
-            if diff:
-                # Skip the file names.
-                for line in diff[2:]:
-                    print(line, end='')
-=======
             if baselineData != comparisonData:
                 if brief:
-                    print "Files %s and %s differ" % (baseline, comparison)
+                    print("Files %s and %s differ" % (baseline, comparison))
                 else:
                     # Generate unified diff and output if there are any differences.
                     diff = list(difflib.unified_diff(
@@ -227,8 +217,7 @@ def _runDiff(baseline, comparison, flatten, noeffect, brief):
                         tempBaseline.name, tempComparison.name, n=0))
                     # Skip the file names.
                     for line in diff[2:]:
-                        print line,
->>>>>>> v19.11-rc2
+                        print(line, end='')
                 diffResult = 1
 
         tempBaselineChanged = ( 

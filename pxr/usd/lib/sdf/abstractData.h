@@ -59,13 +59,13 @@ class SdfAbstractDataFieldAccess : public TfRefBase, public TfWeakBase
 public:
     SdfAbstractDataFieldAccess(const SdfPath &path,
                                const TfToken &fieldName) :
-        _path(path), _fieldName(&fieldName), _specId(SdfAbstractDataSpecId(&_path)),
+        _path(path), _fieldName(&fieldName),
         _hasCompositionDependents(true) {}
     SDF_API
     virtual ~SdfAbstractDataFieldAccess();
 
     SDF_API
-    const SdfAbstractDataSpecId &GetSpecId() { return _specId; }
+    const SdfPath &GetPath() { return _path; }
 
     SDF_API
     const TfToken &GetFieldName() { return *_fieldName; }
@@ -78,7 +78,6 @@ public:
 private:
     const SdfPath _path;
     const TfToken *_fieldName;
-    SdfAbstractDataSpecId _specId;
 
     // If all fields updated have no composition dependents, we can
     // avoid computing dependent paths to update during change notification.
@@ -253,7 +252,6 @@ public:
     virtual std::type_info const &
     GetTypeid(const SdfPath &path, const TfToken &fieldName) const;
 
-<<<<<<< HEAD
     // #nv begin #fast-updates
     SDF_API
     virtual SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
@@ -268,10 +266,7 @@ public:
     virtual bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const;
     // nv end
 
-    /// Set the value of the given \a id and \a fieldName.
-=======
     /// Set the value of the given \a path and \a fieldName.
->>>>>>> v19.11-rc2
     ///
     /// It's an error to set a field on a spec that does not exist. Setting a
     /// field to an empty VtValue is the same as calling Erase() on it.

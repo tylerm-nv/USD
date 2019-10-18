@@ -878,11 +878,7 @@ class TestSdfPath(unittest.TestCase):
         # ========================================================================
         
         def testFindPrefixedRangeAndFindLongestPrefix():
-<<<<<<< HEAD
-            print("Test FindPrefixedRange and FindLongestPrefix")
-=======
-            print "Test FindPrefixedRange and FindLongest(Strict)Prefix"
->>>>>>> v19.11-rc2
+            print("Test FindPrefixedRange and FindLongest(Strict)Prefix")
         
             import random, time
             rgen = random.Random()

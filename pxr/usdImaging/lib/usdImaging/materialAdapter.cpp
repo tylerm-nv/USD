@@ -32,19 +32,10 @@
 #include "pxr/usd/usdShade/material.h"
 #include "pxr/usd/usdShade/shader.h"
 
-<<<<<<< HEAD
-// #nv begin #new-MDL-schema
-=======
->>>>>>> v19.11-rc2
 #include "pxr/usd/ar/resolver.h"
 #include "pxr/usd/sdr/registry.h"
 #include "pxr/usd/sdr/shaderNode.h"
 #include "pxr/usd/sdr/shaderProperty.h"
-<<<<<<< HEAD
-// #nv end
-=======
-
->>>>>>> v19.11-rc2
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -55,26 +46,14 @@ TF_REGISTRY_FUNCTION(TfType)
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
 
-<<<<<<< HEAD
 // #nv begin #new-MDL-schema
-// Code mostly taken and modified from 
-//   https://github.com/PixarAnimationStudios/USD/commit/8d5b5cb2537ea753e4612fa279f80af4db14daea#diff-689043832c982d6e538e9fc97a42ab76R50
-// So likely it will be available in future USD release.
 static void
 _GetShaderNodeForSourceTypeFallbackNV(
     UsdShadeShader const& shader,
     TfToken const& networkSelector,
-    TfToken* identifier,
-    TfToken* subIdentifier)
+    TfToken* identifier=nullptr,
+    TfToken* subIdentifier=nullptr)
 {
-=======
-static TfToken
-_GetShaderNodeForSourceTypeFallback(
-    UsdShadeShader const& shader,
-    TfToken const& networkSelector)
-{
-    std::string identifier;
->>>>>>> v19.11-rc2
     TfToken implSource = shader.GetImplementationSource();
 
     if (implSource == UsdShadeTokens->id) {
@@ -85,17 +64,14 @@ _GetShaderNodeForSourceTypeFallback(
             if (SdrShaderNodeConstPtr sdrNode = 
                     shaderReg.GetShaderNodeByIdentifierAndType(shaderId, 
                         networkSelector)) {
-<<<<<<< HEAD
-                *identifier = TfToken(sdrNode->GetSourceURI());
-=======
-                identifier = sdrNode->GetSourceURI();
->>>>>>> v19.11-rc2
+                if (identifier) {
+                    *identifier = TfToken(sdrNode->GetSourceURI());
+                }
             }
         }
     } else if (implSource == UsdShadeTokens->sourceAsset) {
         SdfAssetPath sourceAsset;
         if (shader.GetSourceAsset(&sourceAsset, networkSelector)) {
-<<<<<<< HEAD
             std::string path = sourceAsset.GetResolvedPath();
             if (path.empty()) {
                 path = ArGetResolver().Resolve(sourceAsset.GetAssetPath());
@@ -103,30 +79,23 @@ _GetShaderNodeForSourceTypeFallback(
             if (path.empty()) {
                 path = sourceAsset.GetAssetPath();
             }
-            *identifier = TfToken(path);
+            if (identifier) {
+                *identifier = TfToken(path);
+            }
         }
-        shader.GetSourceAssetSubIdentifier(subIdentifier, networkSelector);
+        if (subIdentifier) {
+            shader.GetSourceAssetSubIdentifier(subIdentifier, networkSelector);
+        }
     } else if (implSource == UsdShadeTokens->sourceCode) {
         std::string sourceCode;
         if (shader.GetSourceCode(&sourceCode, networkSelector)) {
-            *identifier = TfToken(sourceCode);
+            if (identifier) {
+                *identifier = TfToken(sourceCode);
+            }
         }
     }  
 }
 // #nv end
-=======
-            identifier = ArGetResolver().Resolve(sourceAsset.GetAssetPath());
-        }
-    } else if (implSource == UsdShadeTokens->sourceCode) {
-        std::string sourceCode;
-        if (shader.GetSourceCode(&sourceCode, networkSelector)) {
-            identifier = sourceCode;
-        }
-    }
-
-    return TfToken(identifier);
-}
->>>>>>> v19.11-rc2
 
 UsdImagingMaterialAdapter::~UsdImagingMaterialAdapter()
 {
@@ -288,21 +257,12 @@ void _ExtractPrimvarsFromNode(UsdShadeShader const & shadeNode,
 // pre-baked implementation. Currently neither the material processing in Hydra
 // nor any of the back-ends (like HdPrman) can make use of this anyway.
 static
-<<<<<<< HEAD
-void _WalkGraph(UsdShadeShader const & shadeNode, 
-               HdMaterialNetwork *materialNetwork,
-// #nv begin #new-MDL-schema               
-               TfToken const& networkSelector,
-// #nv end               
-               const TfTokenVector &shaderSourceTypes)
-=======
 void _WalkGraph(
     UsdShadeShader const & shadeNode,
     HdMaterialNetwork* materialNetwork,
     TfToken const& networkSelector,
     SdfPathSet* visitedNodes,
     TfTokenVector const & shaderSourceTypes)
->>>>>>> v19.11-rc2
 {
     // Store the path of the node
     HdMaterialNode node;
@@ -319,25 +279,6 @@ void _WalkGraph(
 
     // Visit the inputs of this node to ensure they are emitted first.
     const std::vector<UsdShadeInput> shadeNodeInputs = shadeNode.GetInputs();
-<<<<<<< HEAD
-    for (UsdShadeInput const& input: shadeNodeInputs) {
-        // Check if this input is a connection and if so follow the path
-        UsdShadeConnectableAPI source;
-        TfToken sourceName;
-        UsdShadeAttributeType sourceType;
-        if (UsdShadeConnectableAPI::GetConnectedSource(input, 
-                &source, &sourceName, &sourceType)) {
-            // When we find a connection to a shading node output,
-            // walk the upstream shading node.  Do not do this for
-            // other sources (ex: a connection to a material
-            // public interface parameter), since they are not
-            // part of the shading node graph.
-            if (sourceType == UsdShadeAttributeType::Output) {
-                UsdShadeShader connectedNode(source);
-// #nv begin #new-MDL-schema                
-                _WalkGraph(connectedNode, materialNetwork, networkSelector, shaderSourceTypes);
-// #nv end                
-=======
     for (UsdShadeInput input: shadeNodeInputs) {
 
         TfToken inputName = input.GetBaseName();
@@ -368,7 +309,6 @@ void _WalkGraph(
             VtValue value;
             if (attr.Get(&value)) {
                 node.parameters[inputName] = value;
->>>>>>> v19.11-rc2
             }
         }
     }
@@ -396,7 +336,6 @@ void _WalkGraph(
         // accessible for renderers.
         _ExtractPrimvarsFromNode(shadeNode, node, materialNetwork);
     } 
-<<<<<<< HEAD
 
  // #nv begin #new-MDL-schema   
     if (node.identifier.IsEmpty()) {
@@ -405,11 +344,6 @@ void _WalkGraph(
     }  
 // #nv end
 
-    if (node.identifier.IsEmpty()) {
-        TF_WARN("UsdShade Shader without an id: %s.", node.path.GetText());
-        node.identifier = TfToken("PbsNetworkMaterialStandIn_2");
-=======
-    
     materialNetwork->nodes.push_back(node);
     visitedNodes->emplace(node.path);
 }
@@ -443,9 +377,8 @@ _BuildHdMaterialNetworkFromTerminal(
     // Put source path/code as identifier for backend to resolve.
     // XXX Deprecate when glslfx has a Sdr plugin?
     if (terminalNode.identifier.IsEmpty()) {
-        terminalNode.identifier = _GetShaderNodeForSourceTypeFallback(
-            usdTerminal, networkSelector);
->>>>>>> v19.11-rc2
+        _GetShaderNodeForSourceTypeFallbackNV(
+            usdTerminal, networkSelector, &terminalNode.identifier);
     }
 
     if (terminalNode.identifier.IsEmpty()) {
@@ -475,30 +408,15 @@ UsdImagingMaterialAdapter::_GetMaterialNetworkMap(
     TfTokenVector shaderSourceTypes = _GetShaderSourceTypes();
 
     if (UsdShadeShader s = material.ComputeSurfaceSource(context)) {
-<<<<<<< HEAD
-        _WalkGraph(s, &materialNetworkMap->map[UsdImagingTokens->bxdf],
-// #nv begin #new-MDL-schema        
-                  context, 
-// #nv end                  
-                  _GetShaderSourceTypes());
-=======
         _BuildHdMaterialNetworkFromTerminal(
             s, 
             HdMaterialTerminalTokens->surface,
             networkSelector,
             shaderSourceTypes,
             networkMap);
->>>>>>> v19.11-rc2
     }
 
     if (UsdShadeShader d = material.ComputeDisplacementSource(context)) {
-<<<<<<< HEAD
-        _WalkGraph(d, &materialNetworkMap->map[UsdImagingTokens->displacement],
-// #nv begin #new-MDL-schema
-                  context, 
-// #nv end
-                  _GetShaderSourceTypes());
-=======
         _BuildHdMaterialNetworkFromTerminal(
             d,
             HdMaterialTerminalTokens->displacement,
@@ -514,7 +432,6 @@ UsdImagingMaterialAdapter::_GetMaterialNetworkMap(
             networkSelector,
             shaderSourceTypes,
             networkMap);
->>>>>>> v19.11-rc2
     }
 }
 

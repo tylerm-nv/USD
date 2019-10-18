@@ -1360,7 +1360,7 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     if (!PermissionToEdit()) {
         TF_CODING_ERROR("Cannot set time sample on <%s>.  "
             "Layer @%s@ is not editable.",
-            fieldHandle->GetSpecId().GetString().c_str(),
+            fieldHandle->GetPath().GetString().c_str(),
             GetIdentifier().c_str());
         return;
     }
@@ -1368,7 +1368,7 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     // Fast path does not perform type checking (just like fast and slow path for setting info fields).
 
     if (_stateDelegate) {
-        _stateDelegate->_OnSetTimeSample(fieldHandle->GetSpecId(), time, value);
+        _stateDelegate->_OnSetTimeSample(fieldHandle->GetPath(), time, value);
     }
 
     // TODO(USD):optimization: Analyze the affected time interval.
@@ -1376,13 +1376,13 @@ SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, dou
     // Current use cases for fast updates are focused on streaming updates to attribute defaults.
     Sdf_ChangeManager::Get()
         .DidChangeAttributeTimeSamples(SdfLayerHandle(this),
-            fieldHandle->GetSpecId().GetFullSpecPath());
+            fieldHandle->GetPath());
 
 #if 0
     // TODO (fast-updates): Indicate affected time interval in change notice.
     Sdf_ChangeManager::Get()
         .DidFastUpdate(SdfLayerHandle(this),
-            fieldHandle->GetSpecId().GetFullSpecPath(),
+            fieldHandle->GetPath(),
             value,
             fieldHandle->HasCompositionDependents());
 #endif
@@ -3315,7 +3315,7 @@ SdfLayer::GetField(const SdfAbstractDataFieldAccessHandle &fieldHandle) const
         // Otherwise if this is a required field, and the data has a spec here,
         // return the fallback value.
         if (SdfSchema::FieldDefinition const *def =
-            _GetRequiredFieldDef(fieldHandle->GetSpecId(), fieldHandle->GetFieldName()))
+            _GetRequiredFieldDef(fieldHandle->GetPath(), fieldHandle->GetFieldName()))
         {
             result = def->GetFallbackValue();
         }
@@ -3399,11 +3399,11 @@ SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const Vt
     }
 
     if (value.IsEmpty())
-        return EraseField(fieldHandle->GetSpecId(), fieldHandle->GetFieldName());
+        return EraseField(fieldHandle->GetPath(), fieldHandle->GetFieldName());
 
     if (ARCH_UNLIKELY(!PermissionToEdit())) {
         TF_CODING_ERROR("Cannot set %s on <%s>. Layer @%s@ is not editable.",
-            fieldHandle->GetFieldName().GetText(), fieldHandle->GetSpecId().GetString().c_str(),
+            fieldHandle->GetFieldName().GetText(), fieldHandle->GetPath().GetString().c_str(),
             GetIdentifier().c_str());
         return;
     }
@@ -3415,20 +3415,20 @@ SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const Vt
         // if we are not already nested in another change block.
         SdfChangeBlock block;
 
-        _stateDelegate->_OnSetField(fieldHandle->GetSpecId(), fieldHandle->GetFieldName(), value);
+        _stateDelegate->_OnSetField(fieldHandle->GetPath(), fieldHandle->GetFieldName(), value);
 
         const TfToken &fieldName = fieldHandle->GetFieldName();
 
         if (fieldName == SdfFieldKeys->Default) {
             Sdf_ChangeManager::Get()
                 .DidFastUpdate(SdfLayerHandle(this),
-                    fieldHandle->GetSpecId().GetFullSpecPath(),
+                    fieldHandle->GetPath(),
                     value,
                     fieldHandle->HasCompositionDependents());
         } else {
             Sdf_ChangeManager::Get().DidChangeField(
                 SdfLayerHandle(this),
-                fieldHandle->GetSpecId().GetFullSpecPath(), fieldHandle->GetFieldName(), oldValue, value);
+                fieldHandle->GetPath(), fieldHandle->GetFieldName(), oldValue, value);
         }
 
         _data->Set(fieldHandle, value);
@@ -3472,44 +3472,7 @@ SdfLayer::SetField(const SdfPath& path, const TfToken& fieldName,
 }
 
 void
-<<<<<<< HEAD
-SdfLayer::SetFields(VtArray<SdfAbstractDataSpecId*> ids, const TfToken& fieldName,
-    VtArray<const SdfAbstractDataConstValue*> values)
-{
-    uint32_t attrCount = ids.size();
-    for (int i = 0; i != attrCount; i++)
-    {
-        const SdfAbstractDataSpecId& id = *ids[i];
-
-        if (values[i]->IsEqual(VtValue()))
-            EraseField(id, fieldName);
-    }
-
-    if (ARCH_UNLIKELY(!PermissionToEdit())) {
-        TF_CODING_ERROR("Cannot set %s. Layer @%s@ is not editable.",
-            fieldName.GetText(), 
-            GetIdentifier().c_str());
-        return;
-    }
-
-    VtArray<VtValue> oldValues(attrCount);
-    for (int i = 0; i != attrCount; i++)
-    {
-        oldValues[i] = GetField(*ids[i], fieldName);
-    }
-
-#if 0
-    // RT TODO: Only set field if value not changed
-    if (!value.IsEqual(oldValue))
-#endif
-        _PrimSetFields(ids, fieldName, values, oldValues);
-}
-
-void
-SdfLayer::SetFieldDictValueByKey(const SdfAbstractDataSpecId& id,
-=======
 SdfLayer::SetFieldDictValueByKey(const SdfPath& path,
->>>>>>> v19.11-rc2
                                  const TfToken& fieldName,
                                  const TfToken& keyPath,
                                  const VtValue& value)
@@ -3855,84 +3818,31 @@ SdfLayer::_PrimSetField(const SdfPath& path,
     if ((fastUpdates || SdfChangeBlock::IsFastUpdating()) && (fieldName == SdfFieldKeys->Default)) {
         Sdf_ChangeManager::Get()
             .DidFastUpdate(SdfLayerHandle(this),
-                id.GetFullSpecPath(),
+                path,
                 newValue,
                 // TODO: Provide a way for the caller to determine this.
                 true /*hasCompositionDependents*/);
     } else {
         Sdf_ChangeManager::Get().DidChangeField(
             SdfLayerHandle(this),
-            id.GetFullSpecPath(), fieldName, oldValue, newValue);
+            path, fieldName, oldValue, newValue);
     }
     // nv end
 
-    _data->Set(id, fieldName, value);
-}
-
-template <class T>
-void
-SdfLayer::_PrimSetFields(VtArray<SdfAbstractDataSpecId*> ids,
-    const TfToken& fieldName,
-    VtArray<const T*> values,
-    VtArray<VtValue> oldValues,
-    bool useDelegate)
-{
-    // Send notification when leaving the change block.
-    SdfChangeBlock block;
-
-    if (useDelegate && TF_VERIFY(_stateDelegate)) 
-    {
-        uint32_t count = ids.size();
-        for (int i = 0; i != count; i++)
-        {
-            _stateDelegate->SetField(*ids[i], fieldName, *values[i], &oldValues[i]);
-        }
-        return;
-    }
-
-#if 0
-    //RT TODO: Support useDelegate==false
-    const VtValue& oldValue =
-        oldValuePtr ? *oldValuePtr : GetField(id, fieldName);
-    const VtValue& newValue = _GetVtValue(value);
-
-    Sdf_ChangeManager::Get().DidChangeField(
-        SdfLayerHandle(this),
-        path, fieldName, oldValue, newValue);
-
-<<<<<<< HEAD
-    _data->Set(id, fieldName, value);
-#endif
-=======
     _data->Set(path, fieldName, value);
->>>>>>> v19.11-rc2
 }
 
 // #nv begin #fast-updates
 template void SdfLayer::_PrimSetField(
-<<<<<<< HEAD
-    const SdfAbstractDataSpecId&, const TfToken&, 
+    const SdfPath&, const TfToken&, 
     const VtValue&, const VtValue *, bool, bool);
 // nv end
-template void SdfLayer::_PrimSetFields(
-    VtArray<SdfAbstractDataSpecId*> ids,
-    const TfToken& fieldName,
-    VtArray<const VtValue*> values,
-    VtArray<VtValue> oldValues,
-    bool useDelegate);
 
 // #nv begin #fast-updates
 template void SdfLayer::_PrimSetField(
-    const SdfAbstractDataSpecId&, const TfToken&, 
+    const SdfPath&, const TfToken&, 
     const SdfAbstractDataConstValue&, const VtValue *, bool, bool);
 // nv end
-=======
-    const SdfPath&, const TfToken&, 
-    const VtValue&, const VtValue *, bool);
-template void SdfLayer::_PrimSetField(
-    const SdfPath&, const TfToken&, 
-    const SdfAbstractDataConstValue&, const VtValue *, bool);
->>>>>>> v19.11-rc2
 
 template <class T>
 void

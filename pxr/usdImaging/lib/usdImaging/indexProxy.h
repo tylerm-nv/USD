@@ -192,12 +192,21 @@ public:
 
 private:
     friend class UsdImagingDelegate;
+
+    // #nv begin #nv-gpu-skel
+    // We desperately need better refactoring of nv-specific Skel.
+    friend class UsdSkelImagingSkeletonAdapter;
+    // nv-end
+
     UsdImagingIndexProxy(UsdImagingDelegate* delegate,
                             UsdImagingDelegate::_Worker* worker) 
         : _delegate(delegate)
         , _worker(worker)
     {}
 
+    // #nv begin #nv-gpu-skel
+    USDIMAGING_API
+    // nv end
     bool _AddHdPrimInfo(SdfPath const& cachePath,
                         UsdPrim const& usdPrim,
                         UsdImagingPrimAdapterSharedPtr const& adapter);

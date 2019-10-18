@@ -207,55 +207,6 @@ UsdImagingMeshAdapter::TrackVariability(UsdPrim const& prim,
     }
 }
 
-<<<<<<< HEAD
-void
-UsdImagingMeshAdapter::MarkDirty(UsdPrim const& prim,
-    SdfPath const& cachePath,
-    HdDirtyBits dirty,
-    UsdImagingIndexProxy* index)
-{
-    // Check if this is invoked on behalf of a UsdGeomSubset of
-    // a parent mesh; if so, dirty the parent instead.
-    if (cachePath.IsPrimPath() && cachePath.GetParentPath() == prim.GetPath()) {
-        index->MarkRprimDirty(cachePath.GetParentPath(), dirty);
-    }
-    else {
-        index->MarkRprimDirty(cachePath, dirty);
-    }
-}
-
-void
-UsdImagingMeshAdapter::MarkRefineLevelDirty(UsdPrim const& prim,
-    SdfPath const& cachePath,
-    UsdImagingIndexProxy* index)
-{
-    // Check if this is invoked on behalf of a UsdGeomSubset of
-    // a parent mesh; if so, there's nothing to do.
-    if (cachePath.IsPrimPath() && cachePath.GetParentPath() == prim.GetPath()) {
-        return;
-    }
-    index->MarkRprimDirty(cachePath, HdChangeTracker::DirtyDisplayStyle);
-}
-
-
-void
-UsdImagingMeshAdapter::_RemovePrim(SdfPath const& cachePath,
-    UsdImagingIndexProxy* index)
-{
-    // Check if this is invoked on behalf of a UsdGeomSubset,
-    // in which case there will be no rprims associated with
-    // the cache path.  If so, dirty parent topology.
-    if (index->HasRprim(cachePath)) {
-        index->RemoveRprim(cachePath);
-    }
-    else {
-        index->MarkRprimDirty(cachePath.GetParentPath(),
-            HdChangeTracker::DirtyTopology);
-    }
-}
-
-=======
->>>>>>> v19.11-rc2
 bool
 UsdImagingMeshAdapter::_IsBuiltinPrimvar(TfToken const& primvarName) const
 {
@@ -318,31 +269,19 @@ UsdImagingMeshAdapter::UpdateForTime(UsdPrim const& prim,
 
 HdDirtyBits
 UsdImagingMeshAdapter::ProcessPropertyChange(UsdPrim const& prim,
-<<<<<<< HEAD
-    SdfPath const& cachePath,
-    TfToken const& propertyName)
-=======
                                              SdfPath const& cachePath,
                                              TfToken const& propertyName)
->>>>>>> v19.11-rc2
 {
     if (propertyName == UsdGeomTokens->points)
         return HdChangeTracker::DirtyPoints;
 
     // Check for UsdGeomSubset changes.
-<<<<<<< HEAD
-    // Do the cheaper property name filtering first.
-    if ((propertyName == UsdGeomTokens->elementType ||
-        propertyName == UsdGeomTokens->indices) &&
-        cachePath.GetPrimPath().GetParentPath() == prim.GetPath()) {
-=======
     // XXX: We can't check right now whether this was called on behalf of a
     // geom subset, since the "prim" field is mangled by instance adapters. We
     // hope no meshes define these attributes (probably safe), but we should
     // add the geom subset type check when that becomes possible.
     if (propertyName == UsdGeomTokens->elementType ||
         propertyName == UsdGeomTokens->indices) {
->>>>>>> v19.11-rc2
         return HdChangeTracker::DirtyTopology;
     }
 
@@ -360,13 +299,8 @@ UsdImagingMeshAdapter::ProcessPropertyChange(UsdPrim const& prim,
 
 void
 UsdImagingMeshAdapter::_GetMeshTopology(UsdPrim const& prim,
-<<<<<<< HEAD
-    VtValue* topo,
-    UsdTimeCode time) const
-=======
                                         VtValue* topo,
                                         UsdTimeCode time) const
->>>>>>> v19.11-rc2
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
@@ -407,30 +341,18 @@ UsdImagingMeshAdapter::_GetMeshTopology(UsdPrim const& prim,
     topo->Swap(meshTopo);
 }
 
-<<<<<<< HEAD
-void
-UsdImagingMeshAdapter::_GetSubdivTags(UsdPrim const& prim,
-    SubdivTags* tags,
-    UsdTimeCode time) const
-=======
 PxOsdSubdivTags
 UsdImagingMeshAdapter::GetSubdivTags(UsdPrim const& prim,
                                      SdfPath const& cachePath,
                                      UsdTimeCode time) const
->>>>>>> v19.11-rc2
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
 
-<<<<<<< HEAD
-    if (!prim.IsA<UsdGeomMesh>())
-        return;
-=======
     PxOsdSubdivTags tags;
 
     if(!prim.IsA<UsdGeomMesh>())
         return tags;
->>>>>>> v19.11-rc2
 
     TfToken interpolationRule =
         _Get<TfToken>(prim, UsdGeomTokens->interpolateBoundary, time);

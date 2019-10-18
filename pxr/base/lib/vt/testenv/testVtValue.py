@@ -79,13 +79,8 @@ class TestVtValue(unittest.TestCase):
                 'key3' : [1,2,3,'one','two','three'],
                 'key4' : ['four', 'five', { 'six' : 7, 'eight' : [ {'nine':9} ] } ],
                 'key5' : { 'key6' : 'value' },
-<<<<<<< HEAD
-                'key5' : None,
-                'key6' : 'value',
-=======
                 'key6' : None,
                 'key7' : u'value',
->>>>>>> v19.11-rc2
                 }
 
         bad1 = {1 : 2}

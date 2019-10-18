@@ -1546,25 +1546,13 @@ UsdStage::_SetEditTargetMappedValue(
         });
 }
 
-<<<<<<< HEAD
-bool
-UsdStage::SetValues(UsdTimeCode time, VtArray<UsdAttribute>& attrs,
-	VtArray<const SdfAbstractDataConstValue *>& newValues)
-{
-	return _SetValuesImpl(time, attrs, newValues);
-}
 
-bool
-UsdStage::_SetValue(
-    UsdTimeCode time, const UsdAttribute &attr, const VtValue &newValue)
-=======
 // Default _SetValue implementation for most attribute value types that never
 // need to be mapped for an edit target.
 template <class T>
 bool 
 UsdStage::_SetValue(UsdTimeCode time, const UsdAttribute &attr,
                     const T &newValue)
->>>>>>> v19.11-rc2
 {
     SdfAbstractDataConstTypedValue<T> in(&newValue);
     return _SetValueImpl<SdfAbstractDataConstValue>(time, attr, in);
@@ -1580,7 +1568,7 @@ bool
 UsdStage::_SetValue(UsdTimeCode time, const UsdAttribute &attr,
                     const SdfTimeCode &newValue)
 {
-<<<<<<< HEAD
+#if 0 // FIX FAST UPDATES
     // #nv begin #fast-updates
     // For now, we only support fast updates on prims that require no compositon remapping.
     bool fastUpdates = SdfChangeBlock::IsFastUpdating() &&(GetEditTarget().GetMapFunction() == PcpMapFunction::Identity());
@@ -1709,10 +1697,10 @@ UsdStage::_SetValue(UsdTimeCode time, const UsdAttribute &attr,
         const SdfLayerOffset stageToLayerOffset = 
             UsdPrepLayerOffset(GetEditTarget().GetMapFunction().GetTimeOffset())
             .GetInverse();
-=======
+#endif
     return _SetEditTargetMappedValue(time, attr, newValue);
 }
->>>>>>> v19.11-rc2
+
 
 template <>
 bool 
@@ -1736,124 +1724,6 @@ UsdStage::_SetValue(
     }
     return _SetValueImpl(time, attr, newValue);
 }
-
-template <class T>
-bool
-UsdStage::_SetValuesImpl(
-	UsdTimeCode time, VtArray<UsdAttribute>& attrs, 
-	VtArray<const T*>& newValues)
-{
-#if 0
-	//RT TODO: Implement type checking
-
-	// if we are setting a value block, we don't want type checking
-	if (!Usd_ValueContainsBlock(&newValue)) {
-		// Do a type check.  Obtain typeName.
-		TfToken typeName;
-		SdfAbstractDataTypedValue<TfToken> abstrToken(&typeName);
-		_GetMetadata(attr, SdfFieldKeys->TypeName,
-			TfToken(), /*useFallbacks=*/true, &abstrToken);
-		if (typeName.IsEmpty()) {
-			TF_RUNTIME_ERROR("Empty typeName for <%s>",
-				attr.GetPath().GetText());
-			return false;
-		}
-		// Ensure this typeName is known to our schema.
-		TfType valType = SdfSchema::GetInstance().FindType(typeName).GetType();
-		if (valType.IsUnknown()) {
-			TF_RUNTIME_ERROR("Unknown typename for <%s>: '%s'",
-				typeName.GetText(), attr.GetPath().GetText());
-			return false;
-		}
-		// Check that the passed value is the expected type.
-		if (!TfSafeTypeCompare(_GetTypeInfo(newValue), valType.GetTypeid())) {
-			TF_CODING_ERROR("Type mismatch for <%s>: expected '%s', got '%s'",
-				attr.GetPath().GetText(),
-				ArchGetDemangled(valType.GetTypeid()).c_str(),
-				ArchGetDemangled(_GetTypeInfo(newValue)).c_str());
-			return false;
-		}
-
-		// Check variability, but only if the appropriate debug flag is
-		// enabled. Variability is a statement of intent but doesn't control
-		// behavior, so we only want to perform this validation when it is
-		// requested.
-		if (TfDebug::IsEnabled(USD_VALIDATE_VARIABILITY) &&
-			time != UsdTimeCode::Default() &&
-			_GetVariability(attr) == SdfVariabilityUniform) {
-			TF_DEBUG(USD_VALIDATE_VARIABILITY)
-				.Msg("Warning: authoring time sample value on "
-					"uniform attribute <%s> at time %.3f\n",
-					UsdDescribe(attr).c_str(), time.GetValue());
-		}
-	}
-#endif
-
-	uint32_t attrCount = attrs.size();
-	VtArray<SdfAttributeSpecHandle> attrSpecs(attrCount);
-	for (int i = 0; i != attrCount; i++)
-	{
-		attrSpecs[i] = _CreateAttributeSpecForEditing(attrs[i]);
-
-		if (!attrSpecs[i]) {
-			TF_RUNTIME_ERROR(
-				"Cannot set attribute value.  Failed to create "
-				"attribute spec <%s> in layer @%s@",
-				GetEditTarget().MapToSpecPath(attrs[i].GetPath()).GetText(),
-				GetEditTarget().GetLayer()->GetIdentifier().c_str());
-			return false;
-		}
-	}
-
-	VtArray<SdfPath*> attrPaths(attrCount);
-	VtArray<SdfAbstractDataSpecId*> attrSpecIds(attrCount);
-	for (int i = 0; i != attrCount; i++)
-	{
-		attrPaths[i] = new SdfPath(attrSpecs[i]->GetPath());
-		attrSpecIds[i] = new SdfAbstractDataSpecId(attrPaths[i]);
-	}
-
-	if (time.IsDefault()) {
-
-		//RT: We're assuming that there's at least one attr
-		//RT: We're assuming that all attrs are from same layer
-		SdfLayerHandle layer = attrSpecs[0]->GetLayer();
-
-		layer->SetFields(attrSpecIds,
-			SdfFieldKeys->Default,
-			newValues);
-	}
-#if 0
-	//RT TODO: Handle time
-	else {
-		// XXX: should this loft the underlying values up when
-		// authoring over a weaker layer?
-
-		// XXX: this won't be correct if we are trying to edit
-		// across two different reference arcs -- which may have
-		// different time offsets.  perhaps we need the map function
-		// to track a time offset for each path?
-		const SdfLayerOffset stageToLayerOffset =
-			UsdPrepLayerOffset(GetEditTarget().GetMapFunction().GetTimeOffset())
-			.GetInverse();
-
-		double localTime = stageToLayerOffset * time.GetValue();
-
-		attrSpec->GetLayer()->SetTimeSample(
-			attrSpec->GetPath(),
-			localTime,
-			newValue);
-	}
-#endif
-
-	for (int i = 0; i != attrCount; i++)
-	{
-		delete attrPaths[i];
-		delete attrSpecIds[i];
-	}
-	return true;
-}
-
 
 bool
 UsdStage::_ClearValue(UsdTimeCode time, const UsdAttribute &attr)
@@ -3931,7 +3801,7 @@ UsdStage::_HandleLayersDidChange(
                 // and inherits), and also remap instance edits to masters.
                 std::vector<SdfFastUpdateList::FastUpdate> remappedFastUpdates;
                 TF_FOR_ALL(fastUpdateItr, fastUpdates.begin()->second.fastUpdates) {
-                    _AddDependentPaths(fastUpdates.begin()->first, fastUpdateItr->path,
+                    _AddAffectedStagePaths(fastUpdates.begin()->first, fastUpdateItr->path,
                         *_cache, &remappedFastUpdates, fastUpdateItr->value);
                 }
 
@@ -4729,18 +4599,17 @@ UsdStage::CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
     if (!layer || !fieldHandle)
         return;
     SdfPathVector dependentPaths;
-    const auto &specId = fieldHandle->GetSpecId();
-    _AddDependentPaths(layer, specId.GetFullSpecPath(),
+    _AddAffectedStagePaths(layer, fieldHandle->GetPath(),
         *_cache, &dependentPaths, nullptr /* extraData*/);
-    bool hasCompositionDependents = dependentPaths.size() > 1 || *dependentPaths.begin() != specId.GetFullSpecPath();
+    bool hasCompositionDependents = dependentPaths.size() > 1 || *dependentPaths.begin() != fieldHandle->GetPath();
     fieldHandle->SetHasCompositionDependents(hasCompositionDependents);
 
     if (isNewHandle) {
         if (fieldHandle->GetFieldName() == SdfFieldKeys->Default) {
-            _fieldHandles[layer][fieldHandle->GetSpecId().GetFullSpecPath()].defaultHandle = fieldHandle;
+            _fieldHandles[layer][fieldHandle->GetPath()].defaultHandle = fieldHandle;
         }
         else if (fieldHandle->GetFieldName() == SdfFieldKeys->TimeSamples) {
-            _fieldHandles[layer][fieldHandle->GetSpecId().GetFullSpecPath()].timeSamplesHandle = fieldHandle;
+            _fieldHandles[layer][fieldHandle->GetPath()].timeSamplesHandle = fieldHandle;
         }
     }
 }
