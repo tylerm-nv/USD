@@ -44,7 +44,6 @@ class PxOsdSubdivTags;
 class UsdImagingMeshAdapter : public UsdImagingGprimAdapter {
 public:
     typedef UsdImagingGprimAdapter BaseAdapter;
-    typedef PxOsdSubdivTags SubdivTags;
 
     UsdImagingMeshAdapter()
         : UsdImagingGprimAdapter()
@@ -112,30 +111,28 @@ public:
                                               SdfPath const& cachePath,
                                               TfToken const& propertyName) override;
 
+    // ---------------------------------------------------------------------- //
+    /// \name Data access
+    // ---------------------------------------------------------------------- //
+
     USDIMAGING_API
-    virtual void MarkDirty(UsdPrim const& prim,
-                           SdfPath const& cachePath,
-                           HdDirtyBits dirty,
-                           UsdImagingIndexProxy* index) override;
-    USDIMAGING_API
-    virtual void MarkRefineLevelDirty(UsdPrim const& prim,
-                                      SdfPath const& cachePath,
-                                      UsdImagingIndexProxy* index) override;
+    virtual PxOsdSubdivTags GetSubdivTags(UsdPrim const& usdPrim,
+                                          SdfPath const& cachePath,
+                                          UsdTimeCode time) const override;
 
 protected:
-    USDIMAGING_API
-    virtual void _RemovePrim(SdfPath const& cachePath,
-                             UsdImagingIndexProxy* index) override;
-
     USDIMAGING_API
     virtual bool _IsBuiltinPrimvar(TfToken const& primvarName) const override;
 
 private:
     void _GetMeshTopology(UsdPrim const& prim, VtValue* topoHolder, 
             UsdTimeCode time) const;
+<<<<<<< HEAD
     void _GetSubdivTags(UsdPrim const& prim, SubdivTags* tags, 
             UsdTimeCode time) const ;
 
+=======
+>>>>>>> v19.11-rc2
 };
 
 

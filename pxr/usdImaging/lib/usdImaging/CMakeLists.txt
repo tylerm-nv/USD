@@ -36,6 +36,7 @@ pxr_library(usdImaging
         valueCache
         basisCurvesAdapter
         capsuleAdapter
+        cameraAdapter
         coneAdapter
         coordSysAdapter
         cubeAdapter
@@ -46,10 +47,12 @@ pxr_library(usdImaging
         domeLightAdapter
         fieldAdapter
         gprimAdapter
+        implicitSurfaceMeshUtils
         instanceAdapter
         lightAdapter
         materialAdapter
         meshAdapter
+        nurbsCurvesAdapter
         nurbsPatchAdapter
         pointsAdapter
         pointInstancerAdapter

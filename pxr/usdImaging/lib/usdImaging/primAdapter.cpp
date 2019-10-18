@@ -39,6 +39,8 @@
 #include "pxr/base/tf/envSetting.h"
 #include "pxr/base/tf/type.h"
 
+#include <vector>
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 
@@ -137,7 +139,6 @@ UsdImagingPrimAdapter::ProcessPrimResync(SdfPath const& cachePath,
                                          UsdImagingIndexProxy* index) 
 {
     _RemovePrim(cachePath, index);
-    index->RemoveHdPrimInfo(cachePath);
 
     /// XXX(UsdImagingPaths): We use the cachePath directly as the
     // usdPath here, but should do the proper transformation.
@@ -155,7 +156,6 @@ UsdImagingPrimAdapter::ProcessPrimRemoval(SdfPath const& cachePath,
                                           UsdImagingIndexProxy* index)
 {
     _RemovePrim(cachePath, index);
-    index->RemoveHdPrimInfo(cachePath);
 }
 
 //+NV_CHANGE FRZHANG : fix skelmesh resync
@@ -225,6 +225,14 @@ UsdImagingPrimAdapter::MarkMaterialDirty(UsdPrim const& prim,
 
 /*virtual*/
 void
+UsdImagingPrimAdapter::MarkWindowPolicyDirty(UsdPrim const& prim,
+                                             SdfPath const& cachePath,
+                                             UsdImagingIndexProxy* index)
+{
+}
+
+/*virtual*/
+void
 UsdImagingPrimAdapter::InvokeComputation(SdfPath const& computationPath,
                                          HdExtComputationContext* context)
 {
@@ -245,48 +253,83 @@ UsdImagingPrimAdapter::GetInstanceCategories(UsdPrim const& prim)
 }
 
 /*virtual*/
+PxOsdSubdivTags
+UsdImagingPrimAdapter::GetSubdivTags(UsdPrim const& prim,
+                                     SdfPath const& cachePath,
+                                     UsdTimeCode time) const
+{
+    return PxOsdSubdivTags();
+}
+
+/*virtual*/
 size_t
 UsdImagingPrimAdapter::SampleInstancerTransform(
     UsdPrim const& instancerPrim,
     SdfPath const& instancerPath,
     UsdTimeCode time,
-    const std::vector<float> &,
-    size_t maxSampleCount,
-    float *times,
-    GfMatrix4d *samples)
+    size_t maxNumSamples,
+    float *sampleTimes,
+    GfMatrix4d *sampleValues)
 {
     return 0;
 }
 
+/*virtual*/
 size_t
 UsdImagingPrimAdapter::SamplePrimvar(
     UsdPrim const& usdPrim,
     SdfPath const& cachePath,
     TfToken const& key,
-    UsdTimeCode time, const std::vector<float>& configuredSampleTimes,
-    size_t maxNumSamples, float *times, VtValue *samples)
+    UsdTimeCode time, 
+    size_t maxNumSamples, 
+    float *sampleTimes, 
+    VtValue *sampleValues)
 {
     HD_TRACE_FUNCTION();
 
+    if (maxNumSamples == 0) {
+        return 0;
+    }
+
     // Try as USD primvar.
+    // XXX Here we could use the cache.
     UsdGeomPrimvarsAPI primvars(usdPrim);
     UsdGeomPrimvar pv = primvars.FindPrimvarWithInheritance(key);
 
+    GfInterval interval = _GetCurrentTimeSamplingInterval();
+    std::vector<double> timeSamples;
+
     if (pv && pv.HasValue()) {
         if (pv.ValueMightBeTimeVarying()) {
-            size_t numSamples = std::min(maxNumSamples,
-                                         configuredSampleTimes.size());
-            for (size_t i=0; i < numSamples; ++i) {
-                UsdTimeCode sceneTime =
-                    _delegate->GetTimeWithOffset(configuredSampleTimes[i]);
-                times[i] = configuredSampleTimes[i];
-                pv.Get(&samples[i], sceneTime);
+
+            pv.GetTimeSamplesInInterval(interval, &timeSamples);
+    
+            // Add time samples at the boudary conditions
+            timeSamples.push_back(interval.GetMin());
+            timeSamples.push_back(interval.GetMax());
+
+            // Sort here
+            std::sort(timeSamples.begin(), timeSamples.end());
+            timeSamples.erase(
+                std::unique(timeSamples.begin(), 
+                    timeSamples.end()), 
+                    timeSamples.end());
+
+            size_t numSamples = timeSamples.size();
+
+            // XXX: We should add caching to the transform computation if this shows
+            // up in profiling, but all of our current caches are cleared on time 
+            // change so we'd need to write a new structure.
+            size_t numSamplesToEvaluate = std::min(maxNumSamples, numSamples);
+            for (size_t i=0; i < numSamplesToEvaluate; ++i) {
+                sampleTimes[i] = timeSamples[i] - time.GetValue();
+                pv.ComputeFlattened(&sampleValues[i], timeSamples[i]);
             }
             return numSamples;
         } else {
             // Return a single sample for non-varying primvars
-            times[0] = 0;
-            pv.Get(samples, time);
+            sampleTimes[0] = 0.0f;
+            pv.ComputeFlattened(sampleValues, time);
             return 1;
         }
     }
@@ -295,19 +338,34 @@ UsdImagingPrimAdapter::SamplePrimvar(
     // are considered primvars by Hydra but non-primvar attributes by USD.
     if (UsdAttribute attr = usdPrim.GetAttribute(key)) {
         if (attr.ValueMightBeTimeVarying()) {
-            size_t numSamples = std::min(maxNumSamples,
-                                         configuredSampleTimes.size());
-            for (size_t i=0; i < numSamples; ++i) {
-                UsdTimeCode sceneTime =
-                    _delegate->GetTimeWithOffset(configuredSampleTimes[i]);
-                times[i] = configuredSampleTimes[i];
-                attr.Get(&samples[i], sceneTime);
+            attr.GetTimeSamplesInInterval(interval, &timeSamples);
+    
+            // Add time samples at the boudary conditions
+            timeSamples.push_back(interval.GetMin());
+            timeSamples.push_back(interval.GetMax());
+
+            // Sort here
+            std::sort(timeSamples.begin(), timeSamples.end());
+            timeSamples.erase(
+                std::unique(timeSamples.begin(), 
+                    timeSamples.end()), 
+                    timeSamples.end());
+
+            size_t numSamples = timeSamples.size();
+
+            // XXX: We should add caching to the transform computation if this 
+            // shows up in profiling, but all of our current caches are cleared
+            // on time change so we'd need to write a new structure.
+            size_t numSamplesToEvaluate = std::min(maxNumSamples, numSamples);
+            for (size_t i=0; i < numSamplesToEvaluate; ++i) {
+                sampleTimes[i] = timeSamples[i] - time.GetValue();
+                attr.Get(&sampleValues[i], timeSamples[i]);
             }
             return numSamples;
         } else {
             // Return a single sample for non-varying primvars
-            times[0] = 0;
-            attr.Get(samples, time);
+            sampleTimes[0] = 0;
+            attr.Get(sampleValues, time);
             return 1;
         }
     }
@@ -315,9 +373,9 @@ UsdImagingPrimAdapter::SamplePrimvar(
     // Fallback for adapters that do not read primvars from USD, but
     // instead synthesize them -- ex: Cube, Cylinder, Capsule.
     if (maxNumSamples > 0) {
-        times[0] = 0;
-        if (_GetValueCache()->ExtractPrimvar(cachePath, key, &samples[0])) {
-            return samples[0].IsEmpty() ? 0 : 1;
+        sampleTimes[0] = 0;
+        if (_GetValueCache()->ExtractPrimvar(cachePath, key, &sampleValues[0])){
+            return sampleValues[0].IsEmpty() ? 0 : 1;
         }
     }
 
@@ -327,15 +385,15 @@ UsdImagingPrimAdapter::SamplePrimvar(
 /*virtual*/
 SdfPath 
 UsdImagingPrimAdapter::GetPathForInstanceIndex(
-    SdfPath const &protoPath,
-    int instanceIndex,
+    SdfPath const &protoCachePath,
+    int protoIndex,
     int *instanceCount,
-    int *absoluteInstanceIndex,
-    SdfPath *resolvedPrimPath,
+    int *instancerIndex,
+    SdfPath *masterCachePath,
     SdfPathVector *instanceContext)
 {
-    if (absoluteInstanceIndex) {
-        *absoluteInstanceIndex = UsdImagingDelegate::ALL_INSTANCES;
+    if (instancerIndex) {
+        *instancerIndex = UsdImagingDelegate::ALL_INSTANCES;
     }
     return SdfPath();
 }
@@ -343,13 +401,16 @@ UsdImagingPrimAdapter::GetPathForInstanceIndex(
 /*virtual*/
 SdfPath
 UsdImagingPrimAdapter::GetPathForInstanceIndex(
-    SdfPath const &instancerPath, SdfPath const &protoPath,
-    int instanceIndex, int *instanceCount,
-    int *absoluteInstanceIndex, SdfPath *resolvedPrimPath,
+    SdfPath const &instancerCachePath,
+    SdfPath const &protoCachePath,
+    int protoIndex,
+    int *instanceCountForThisLevel,
+    int *instancerIndex,
+    SdfPath *masterCachePath,
     SdfPathVector *instanceContext)
 {
-    if (absoluteInstanceIndex) {
-        *absoluteInstanceIndex = UsdImagingDelegate::ALL_INSTANCES;
+    if (instancerIndex) {
+        *instancerIndex = UsdImagingDelegate::ALL_INSTANCES;
     }
     return SdfPath();
 }
@@ -453,7 +514,7 @@ UsdImagingPrimAdapter::_GetAdapter(TfToken const& adapterKey) const
 
 SdfPath
 UsdImagingPrimAdapter::_GetPrimPathFromInstancerChain(
-                                            SdfPathVector const& instancerChain)
+                                     SdfPathVector const& instancerChain) const
 {
     // The instancer chain is stored more-to-less local.  For example:
     //
@@ -533,6 +594,14 @@ UsdImagingPrimAdapter::_GetMaterialNetworkSelector() const
     return _delegate->GetRenderIndex().GetRenderDelegate()->
         GetMaterialNetworkSelector();
 }
+
+bool
+UsdImagingPrimAdapter::_IsPrimvarFilteringNeeded() const
+{
+    return _delegate->GetRenderIndex().GetRenderDelegate()->
+        IsPrimvarFilteringNeeded();
+}
+
 
 TfTokenVector 
 UsdImagingPrimAdapter::_GetShaderSourceTypes() const
@@ -634,6 +703,32 @@ UsdImagingPrimAdapter::_ComputeAndMergePrimvar(
     }
 }
 
+bool
+UsdImagingPrimAdapter::_PrimvarChangeRequiresResync(
+        UsdPrim const& prim,
+        SdfPath const& cachePath,
+        TfToken const& propertyName,
+        TfToken const& primvarName) const
+{
+    bool primvarInValueCache = false;
+    HdPrimvarDescriptorVector const& vec =
+        _GetValueCache()->GetPrimvars(cachePath);
+    for (HdPrimvarDescriptor const& desc : vec) {
+        if (desc.name == primvarName) {
+            primvarInValueCache = true;
+            break;
+        }
+    }
+
+    bool primvarOnPrim = false;
+    UsdAttribute attr = prim.GetAttribute(propertyName);
+    if (attr && attr.HasValue()) {
+        primvarOnPrim = true;
+    }
+
+    return primvarOnPrim ^ primvarInValueCache;
+}
+
 UsdImaging_CollectionCache&
 UsdImagingPrimAdapter::_GetCollectionCache() const
 {
@@ -710,12 +805,6 @@ UsdImagingPrimAdapter::_IsVarying(UsdPrim prim,
 }
 
 bool 
-UsdImagingPrimAdapter::_IsRefined(SdfPath const& cachePath) const
-{
-    return _delegate->IsRefined(cachePath);
-}
-
-bool 
 UsdImagingPrimAdapter::_IsTransformVarying(UsdPrim prim,
                                            HdDirtyBits dirtyFlag,
                                            TfToken const& perfToken,
@@ -773,48 +862,110 @@ UsdImagingPrimAdapter::GetTransform(UsdPrim const& prim, UsdTimeCode time,
     return ignoreRootTransform ? ctm : ctm * GetRootTransform();
 }
 
+static
+size_t
+_GatherAuthoredTransformTimeSamples(
+    UsdPrim const& prim,
+    GfInterval const interval,
+    UsdImaging_XformCache const& xfCache,
+    std::vector<double>* timeSamples) 
+{
+    UsdPrim p = prim;
+    while (p && p.GetPath() != xfCache.GetRootPath()) {
+        // XXX Add caching here.
+        if (UsdGeomXformable xf = UsdGeomXformable(p)) {
+            std::vector<double> localTimeSamples;
+            xf.GetTimeSamplesInInterval(interval, &localTimeSamples);
+
+            // Join timesamples 
+            timeSamples->insert(
+                timeSamples->end(), 
+                localTimeSamples.begin(), 
+                localTimeSamples.end());
+        }
+        p = p.GetParent();
+    }
+
+    // Sort here
+    std::sort(timeSamples->begin(), timeSamples->end());
+    timeSamples->erase(
+        std::unique(timeSamples->begin(), 
+            timeSamples->end()), 
+            timeSamples->end());
+
+    return timeSamples->size();
+}
+
+GfInterval
+UsdImagingPrimAdapter::_GetCurrentTimeSamplingInterval()
+{
+    return _delegate->GetCurrentTimeSamplingInterval();
+}
+
 size_t
 UsdImagingPrimAdapter::SampleTransform(
-    UsdPrim const& prim, SdfPath const& cachePath,
-    const std::vector<float>& configuredSampleTimes,
-    size_t maxNumSamples, float *times, GfMatrix4d *samples)
+    UsdPrim const& prim, 
+    SdfPath const& cachePath,
+    UsdTimeCode time,
+    size_t maxNumSamples, 
+    float *sampleTimes, 
+    GfMatrix4d *sampleValues)
 {
-    if (maxNumSamples < 1 || configuredSampleTimes.empty()) {
+    HD_TRACE_FUNCTION();
+
+    if (maxNumSamples == 0) {
         return 0;
     }
+
     if (!prim) {
         // If this is not a literal USD prim, it is an instance of
         // other object synthesized by UsdImaging.  Just return
         // the single transform sample from the ValueCache.
-        samples[0] = GetTransform(prim, configuredSampleTimes[0]);
+        sampleTimes[0] = 0.0;
+        sampleValues[0] = GetTransform(prim, 0.0);
         return 1;
     }
 
-    // Provide the number of time samples configured in _timeSampleOffsets,
-    // but limited to the caller's declared capacity.
-    size_t numSamples = std::min(maxNumSamples, configuredSampleTimes.size());
+    GfInterval interval = _GetCurrentTimeSamplingInterval();
 
-    UsdImaging_XformCache &xfCache = _delegate->_xformCache;
+    // Add time samples at the boudary conditions
+    std::vector<double> timeSamples;
+    timeSamples.push_back(interval.GetMin());
+    timeSamples.push_back(interval.GetMax());
+
+    // Gather authored time samples for transforms
+    size_t numSamples = _GatherAuthoredTransformTimeSamples(
+        prim, 
+        interval, 
+        _delegate->_xformCache,
+        &timeSamples);
 
     // XXX: We should add caching to the transform computation if this shows
-    // up in profiling, but all of our current caches are cleared on time change
-    // so we'd need to write a new structure.
-    for (size_t i=0; i < numSamples; ++i) {
-        times[i] = configuredSampleTimes[i];
-        UsdTimeCode sceneTime =
-            _delegate->GetTimeWithOffset(configuredSampleTimes[i]);
-        samples[i] = UsdImaging_XfStrategy::ComputeTransform(
-            prim, xfCache.GetRootPath(), sceneTime, 
-            _delegate->_rigidXformOverrides) * _delegate->_rootXf;
+    // up in profiling, but all of our current caches are cleared on time 
+    // change so we'd need to write a new structure.
+    size_t numSamplesToEvaluate = std::min(maxNumSamples, numSamples);
+    for (size_t i=0; i < numSamplesToEvaluate; ++i) {
+        sampleTimes[i] = timeSamples[i] - time.GetValue();
+        sampleValues[i] = UsdImaging_XfStrategy::ComputeTransform(
+            prim, 
+            _delegate->_xformCache.GetRootPath(), 
+            timeSamples[i],
+            _delegate->_rigidXformOverrides) 
+                * _delegate->_rootXf;
     }
 
+    // Early out if we can't fit the data in the arrays
+    if (numSamples > maxNumSamples) {
+        return numSamples; 
+    }
+
+    // Optimization.
     // Some backends benefit if they can avoid time sample animation
     // for fixed transforms.  This is difficult to compute explicitly
     // due to the hierarchial nature of concated transforms, so we
     // do a post-pass sweep to detect static transforms here.
     for (size_t i=1; i < numSamples; ++i) {
-        if (samples[i] != samples[0]) {
-            // At least 1 sample is different, so return them all.
+        if (timeSamples[i] != timeSamples[0]) {
             return numSamples;
         }
     }
@@ -892,7 +1043,8 @@ UsdImagingPrimAdapter::GetDependPaths(SdfPath const &path) const
 /*virtual*/
 VtIntArray
 UsdImagingPrimAdapter::GetInstanceIndices(SdfPath const &instancerPath,
-                                          SdfPath const &protoRprimPath)
+                                          SdfPath const &protoRprimPath,
+                                          UsdTimeCode time)
 {
     return VtIntArray();
 }
