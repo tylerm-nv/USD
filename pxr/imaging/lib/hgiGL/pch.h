@@ -109,6 +109,10 @@
 #include <boost/preprocessor/tuple/elem.hpp>
 #include <boost/preprocessor/tuple/to_list.hpp>
 #include <boost/preprocessor/tuple/to_seq.hpp>
+#if defined(PXR_PYTHON_SUPPORT_ENABLED) && defined(ARCH_OS_WINDOWS)
+// Enable debug builds to link without debug binaries of Python.
+#include <boost/python/detail/wrap_python.hpp>
+#endif // defined(PXR_PYTHON_SUPPORT_ENABLED) && defined(ARCH_OS_WINDOWS)
 #include <boost/type_traits/is_base_of.hpp>
 #include <boost/type_traits/is_const.hpp>
 #include <boost/type_traits/is_convertible.hpp>
