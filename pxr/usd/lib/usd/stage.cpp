@@ -1568,136 +1568,6 @@ bool
 UsdStage::_SetValue(UsdTimeCode time, const UsdAttribute &attr,
                     const SdfTimeCode &newValue)
 {
-#if 0 // FIX FAST UPDATES
-    // #nv begin #fast-updates
-    // For now, we only support fast updates on prims that require no compositon remapping.
-    bool fastUpdates = SdfChangeBlock::IsFastUpdating() &&(GetEditTarget().GetMapFunction() == PcpMapFunction::Identity());
-    if (fastUpdates) {
-        auto GetOrInsertFieldHandle = [this](SdfLayerHandle layer, UsdAttribute attr, bool forDefaults, FieldHandleEntry *entry) {
-            auto path = attr.GetPath();
-            auto &fieldName = forDefaults ? SdfFieldKeys->Default : SdfFieldKeys->TimeSamples;
-            _CreateAttributeSpecForEditing(attr);
-            auto fieldHandle = layer->CreateFieldHandle(path, fieldName);
-            CheckFieldForCompositionDependents(layer, fieldHandle, false);
-            if (forDefaults) {
-                entry->defaultHandle = fieldHandle;
-            }
-            else {
-                entry->timeSamplesHandle = fieldHandle;
-            }
-            return fieldHandle;
-        };
-
-        auto &layer = GetEditTarget().GetLayer();
-        auto path = attr.GetPath();
-        bool forDefaults = time.IsDefault();
-        SdfAbstractDataFieldAccessHandle fieldHandle;
-        auto layerLookup = _fieldHandles.find(layer);
-        if (layerLookup != _fieldHandles.end()) {
-            auto fieldLookup = layerLookup->second.find(path);
-            if (fieldLookup != layerLookup->second.end()) {
-                if (forDefaults) {
-                    if (fieldLookup->second.defaultHandle) {
-                        fieldHandle = fieldLookup->second.defaultHandle;
-                    }
-                    else {
-                        fieldHandle = GetOrInsertFieldHandle(layer, attr, true, &(layerLookup->second[path]));
-                    }
-                } else {
-                    if (fieldLookup->second.timeSamplesHandle) {
-                        fieldHandle = fieldLookup->second.timeSamplesHandle;
-                    }
-                    else {
-                        fieldHandle = GetOrInsertFieldHandle(layer, attr, false, &(layerLookup->second[path]));
-                    }
-                }
-            } else {
-                fieldHandle = GetOrInsertFieldHandle(layer, attr, forDefaults, &(layerLookup->second[path]));
-            }
-        } else {
-            fieldHandle = GetOrInsertFieldHandle(layer, attr, forDefaults, &(_fieldHandles[layer][path]));
-        }
-        if (forDefaults) {
-            layer->SetField(fieldHandle, newValue);
-        } else {
-            layer->SetTimeSample(fieldHandle, time.GetValue(), newValue);
-        }
-
-        return true;
-    }
-    // nv end
-
-    // if we are setting a value block, we don't want type checking
-    if (!Usd_ValueContainsBlock(&newValue)) {
-    
-        // Do a type check.  Obtain typeName.
-        TfToken typeName;
-        SdfAbstractDataTypedValue<TfToken> abstrToken(&typeName);
-        _GetMetadata(attr, SdfFieldKeys->TypeName,
-                     TfToken(), /*useFallbacks=*/true, &abstrToken);
-        if (typeName.IsEmpty()) {
-                TF_RUNTIME_ERROR("Empty typeName for <%s>", 
-                                 attr.GetPath().GetText());
-            return false;
-        }
-        // Ensure this typeName is known to our schema.
-        TfType valType = SdfSchema::GetInstance().FindType(typeName).GetType();
-        if (valType.IsUnknown()) {
-            TF_RUNTIME_ERROR("Unknown typename for <%s>: '%s'",
-                             typeName.GetText(), attr.GetPath().GetText());
-            return false;
-        }
-        // Check that the passed value is the expected type.
-        if (!TfSafeTypeCompare(_GetTypeInfo(newValue), valType.GetTypeid())) {
-            TF_CODING_ERROR("Type mismatch for <%s>: expected '%s', got '%s'",
-                            attr.GetPath().GetText(),
-                            ArchGetDemangled(valType.GetTypeid()).c_str(),
-                            ArchGetDemangled(_GetTypeInfo(newValue)).c_str());
-            return false;
-        }
-
-        // Check variability, but only if the appropriate debug flag is
-        // enabled. Variability is a statement of intent but doesn't control
-        // behavior, so we only want to perform this validation when it is
-        // requested.
-        if (TfDebug::IsEnabled(USD_VALIDATE_VARIABILITY) && 
-            time != UsdTimeCode::Default() && 
-            _GetVariability(attr) == SdfVariabilityUniform) {
-            TF_DEBUG(USD_VALIDATE_VARIABILITY)
-                .Msg("Warning: authoring time sample value on "
-                     "uniform attribute <%s> at time %.3f\n", 
-                     UsdDescribe(attr).c_str(), time.GetValue());
-        }
-    }
-
-    SdfAttributeSpecHandle attrSpec = _CreateAttributeSpecForEditing(attr);
-
-    if (!attrSpec) {
-        TF_RUNTIME_ERROR(
-            "Cannot set attribute value.  Failed to create "
-            "attribute spec <%s> in layer @%s@",
-            GetEditTarget().MapToSpecPath(attr.GetPath()).GetText(),
-            GetEditTarget().GetLayer()->GetIdentifier().c_str());
-        return false;
-    }
-
-    if (time.IsDefault()) {
-		SdfPath path = attrSpec->GetPath();
-        attrSpec->GetLayer()->SetField(path,
-            SdfFieldKeys->Default,
-            newValue);
-    } else {
-        // XXX: should this loft the underlying values up when
-        // authoring over a weaker layer?
-
-        // XXX: this won't be correct if we are trying to edit
-        // across two different reference arcs -- which may have
-        // different time offsets.  perhaps we need the map function
-        // to track a time offset for each path?
-        const SdfLayerOffset stageToLayerOffset = 
-            UsdPrepLayerOffset(GetEditTarget().GetMapFunction().GetTimeOffset())
-            .GetInverse();
-#endif
     return _SetEditTargetMappedValue(time, attr, newValue);
 }
 
@@ -5823,6 +5693,68 @@ bool
 UsdStage::_SetValueImpl(
     UsdTimeCode time, const UsdAttribute &attr, const T& newValue)
 {
+    // #nv begin #fast-updates
+    // For now, we only support fast updates on prims that require no compositon remapping.
+    bool fastUpdates = SdfChangeBlock::IsFastUpdating() && (GetEditTarget().GetMapFunction() == PcpMapFunction::Identity());
+    if (fastUpdates) {
+        auto GetOrInsertFieldHandle = [this](SdfLayerHandle layer, UsdAttribute attr, bool forDefaults, FieldHandleEntry *entry) {
+            auto path = attr.GetPath();
+            auto &fieldName = forDefaults ? SdfFieldKeys->Default : SdfFieldKeys->TimeSamples;
+            _CreateAttributeSpecForEditing(attr);
+            auto fieldHandle = layer->CreateFieldHandle(path, fieldName);
+            CheckFieldForCompositionDependents(layer, fieldHandle, false);
+            if (forDefaults) {
+                entry->defaultHandle = fieldHandle;
+            }
+            else {
+                entry->timeSamplesHandle = fieldHandle;
+            }
+            return fieldHandle;
+        };
+
+        auto &layer = GetEditTarget().GetLayer();
+        auto path = attr.GetPath();
+        bool forDefaults = time.IsDefault();
+        SdfAbstractDataFieldAccessHandle fieldHandle;
+        auto layerLookup = _fieldHandles.find(layer);
+        if (layerLookup != _fieldHandles.end()) {
+            auto fieldLookup = layerLookup->second.find(path);
+            if (fieldLookup != layerLookup->second.end()) {
+                if (forDefaults) {
+                    if (fieldLookup->second.defaultHandle) {
+                        fieldHandle = fieldLookup->second.defaultHandle;
+                    }
+                    else {
+                        fieldHandle = GetOrInsertFieldHandle(layer, attr, true, &(layerLookup->second[path]));
+                    }
+                }
+                else {
+                    if (fieldLookup->second.timeSamplesHandle) {
+                        fieldHandle = fieldLookup->second.timeSamplesHandle;
+                    }
+                    else {
+                        fieldHandle = GetOrInsertFieldHandle(layer, attr, false, &(layerLookup->second[path]));
+                    }
+                }
+            }
+            else {
+                fieldHandle = GetOrInsertFieldHandle(layer, attr, forDefaults, &(layerLookup->second[path]));
+            }
+        }
+        else {
+            fieldHandle = GetOrInsertFieldHandle(layer, attr, forDefaults, &(_fieldHandles[layer][path]));
+        }
+        if (forDefaults) {
+            layer->SetField(fieldHandle, newValue);
+        }
+        else {
+            layer->SetTimeSample(fieldHandle, time.GetValue(), newValue);
+        }
+
+        return true;
+    }
+    // nv end
+
     // if we are setting a value block, we don't want type checking
     if (!Usd_ValueContainsBlock(&newValue)) {
         // Do a type check.  Obtain typeName.
