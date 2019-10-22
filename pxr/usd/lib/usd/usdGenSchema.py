@@ -36,6 +36,7 @@ generated that will compile and work with USD Core successfully:
         directly subLayer.
 """
 
+from __future__ import print_function
 import sys, os, re, inspect
 from argparse import ArgumentParser
 from collections import namedtuple
