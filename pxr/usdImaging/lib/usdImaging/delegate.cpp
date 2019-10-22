@@ -1214,6 +1214,9 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
     SdfPathVector affectedCachePaths;
     _GatherDependencies(usdPath, &affectedCachePaths);
     if (affectedCachePaths.size() > 0) {
+        //+NV_CHANGE FRZHANG : fix skelmesh resync
+        SdfPath rootPathToRepopulate = usdPath;
+        //-NV_CHANGE FRZHANG
         for (SdfPath const& affectedCachePath : affectedCachePaths) {
 
             TF_DEBUG(USDIMAGING_CHANGES).Msg("  - affected child prim: <%s>\n",
@@ -1230,6 +1233,15 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
                 // similar to ProcessPrimRemoval, but then additionally
                 // call proxy->Repopulate() on itself.
                 if (repopulateFromRoot) {
+                    //+NV_CHANGE FRZHANG : fix skelmesh resync
+                    // affectedPrims are all descendants of usdPath, so only calculate ancestor in single direction, otherwise should calculate common ancestor
+                    // Doing rootpath calculation before prim removal
+                    SdfPath resyncRootPath = primInfo->adapter->GetPrimResyncRootPath(usdPath);
+                    if (resyncRootPath != usdPath && rootPathToRepopulate.HasPrefix(resyncRootPath))
+                    {
+                        rootPathToRepopulate = resyncRootPath;
+                    }
+                    //-NV_CHANGE FRZHANG
                     primInfo->adapter->ProcessPrimRemoval(
                         affectedCachePath, proxy);
                 } else {
@@ -1240,7 +1252,9 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
         }
         if (repopulateFromRoot) {
             TF_DEBUG(USDIMAGING_CHANGES).Msg("  (repopulating from root)\n");
-            proxy->Repopulate(usdPath);
+            //+NV_CHANGE FRZHANG
+            proxy->Repopulate(rootPathToRepopulate);
+            //-NV_CHANGE FRZHANG
         } else {
             // If we resynced prims individually, walk the subtree for new prims
             UsdPrimRange range(_stage->GetPrimAtPath(usdPath));
@@ -1279,92 +1293,6 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
         return;
     }
 
-#if 0 // Fix NV Skel!
-    // Ensure we resync all prims that may have previously existed, but were
-    // removed with this change.
-    SdfPathVector affectedCachePaths;
-    HdPrimGather gather;
-
-    // XXX(UsdImagingPaths): Shouldn't we use a cachePath here?
-    gather.Subtree(_cachePaths.GetIds(), usdPath, &affectedCachePaths);
-
-    if (affectedCachePaths.empty()) {
-        // When we have no affected prims and all new prims were culled, the
-        // instancer may still need to be notified that the child was resync'd,
-        // in the event that a new prim came into existence under the root of an
-        // existing prototype.
-        //
-        // TODO: proposes we expose an API on the adapter to query if the
-        // path is of interest, which would allow the instancer (any ancestral
-        // adapter) to hook in and get the event. We should do this in a future
-        // change.
-        if (instancerCachePath.IsEmpty()) {
-            // We had no affected paths, which means the prim wasn't populated,
-            // skip population below.
-            return;
-        } else {
-            TF_DEBUG(USDIMAGING_CHANGES).Msg(
-                    "  - affected instancer prim: <%s>\n",
-                    instancerCachePath.GetText());
-
-            _HdPrimInfo *primInfo = _GetHdPrimInfo(instancerCachePath);
-            if (!TF_VERIFY(primInfo, "%s\n", instancerCachePath.GetText()) ||
-                !TF_VERIFY(primInfo->adapter, "%s\n",
-                           instancerCachePath.GetText())) {
-                return;
-            }
-
-            // XXX(UsdImagingPaths): ProcessPrimResync takes a usdPath,
-            // not a cachePath.
-            primInfo->adapter->ProcessPrimResync(instancerCachePath, proxy);
-            return;
-        }
-    }
-
-
-    //+NV_CHANGE FRZHANG : fix skelmesh resync
-    SdfPath rootPathToRepopulate = usdPath;
-    //-NV_CHANGE FRZHANG
-    // Apply changes.
-    for (SdfPath const& affectedCachePath: affectedCachePaths) {
-        _HdPrimInfo *primInfo = _GetHdPrimInfo(affectedCachePath);
-
-        TF_DEBUG(USDIMAGING_CHANGES).Msg("  - affected prim: <%s>\n",
-                affectedCachePath.GetText());
-
-        // We discovered these paths using the _hdPrimInfoMap above, this
-        // method should never return a null adapter here.
-        if (!TF_VERIFY(primInfo, "%s\n", affectedCachePath.GetText()) ||
-            !TF_VERIFY(primInfo->adapter, "%s\n", affectedCachePath.GetText()))
-            return;
-
-        // PrimResync will:
-        //  * Remove the rprim from the index, if it needs to be re-built
-        //  * Schedule the prim to be repopulated
-        // Note: primInfo may be invalid after this call
-
-        // XXX(UsdImagingPaths): ProcessPrimRemoval and ProcessPrimResync
-        // takes a usdPath, not a cachePath.
-        if (repopulateFromRoot) {
-            //+NV_CHANGE FRZHANG : fix skelmesh resync
-            // affectedPrims are all descendants of usdPath, so only calculate ancestor in single direction, otherwise should calculate common ancestor
-            // Doing rootpath calculation before prim removal
-            SdfPath resyncRootPath = primInfo->adapter->GetPrimResyncRootPath(usdPath);
-            if (resyncRootPath != usdPath && rootPathToRepopulate.HasPrefix(resyncRootPath))
-            {
-                rootPathToRepopulate = resyncRootPath;
-            }
-            //-NV_CHANGE FRZHANG
-            primInfo->adapter->ProcessPrimRemoval(affectedCachePath, proxy);
-        } else {
-            primInfo->adapter->ProcessPrimResync(affectedCachePath, proxy);
-        }
-    }
-
-    if (repopulateFromRoot) {
-        proxy->Repopulate(rootPathToRepopulate);
-    }
-#endif
     // Otherwise, this is a totally new branch of the scene, so populate
     // from the resync target path.
     TF_DEBUG(USDIMAGING_CHANGES).Msg("  - affected new prim: <%s>\n",
