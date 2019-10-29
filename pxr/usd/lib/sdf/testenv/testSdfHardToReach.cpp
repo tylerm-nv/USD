@@ -22,12 +22,16 @@
 // language governing permissions and limitations under the Apache License.
 //
 #include "pxr/pxr.h"
-#include "pxr/usd/sdf/layer.h"
 #include "pxr/usd/sdf/attributeSpec.h"
+#include "pxr/usd/sdf/layer.h"
+#include "pxr/usd/sdf/notice.h"
+#include "pxr/usd/sdf/path.h"
 #include "pxr/usd/sdf/primSpec.h"
 #include "pxr/usd/sdf/relationshipSpec.h"
 #include "pxr/usd/sdf/schema.h"
-#include "pxr/usd/sdf/notice.h"
+
+#include <map>
+#include <vector>
 
 // #nv begin #fast-updates
 #include "pxr/base/tf/error.h"
@@ -185,7 +189,6 @@ _TestSdfFieldDataAccess()
     auto prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     auto attr = SdfAttributeSpec::New(prim, "dummyAttr", SdfValueTypeNames->Double);
     auto attrPath = attr->GetPath();
-    auto specId = SdfAbstractDataSpecId(&attrPath);
     auto fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->Default);
     TF_AXIOM(fieldHandle);
     {
@@ -199,14 +202,14 @@ _TestSdfFieldDataAccess()
     layer->SetField(fieldHandle, doubleVal);
     TF_AXIOM(layer->GetField(fieldHandle) == doubleVal);
     TF_AXIOM(layer->GetField(fieldHandle) ==
-        layer->GetField(specId, SdfFieldKeys->Default));
+        layer->GetField(attrPath, SdfFieldKeys->Default));
     doubleVal = VtValue(-7.6);
-    layer->SetField(specId, SdfFieldKeys->Default, doubleVal);
+    layer->SetField(attrPath, SdfFieldKeys->Default, doubleVal);
     TF_AXIOM(layer->GetField(fieldHandle) == doubleVal);
-    TF_AXIOM(layer->GetField(fieldHandle) == layer->GetField(specId, SdfFieldKeys->Default));
+    TF_AXIOM(layer->GetField(fieldHandle) == layer->GetField(attrPath, SdfFieldKeys->Default));
 
     // Field handle should go invalid if the underlying field is erased.
-    layer->SetField(specId, SdfFieldKeys->Default, VtValue());
+    layer->SetField(attrPath, SdfFieldKeys->Default, VtValue());
     TF_AXIOM(!fieldHandle);
 
     // Field handle should go invalid when the layer is deleted.
@@ -220,12 +223,11 @@ _TestSdfFieldDataAccess()
     prim = SdfPrimSpec::New(layer->GetPseudoRoot(), "dummyPrim", SdfSpecifierDef);
     attr = SdfAttributeSpec::New(prim, "dummyAttr", SdfValueTypeNames->Double);
     attrPath = attr->GetPath();
-    specId = SdfAbstractDataSpecId(&attrPath);
     fieldHandle = layer->CreateFieldHandle(attr->GetPath(), SdfFieldKeys->TimeSamples);
     TF_AXIOM(fieldHandle);
     SdfBatchNamespaceEdit nsEdits;
     TfToken renamedDummyAttrToken("renamedDummyAttr");
-    nsEdits.Add(SdfNamespaceEdit::Rename(specId.GetFullSpecPath(), renamedDummyAttrToken));
+    nsEdits.Add(SdfNamespaceEdit::Rename(attrPath, renamedDummyAttrToken));
     TF_AXIOM(layer->CanApply(nsEdits));
     layer->Apply(nsEdits);
     TF_AXIOM(!fieldHandle);
@@ -276,6 +278,115 @@ _TestSdfFieldDataAccess()
 }
 // nv end
 
+static void
+_TestSdfPathFindLongestPrefix()
+{
+    std::vector<SdfPath> paths = {
+        SdfPath("/"),
+        SdfPath("/foo"),
+        SdfPath("/foo/bar/baz"),
+        SdfPath("/bar/foo"),
+        SdfPath("/bar/baz"),
+        SdfPath("/qux")
+    };
+
+    std::sort(paths.begin(), paths.end());
+    
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/foo/bar/baz/qux")) == SdfPath("/foo/bar/baz"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/foo/baz/baz/qux")) == SdfPath("/foo"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/bar/foo")) == SdfPath("/bar/foo"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/qux/foo/bar")) == SdfPath("/qux"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/qix")) == SdfPath("/"));
+
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/foo/bar/baz/qux")) == SdfPath("/foo/bar/baz"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/foo/baz/baz/qux")) == SdfPath("/foo"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/bar/foo")) == SdfPath("/"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/qux/foo/bar")) == SdfPath("/qux"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 paths.begin(), paths.end(),
+                 SdfPath("/qix")) == SdfPath("/"));
+
+    std::set<SdfPath> pathSet;
+    for (SdfPath const &p: paths) {
+        pathSet.insert(p);
+    }
+
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 pathSet, SdfPath("/foo/bar/baz/qux")) ==
+             SdfPath("/foo/bar/baz"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 pathSet, SdfPath("/foo/baz/baz/qux")) ==
+             SdfPath("/foo"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 pathSet, SdfPath("/bar/foo")) == SdfPath("/bar/foo"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 pathSet, SdfPath("/qux/foo/bar")) == SdfPath("/qux"));
+    TF_AXIOM(*SdfPathFindLongestPrefix(
+                 pathSet, SdfPath("/qix")) == SdfPath("/"));
+    
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 pathSet, SdfPath("/foo/bar/baz/qux")) ==
+             SdfPath("/foo/bar/baz"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 pathSet, SdfPath("/foo/baz/baz/qux")) ==
+             SdfPath("/foo"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 pathSet, SdfPath("/bar/foo")) == SdfPath("/"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 pathSet, SdfPath("/qux/foo/bar")) == SdfPath("/qux"));
+    TF_AXIOM(*SdfPathFindLongestStrictPrefix(
+                 pathSet, SdfPath("/qix")) == SdfPath("/"));
+
+    std::map<SdfPath, int> pathMap;
+    for (SdfPath const &p: paths) {
+        pathMap.emplace(p, 0);
+    }
+
+    TF_AXIOM(SdfPathFindLongestPrefix(
+                 pathMap, SdfPath("/foo/bar/baz/qux"))->first ==
+             SdfPath("/foo/bar/baz"));
+    TF_AXIOM(SdfPathFindLongestPrefix(
+                 pathMap, SdfPath("/foo/baz/baz/qux"))->first ==
+             SdfPath("/foo"));
+    TF_AXIOM(SdfPathFindLongestPrefix(
+                 pathMap, SdfPath("/bar/foo"))->first == SdfPath("/bar/foo"));
+    TF_AXIOM(SdfPathFindLongestPrefix(
+                 pathMap, SdfPath("/qux/foo/bar"))->first == SdfPath("/qux"));
+    TF_AXIOM(SdfPathFindLongestPrefix(
+                 pathMap, SdfPath("/qix"))->first == SdfPath("/"));
+    
+    TF_AXIOM(SdfPathFindLongestStrictPrefix(
+                 pathMap, SdfPath("/foo/bar/baz/qux"))->first ==
+             SdfPath("/foo/bar/baz"));
+    TF_AXIOM(SdfPathFindLongestStrictPrefix(
+                 pathMap, SdfPath("/foo/baz/baz/qux"))->first ==
+             SdfPath("/foo"));
+    TF_AXIOM(SdfPathFindLongestStrictPrefix(
+                 pathMap, SdfPath("/bar/foo"))->first == SdfPath("/"));
+    TF_AXIOM(SdfPathFindLongestStrictPrefix(
+                 pathMap, SdfPath("/qux/foo/bar"))->first == SdfPath("/qux"));
+    TF_AXIOM(SdfPathFindLongestStrictPrefix(
+                 pathMap, SdfPath("/qix"))->first == SdfPath("/"));
+}
+
 int
 main(int argc, char **argv)
 {
@@ -283,6 +394,7 @@ main(int argc, char **argv)
     _TestSdfLayerTimeSampleValueType();
     _TestSdfLayerTransferContents();
     _TestSdfRelationshipTargetSpecEdits();
+    _TestSdfPathFindLongestPrefix();
 
     // #nv begin #fast-updates
     _TestSdfFieldDataAccess();

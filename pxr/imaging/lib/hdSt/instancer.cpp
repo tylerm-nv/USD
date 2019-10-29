@@ -178,17 +178,41 @@ HdStInstancer::GetInstancePrimvars()
             }
 
             if (!sources.empty()) {
+
+//#nv begin fixing a bug when positions are added later to an instancer
+
+                HdBufferSpecVector bufferSpecs;
+                HdBufferSpec::GetBufferSpecs(sources, &bufferSpecs);
+
                 // if the instance BAR has not been allocated, create new one
                 if (!_instancePrimvarRange) {
-                    HdBufferSpecVector bufferSpecs;
-                    HdBufferSpec::GetBufferSpecs(sources, &bufferSpecs);
-
                     _instancePrimvarRange =
                         resourceRegistry->AllocateNonUniformBufferArrayRange(
                             HdTokens->primvar,
                             bufferSpecs,
                             HdBufferArrayUsageHint());
+                } else {
+                    HdBufferArrayRangeSharedPtr range =
+                        resourceRegistry->MergeNonUniformBufferArrayRange(
+                            HdTokens->primvar,
+                            bufferSpecs,
+                            HdBufferArrayUsageHint(),
+                            _instancePrimvarRange);
+
+                    if (range != _instancePrimvarRange) {
+                        _instancePrimvarRange = range;
+
+                        // If buffer migration actually happens, the old buffer will no
+                        // longer be needed, and GC is required to reclaim the memory.
+                        // We also need to trigger a batch rebuild.
+                        delegate->GetRenderIndex().GetChangeTracker().
+                            SetGarbageCollectionNeeded();
+                        delegate->GetRenderIndex().GetChangeTracker().
+                            MarkBatchesDirty();
+                    }
                 }
+
+// nv end
                 TF_VERIFY(_instancePrimvarRange->IsValid());
 
                 // schedule to sync gpu

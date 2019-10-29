@@ -30,11 +30,15 @@ PXR_NAMESPACE_USING_DIRECTIVE
 TF_WRAP_MODULE
 {
     TF_WRAP( ArrayAssetPath );
+    TF_WRAP( ArrayTimeCode );
     TF_WRAP( AssetPath );
     TF_WRAP( ChangeBlock );
     TF_WRAP( CleanupEnabler );
     TF_WRAP( CopyUtils );
     TF_WRAP( FileFormat );
+    // #nv begin #fast-updates
+    TF_WRAP( FastUpdateList );
+    // nv end
     TF_WRAP( Layer );
     TF_WRAP( LayerOffset );
     TF_WRAP( LayerTree );
@@ -43,6 +47,7 @@ TF_WRAP_MODULE
     TF_WRAP( Path );
     TF_WRAP( Payload );
     TF_WRAP( Reference );
+    TF_WRAP( TimeCode );
     TF_WRAP( Types );
     TF_WRAP( ValueType );
 

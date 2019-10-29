@@ -65,6 +65,7 @@ pxr_library(tf
         scopeDescription
         setenv
         singleton
+        smallVector
         stackTrace
         stacked
         status
@@ -333,6 +334,7 @@ pxr_build_test(testTf
         testenv/scoped.cpp
         testenv/scopeDescription.cpp
         testenv/setenv.cpp
+        testenv/smallVector.cpp
         testenv/stacked.cpp
         testenv/staticData.cpp
         testenv/stl.cpp
@@ -581,6 +583,10 @@ pxr_register_test(TfScopedVar
 #pxr_register_test(TfSetenv
 #    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfSetenv"
 #)
+
+pxr_register_test(TfSmallVector
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfSmallVector"
+)
 
 pxr_register_test(TfStacked
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfStacked"

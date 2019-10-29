@@ -37,7 +37,9 @@ namespace {
 
 class Sdf_PythonChangeBlock {
 public:
-    Sdf_PythonChangeBlock() : _block(0)
+    // #nv begin #fast-updates
+    Sdf_PythonChangeBlock(bool fastUpdates=false) : _block(0), _fastUpdates(fastUpdates)
+    // nv end
     {
         // Do nothing.
     }
@@ -52,7 +54,9 @@ public:
         if (!TF_VERIFY(_block == 0)) {
             return;
         }
-        _block = new SdfChangeBlock;
+        // #nv begin #fast-updates
+        _block = new SdfChangeBlock(_fastUpdates);
+        // nv end
     }
 
     void Close(object, object, object)
@@ -66,14 +70,20 @@ public:
 
 private:
     SdfChangeBlock* _block;
+
+    // #nv begin #fast-updates
+    bool _fastUpdates;
+    // nv end
 };
 
+// #nv begin #fast-updates
 static
 void
-_BeginBlock()
+_BeginBlock(bool fastUpdates)
 {
-    Sdf_ChangeManager::Get().OpenChangeBlock();
+    Sdf_ChangeManager::Get().OpenChangeBlock(fastUpdates);
 }
+// nv end
 
 static
 void
@@ -91,6 +101,9 @@ wrapChangeBlock()
     // with the 'with' statement.
     typedef Sdf_PythonChangeBlock This;
     class_<This, boost::noncopyable>("ChangeBlock", init<>())
+        // #nv begin #fast-updates
+        .def(init<bool>(arg("fastUpdates")))
+        // nv end
         .def("__enter__", &This::Open)
         .def("__exit__", &This::Close)
         ;
@@ -98,6 +111,8 @@ wrapChangeBlock()
     // Helpers to open/close change blocks in a non-RAII fashion. Primarily
     // here for API compatibility, consumers should prefer the ChangeBlock
     // object above.
-    def("BeginChangeBlock", &_BeginBlock);
+    // #nv begin #fast-updates
+    def("BeginChangeBlock", &_BeginBlock, arg("fastUpdates")=false);
+    // nv end
     def("EndChangeBlock", &_EndBlock);
 }
