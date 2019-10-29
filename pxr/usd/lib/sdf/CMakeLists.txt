@@ -132,6 +132,9 @@ pxr_library(sdf
         wrapCleanupEnabler.cpp
         wrapCopyUtils.cpp
         wrapFileFormat.cpp
+        # nv begin #fast-updates
+        wrapFastUpdateList.cpp
+        # nv end
         wrapLayer.cpp
         wrapLayerOffset.cpp
         wrapLayerTree.cpp

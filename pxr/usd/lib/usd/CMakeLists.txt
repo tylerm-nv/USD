@@ -182,6 +182,9 @@ pxr_test_scripts(
     testenv/testUsdCreateProperties.py
     testenv/testUsdDataFormats.py
     testenv/testUsdFileFormats.py
+    # nv begin #fast-updates
+    testenv/testUsdFastUpdates.py
+    # nv end
     testenv/testUsdFlatten.py
     testenv/testUsdFlatten2.py
     testenv/testUsdFlattenLayerStack.py
@@ -839,6 +842,14 @@ pxr_register_test(testUsdMetadata_OldOffsets
         USD_USE_INVERSE_LAYER_OFFSET=1
     EXPECTED_RETURN_CODE 0
 )
+
+# nv begin #fast-updates
+pxr_register_test(testUsdFastUpdates
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdFastUpdates"
+    EXPECTED_RETURN_CODE 0
+)
+# nv end
 
 pxr_register_test(testUsdFlatten
     PYTHON

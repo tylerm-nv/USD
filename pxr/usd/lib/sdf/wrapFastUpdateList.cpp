@@ -22,43 +22,46 @@
 // language governing permissions and limitations under the Apache License.
 //
 
+// #nv begin #fast-updates
 #include "pxr/pxr.h"
-#include "pxr/base/tf/pyModule.h"
+
+#include <vector>
+
+#include "pxr/usd/sdf/changeList.h"
+#include "pxr/base/tf/pyResultConversions.h"
+#include "pxr/base/tf/pyContainerConversions.h"
+#include "pxr/base/vt/valueFromPython.h"
+
+#include <boost/python.hpp>
+
+using namespace boost::python;
 
 PXR_NAMESPACE_USING_DIRECTIVE
 
-TF_WRAP_MODULE
-{
-    TF_WRAP( ArrayAssetPath );
-    TF_WRAP( ArrayTimeCode );
-    TF_WRAP( AssetPath );
-    TF_WRAP( ChangeBlock );
-    TF_WRAP( CleanupEnabler );
-    TF_WRAP( CopyUtils );
-    TF_WRAP( FileFormat );
-    // #nv begin #fast-updates
-    TF_WRAP( FastUpdateList );
-    // nv end
-    TF_WRAP( Layer );
-    TF_WRAP( LayerOffset );
-    TF_WRAP( LayerTree );
-    TF_WRAP( NamespaceEdit );
-    TF_WRAP( Notice );
-    TF_WRAP( Path );
-    TF_WRAP( Payload );
-    TF_WRAP( Reference );
-    TF_WRAP( TimeCode );
-    TF_WRAP( Types );
-    TF_WRAP( ValueType );
+namespace {
 
-    TF_WRAP( Spec );
-    TF_WRAP( VariantSpec );
-    TF_WRAP( VariantSetSpec );
-
-    TF_WRAP( PropertySpec );
-    TF_WRAP( AttributeSpec );
-    TF_WRAP( RelationshipSpec );
-
-    TF_WRAP( PrimSpec );
-    TF_WRAP( PseudoRootSpec );
+static VtValue
+_GetValue(const SdfFastUpdateList::FastUpdate &fastUpdate) {
+    return fastUpdate.value;
 }
+
+static const std::vector<SdfFastUpdateList::FastUpdate> &
+_GetFastUpdates(const SdfFastUpdateList &fastUpdateList) {
+    return fastUpdateList.fastUpdates;
+}
+
+} // anonymous namespace
+
+void wrapFastUpdateList() {
+    scope s = class_<SdfFastUpdateList> ( "FastUpdateList", no_init )
+        .def_readonly("hasCompositionDependents", &SdfFastUpdateList::hasCompositionDependents)
+        .add_property("fastUpdates", make_function(&_GetFastUpdates,
+            return_value_policy<TfPySequenceToList>()))
+        ;
+
+    class_<SdfFastUpdateList::FastUpdate>("FastUpdate", no_init)
+        .def_readonly("path", &SdfFastUpdateList::FastUpdate::path)
+        .add_property("value", &_GetValue)
+        ;
+}
+// nv end

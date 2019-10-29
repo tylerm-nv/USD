@@ -95,6 +95,10 @@ void wrapUsdNotice()
             .def("HasChangedFields",
                  (bool (UsdNotice::ObjectsChanged::*)(const SdfPath&) const)
                  &UsdNotice::ObjectsChanged::HasChangedFields)
+            // #nv begin #fast-updates
+            .def("GetFastUpdates", &UsdNotice::ObjectsChanged::GetFastUpdates,
+                return_value_policy<TfPySequenceToList>())
+            // nv end
         ;
 
     TfPyNoticeWrapper<

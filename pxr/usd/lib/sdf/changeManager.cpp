@@ -206,8 +206,9 @@ Sdf_ChangeManager::_SendNotices()
 
         // Obtain a serial number for this round of change processing.
         size_t serialNumber = changeSerialNumber.fetch_and_increment();
-        SdfNotice::LayersDidChangeSentPerLayer n(fastUpdates, serialNumber);
-        n.Send(fastUpdates.begin()->first);
+
+        SdfNotice::LayersDidChange(fastUpdates, serialNumber).Send();
+        SdfNotice::LayersDidChangeSentPerLayer(fastUpdates, serialNumber).Send(fastUpdates.begin()->first);
         return;
     } else {
         // Otherwise make a dummy change entry for each fast update whose path does not already have a change entry.
