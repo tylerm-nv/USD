@@ -144,15 +144,6 @@ UsdImagingGprimAdapter::_AddRprim(TfToken const& primType,
             : UsdImagingPrimAdapterSharedPtr());
     HD_PERF_COUNTER_INCR(UsdImagingTokens->usdPopulatedPrimCount);
 
-    // As long as we're passing the proxyPrim in here, we need to add a
-    // manual dependency on usdPrim so that usd editing works correctly;
-    // also, get rid of the proxyPrim dependency.
-    // XXX: We should get rid of proxyPrim entirely.
-    if (instancerContext != nullptr) {
-        index->_RemovePrimInfoDependency(cachePath);
-        index->AddDependency(cachePath, usdPrim);
-    }
-
     // Allow instancer context to override the material binding.
     SdfPath resolvedUsdMaterialPath = instancerContext ?
         instancerContext->instancerMaterialUsdPath : materialUsdPath;

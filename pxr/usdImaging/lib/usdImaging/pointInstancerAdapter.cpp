@@ -288,10 +288,6 @@ UsdImagingPointInstancerAdapter::_PopulatePrototype(
             UsdPrim master = iter->GetMaster();
             UsdPrimRange masterRange(master);
             treeStack.push_back(masterRange);
-
-            // Make sure to register a dependency on this instancer with the
-            // parent PI.
-            index->AddDependency(instancerContext->instancerCachePath, *iter);
             continue;
         }
 
@@ -918,8 +914,12 @@ UsdImagingPointInstancerAdapter::_ProcessPrimRemoval(SdfPath const& cachePath,
                                              UsdImagingIndexProxy* index,
                                              SdfPathVector* instancersToReload)
 {
+    // XXX(UsdImagingPaths): We use the cachePath as a usdPath directly here,
+    // but we should probably do the correct transformation.
+    SdfPath const& usdPath = cachePath;
+
     // If prim data exists at this path, we'll drop it now.
-    _InstancerDataMap::iterator instIt = _instancerData.find(cachePath);
+    _InstancerDataMap::iterator instIt = _instancerData.find(usdPath);
     SdfPathVector instancersToUnload;
 
     if (instIt != _instancerData.end()) {
@@ -946,10 +946,10 @@ UsdImagingPointInstancerAdapter::_ProcessPrimRemoval(SdfPath const& cachePath,
         }
     }
 
-    // Otherwise, the cachePath must be a path to one of the prototype rprims.
+    // Otherwise, the usdPath must be a path to one of the prototype rprims.
 
     // The prim in the Usd scenegraph could be shared among many instancers, so
-    // we search each instancer for the presence of the given cachePath. Any
+    // we search each instancer for the presence of the given usdPath. Any
     // instancer that references this prim must be rebuilt, we don't currently
     // support incrementally rebuilding an instancer.
 
@@ -959,7 +959,7 @@ UsdImagingPointInstancerAdapter::_ProcessPrimRemoval(SdfPath const& cachePath,
             SdfPath const& instancerPath = instIt->first;
             _InstancerData& inst = instIt->second;
 
-            if (inst.parentInstancerCachePath == cachePath) {
+            if (inst.parentInstancerCachePath == usdPath) {
                 instancersToUnload.push_back(instancerPath);
                 continue;
             }
@@ -969,7 +969,7 @@ UsdImagingPointInstancerAdapter::_ProcessPrimRemoval(SdfPath const& cachePath,
             // unloaded so we can stop searching.
             bool foundPrim = false;
             TF_FOR_ALL(protoIt, inst.prototypes) {
-                if (cachePath.HasPrefix((*protoIt)->protoRootPath)) {
+                if (usdPath.HasPrefix((*protoIt)->protoRootPath)) {
                     // Append this instancer to the unload list (we can't modify
                     // the structure while iterating).
                     instancersToUnload.push_back(instancerPath);
@@ -982,9 +982,6 @@ UsdImagingPointInstancerAdapter::_ProcessPrimRemoval(SdfPath const& cachePath,
             }
 
             // Check for a dependency on this UsdPrim.
-            // XXX(UsdImagingPaths): since we have a cachePath and not a
-            // usdPath, it's not clear what the following is doing?
-            SdfPath const& usdPath = cachePath;
             _UsdToCacheMap::iterator it = inst.usdToCacheMap.find(usdPath);
             if (it != inst.usdToCacheMap.end()) {
                 instancersToUnload.push_back(instancerPath);
@@ -1217,6 +1214,7 @@ UsdImagingPointInstancerAdapter::_UnloadInstancer(SdfPath const& instancerPath,
 
     // Blow away the instancer and the associated local data.
     index->RemoveInstancer(instancerPath);
+    index->RemoveHdPrimInfo(instancerPath);
 }
 
 // -------------------------------------------------------------------------- //

@@ -447,10 +447,7 @@ private:
         // This is a set of reference paths, where this instancer needs
         // to deferer to another instancer.  While refered to here as a child
         // instancer, the actual relationship is more like a directed graph.
-        SdfPathSet childPointInstancers;
-
-        // Nested native instances.
-        SdfPathVector nestedInstances;
+        SdfPathSet childInstancers;
 
         // Proto group containing the instance indexes for each prototype
         // rprim.
