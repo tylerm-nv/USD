@@ -139,6 +139,7 @@ UsdImagingPrimAdapter::ProcessPrimResync(SdfPath const& cachePath,
                                          UsdImagingIndexProxy* index) 
 {
     _RemovePrim(cachePath, index);
+    index->RemoveHdPrimInfo(cachePath);
 
     /// XXX(UsdImagingPaths): We use the cachePath directly as the
     // usdPath here, but should do the proper transformation.
@@ -156,6 +157,7 @@ UsdImagingPrimAdapter::ProcessPrimRemoval(SdfPath const& cachePath,
                                           UsdImagingIndexProxy* index)
 {
     _RemovePrim(cachePath, index);
+    index->RemoveHdPrimInfo(cachePath);
 }
 
 //+NV_CHANGE FRZHANG : fix skelmesh resync
