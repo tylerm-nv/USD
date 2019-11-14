@@ -33,8 +33,16 @@
 
 #include "pxr/base/gf/frustum.h"
 
+// #nv begin #kit-gizmos
+#include "pxr/base/tf/envSetting.h"
+// nv end
+
 PXR_NAMESPACE_OPEN_SCOPE
 
+// #nv begin #kit-gizmos
+TF_DEFINE_ENV_SETTING(USDIMAGING_DISABLE_CAMERA_ADAPTER, 0,
+    "Disable UsdImaging support for camera information.")
+// nv end
 
 TF_REGISTRY_FUNCTION(TfType)
 {
@@ -50,7 +58,10 @@ UsdImagingCameraAdapter::~UsdImagingCameraAdapter()
 bool
 UsdImagingCameraAdapter::IsSupported(UsdImagingIndexProxy const* index) const
 {
-    return index->IsSprimTypeSupported(HdPrimTypeTokens->camera);
+    // #nv begin #kit-gizmos
+    static bool disabled = TfGetEnvSetting(USDIMAGING_DISABLE_CAMERA_ADAPTER) == 1;
+    return !disabled && index->IsSprimTypeSupported(HdPrimTypeTokens->camera);
+    // nv end
 }
 
 SdfPath
@@ -315,8 +326,16 @@ UsdImagingCameraAdapter::ProcessPropertyChange(UsdPrim const& prim,
                                       SdfPath const& cachePath, 
                                       TfToken const& propertyName)
 {
-    // Could be smarter, but there isn't much compute to save here.
-    return HdChangeTracker::AllDirty;
+    // #nv begin #kit-gizmos
+    static bool disabled = TfGetEnvSetting(USDIMAGING_DISABLE_CAMERA_ADAPTER) == 1;
+    if (disabled) {
+        // Kit is not yet using Hydra cameras, which overinvalidate Camera gizmos.
+        return HdCamera::Clean;
+    } else {
+        // Could be smarter, but there isn't much compute to save here.
+        return HdChangeTracker::AllDirty;
+    }
+    // nv end
 }
 
 void
