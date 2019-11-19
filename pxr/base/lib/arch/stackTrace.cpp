@@ -467,7 +467,13 @@ nonLockingLinux__execve (const char *file,
                          char *const argv[],
                          char *const envp[])
 {
-#if defined(ARCH_BITS_64)
+// nv begin #aarch64-support
+#if defined(ARCH_BITS_64) && defined(ARCH_CPU_ARM)
+    execve(file, argv, envp);
+// nv end
+
+#elif defined(ARCH_BITS_64)
+
     /*
      * We make a direct system call here, because we can't find an
      * execve which corresponds with the non-locking fork we call
