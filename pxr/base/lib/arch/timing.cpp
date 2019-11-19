@@ -72,7 +72,10 @@ Arch_InitTickTimer()
         while (fgets(linebuffer, sizeof(linebuffer), in)) {
             char* colon;
 
-            if (strncmp(linebuffer, "bogomips", 8) == 0 &&
+            if ((strncmp(linebuffer, "bogomips", 8) == 0 ||
+// nv begin #aarch64-support
+               strncmp(linebuffer, "BogoMIPS", 8) == 0) &&
+// nv end
                 (colon = strchr(linebuffer, ':'))) {
 
                 colon++;
