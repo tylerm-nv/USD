@@ -171,6 +171,14 @@ UsdImagingMaterialAdapter::ProcessPropertyChange(UsdPrim const& prim,
         return HdChangeTracker::Clean;
     }
 
+    // #nv begin #material-resync
+    if (UsdGeomXformOp::IsXformOp(propertyName))
+    {
+        // Materials aren't affected by transform
+        return HdChangeTracker::Clean;
+    }
+    // #nv end
+
     // The only meaningful change is to dirty the computed resource,
     // an HdMaterialNetwork.
     return HdMaterial::DirtyResource;
