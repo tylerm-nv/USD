@@ -189,6 +189,7 @@ TF_DEFINE_PRIVATE_TOKENS(
     ((infoSourceAsset, "info:sourceAsset"))
     ((infoSourceCode, "info:sourceCode"))
 // #nv begin #new-MDL-schema
+    ((infoSourceAssetSubIdentifier, "info:sourceAsset:subIdentifier"))
     (subIdentifier)
 // #nv end
 );
@@ -297,7 +298,7 @@ TfToken
 _GetSourceAssetSubIdentifierAttrName(const TfToken &sourceType) 
 {
     if (sourceType == UsdShadeTokens->universalSourceType) {
-        return _tokens->infoSourceAsset;
+        return _tokens->infoSourceAssetSubIdentifier;
     }
     return TfToken(SdfPath::JoinIdentifier(TfTokenVector{
                                     _tokens->info, 
