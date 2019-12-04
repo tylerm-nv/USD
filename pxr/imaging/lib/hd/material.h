@@ -109,6 +109,9 @@ struct HdMaterialNode {
     TfToken subIdentifier;
 // #nv end    
     std::map<TfToken, VtValue> parameters;
+// #nv begin #parameter-colorSpace-to-hydra
+    std::map<TfToken, TfToken> paramColorSpace;
+// #nv end    
 };
 
 // VtValue requirements

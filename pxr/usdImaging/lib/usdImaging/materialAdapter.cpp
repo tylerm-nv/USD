@@ -308,6 +308,14 @@ void _WalkGraph(
             if (attr.Get(&value)) {
                 node.parameters[inputName] = value;
             }
+
+// #nv begin #parameter-colorSpace-to-hydra
+            TfToken colorSpaceToken = attr.GetColorSpace();
+            if (!colorSpaceToken.IsEmpty())
+            {
+                node.paramColorSpace[inputName] = colorSpaceToken;
+            }
+// #nv end            
         }
     }
 
