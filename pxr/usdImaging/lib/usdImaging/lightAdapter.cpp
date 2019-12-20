@@ -50,6 +50,11 @@ bool _IsEnabledSceneLights() {
     return _v;
 }
 
+// #nv begin #sparse-light-updates
+TF_DEFINE_ENV_SETTING(USDIMAGING_ENABLE_SPARSE_LIGHT_UPDATES, 0,
+                      "Enable sparse updates to scene lights.");
+// nv end
+
 UsdImagingLightAdapter::~UsdImagingLightAdapter() 
 {
 }
@@ -135,6 +140,16 @@ UsdImagingLightAdapter::ProcessPropertyChange(UsdPrim const& prim,
                                       SdfPath const& cachePath, 
                                       TfToken const& propertyName)
 {
+    // #nv begin #sparse-light-updates
+    static bool sparseUpdatesEnabled = TfGetEnvSetting(USDIMAGING_ENABLE_SPARSE_LIGHT_UPDATES);
+    if (sparseUpdatesEnabled) {
+        if (UsdGeomXformable::IsTransformationAffectedByAttrNamed(propertyName)) {
+            return HdLight::DirtyTransform;
+        }
+        return HdLight::AllDirty;
+    }
+    // nv end
+
     return HdChangeTracker::AllDirty;
 }
 
