@@ -205,6 +205,7 @@ int main(int argc, char const **argv)
         exit(1);                                                                
     }
 
+
     // Initialize. 
     printf("Using %zu threads\n", numThreads);
 

@@ -477,12 +477,9 @@ pxr_register_test(TfEnvSetting
     STDERR_REDIRECT debugTfEnvSettingStderr.txt
     DIFF_COMPARE debugTfEnvSettingStderr.txt
 )
-# NV aluk
-# A handful of tests only fail in TeamCity. This requires more
-# investigation, and these tests are disabled for now.
-#pxr_register_test(TfFileUtils
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfFileUtils"
-#)
+pxr_register_test(TfFileUtils
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfFileUtils"
+)
 pxr_register_test(TfFileUtils_Python
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfFileUtils"
@@ -523,12 +520,9 @@ pxr_register_test(TfNamedTemporaryFile
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfNamedTemporaryFile"
 )
-# NV aluk
-# A handful of tests only fail in TeamCity. This requires more
-# investigation, and these tests are disabled for now.
-#pxr_register_test(TfPathUtils
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfPathUtils"
-#)
+pxr_register_test(TfPathUtils
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfPathUtils"
+)
 pxr_register_test(TfPathUtils_Python
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPathUtils"
@@ -576,18 +570,12 @@ pxr_register_test(TfScoped
 pxr_register_test(TfScopedVar
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfScopedVar"
 )
-
-# NV aluk
-# A handful of tests only fail in TeamCity. This requires more
-# investigation, and these tests are disabled for now.
-#pxr_register_test(TfSetenv
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfSetenv"
-#)
-
+pxr_register_test(TfSetenv
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfSetenv"
+)
 pxr_register_test(TfSmallVector
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfSmallVector"
 )
-
 pxr_register_test(TfStacked
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfStacked"
 )
@@ -600,12 +588,9 @@ pxr_register_test(TfStaticTokens
 pxr_register_test(TfStl
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfStl"
 )
-
-# A handful of tests only fail in TeamCity. This requires more
-# investigation, and these tests are disabled for now.
-#pxr_register_test(TfStopwatch
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfStopwatch"
-#)
+pxr_register_test(TfStopwatch
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfStopwatch"
+)
 pxr_register_test(TfStringUtils
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfStringUtils"
 )
@@ -619,12 +604,9 @@ pxr_register_test(testTfTemplateString
 pxr_register_test(TfToken
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfToken"
 )
-# NV aluk
-# A handful of tests only fail in TeamCity. This requires more
-# investigation, and these tests are disabled for now.
-#pxr_register_test(TfType
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfType"
-#)
+pxr_register_test(TfType
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfType"
+)
 pxr_register_test(TfTypeInfoMap
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTf TfTypeInfoMap"
 )
@@ -643,29 +625,23 @@ if(PXR_ENABLE_PYTHON_SUPPORT)
         PYTHON
         COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPython"
     )
-	# NV aluk
-	# A handful of tests only fail in TeamCity. This requires more
-	# investigation, and these tests are disabled for now.
-    #pxr_register_test(testTfPyFunction
-    #    REQUIRES_PYTHON_MODULES
-    #    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyFunction"
-    #)
+    pxr_register_test(testTfPyFunction
+        REQUIRES_PYTHON_MODULES
+        COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyFunction"
+    )
     pxr_register_test(testTfPyNotice
         PYTHON
         COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyNotice"
     )
-	# NV aluk
-	# A handful of tests only fail in TeamCity. This requires more
-	# investigation, and these tests are disabled for now.
-    #pxr_register_test(testTfPyInterpreter
-    #    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyInterpreter"
-    #)
-    #pxr_register_test(testTfPyLock
-    #    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyLock"
-    #)
-    #pxr_register_test(testTfPyResultConversions
-    #    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyResultConversions"
-    #)
+	pxr_register_test(testTfPyInterpreter
+        COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyInterpreter"
+    )
+    pxr_register_test(testTfPyLock
+        COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyLock"
+    )
+    pxr_register_test(testTfPyResultConversions
+        COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyResultConversions"
+    )
     pxr_register_test(testTfPyScopeDescription
         PYTHON
         COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testTfPyScopeDescription"
