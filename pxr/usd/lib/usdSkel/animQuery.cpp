@@ -203,4 +203,5 @@ UsdSkelAnimQuery::GetDescription() const
     return "invalid UsdSkelAnimQuery";
 }
 
+
 PXR_NAMESPACE_CLOSE_SCOPE

@@ -30,7 +30,6 @@
 #include "pxr/usdImaging/usdImaging/indexProxy.h"
 #include "pxr/usdImaging/usdImaging/tokens.h"
 
-
 #include "pxr/imaging/hd/perfLog.h"
 
 #include "pxr/usd/usd/primRange.h"

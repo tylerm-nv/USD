@@ -225,7 +225,6 @@ int main(int argc, char const **argv)
     printf("Using random seed: %d\n", randomSeed);
     printf("Using %zu threads\n", numThreads);
 
-
     // Run.
     TfStopwatch sw;
     sw.Start();

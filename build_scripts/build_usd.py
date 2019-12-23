@@ -1353,8 +1353,6 @@ group.add_argument("--force-all", action="store_true",
 group.add_argument("--generator", type=str,
                    help=("CMake generator to use when building libraries with "
                          "cmake"))
-group.add_argument("--build-debug", dest="build_debug", action="store_true",
-                    help="Build with debugging information")
 
 group = parser.add_argument_group(title="3rd Party Dependency Build Options")
 group.add_argument("--src", type=str,

@@ -50,10 +50,10 @@ def GetReferenceAssemblies(parentNodes=None):
     ASSEMBLY_NODE_TYPE = 'pxrUsdReferenceAssembly'
 
     if parentNodes:
-        refAssemblies = cmds.ls(parentNodes, dagObjects=True, int=True,
+        refAssemblies = cmds.ls(parentNodes, dagObjects=True, long=True,
             type=ASSEMBLY_NODE_TYPE)
     else:
-        refAssemblies = cmds.ls(dagObjects=True, int=True,
+        refAssemblies = cmds.ls(dagObjects=True, long=True,
             type=ASSEMBLY_NODE_TYPE)
 
     return refAssemblies or []
