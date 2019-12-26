@@ -116,6 +116,16 @@ TF_DEFINE_ENV_SETTING(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN, 0,
     "Process unknown properties as clean.");
 // nv end
 
+// #nv begin #kit-gizmos
+TF_DEFINE_ENV_SETTING(USDIMAGING_ENABLE_NESTED_GPRIMS, 0,
+    "Enable draw refresh for nested gprims.");
+static bool _IsEnabledNestedGprims() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_ENABLE_NESTED_GPRIMS) == 1;
+    return _v;
+}
+// nv end
+
+
 // -------------------------------------------------------------------------- //
 // Delegate Implementation.
 // -------------------------------------------------------------------------- //
@@ -1227,7 +1237,10 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
                 primInfo->adapter->ProcessPrimResync(cachePath, proxy);
             }
         }
-        if (range.first != range.second) {
+        if ((range.first != range.second)
+            // #nv begin #kit-gizmos
+            && !_IsEnabledNestedGprims()) {
+            // nv end
             return;
         }
     }
