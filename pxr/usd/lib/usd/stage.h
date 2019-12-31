@@ -2050,25 +2050,8 @@ private:
 
     void _RegisterPerLayerNotices();
 
-    //#nv begin #omniverse
-    // The following extension is for omniverse layers
-    void _MuteLayersFromCustomData(const SdfLayerHandleVector&);
-    //nv end
-
-//#nv begin #omniverse
-public:
-    // When it's global, the state will be serialized into USD
-    // and will be shared across sessions. When it's local,
-    // the mute state will not be serialized into USD and 
-    // not shared.
-    USD_API
-    void SetMutenessStateScope(bool global);
-
-    USD_API
-    bool IsMutenessStateGlobal() const;
-//nv end
-
 // #nv begin #fast-updates
+public:
     // Checks whether the given field handle has composition dependents
     // (e.g., lives on a class or referenced prim), and starts tracking
     // it internally for fast updates and recomposition changes
@@ -2126,13 +2109,6 @@ private:
     UsdStageLoadRules _loadRules;
     
     bool _isClosingStage;
-
-    //#nv begin #omniverse
-    // It's in progress of muting/unmuting layers
-    bool _isMutingLayers;
-
-    bool _isGlobalMutenessState;
-    //nv end
 
     // #nv begin #fast-updates
     // Field handle cache for fast field access.
