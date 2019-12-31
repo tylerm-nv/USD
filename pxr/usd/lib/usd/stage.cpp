@@ -115,10 +115,6 @@ using std::map;
 using std::string;
 using std::vector;
 
-//#nv begin #omniverse
-#define OMNIVERSE_MUTENESS_CUSTOM_KEY "omni_layer:muteness"
-//nv end
-
 // Definition below under "value resolution".
 // Composes a prim's typeName, with special consideration for __AnyType__.
 static TfToken _ComposeTypeName(const PcpPrimIndex &primIndex);
@@ -473,10 +469,6 @@ UsdStage::UsdStage(const SdfLayerRefPtr& rootLayer,
     , _initialLoadSet(load)
     , _populationMask(mask)
     , _isClosingStage(false)
-    //#nv begin #omniverse
-    , _isMutingLayers(false)
-    , _isGlobalMutenessState(false)
-    //nv end
 {
     if (!TF_VERIFY(_rootLayer))
         return;
@@ -990,9 +982,6 @@ UsdStage::_OpenImpl(InitialLoadSet load, Args const &... args)
         }
     }
     TF_VERIFY(stage);
-    //#nv begin #omniverse
-    stage->_MuteLayersFromCustomData(stage->GetUsedLayers(false));
-    //nv end
     return stage;
 }
 
@@ -3347,18 +3336,11 @@ void
 UsdStage::MuteAndUnmuteLayers(const std::vector<std::string> &muteLayers,
                               const std::vector<std::string> &unmuteLayers)
 {
-    //#nv begin #omniverse
-    _isMutingLayers = true;
-    //nv end
-
     TfAutoMallocTag2 tag("Usd", _mallocTagID);
 
     PcpChanges changes;
     _cache->RequestLayerMuting(muteLayers, unmuteLayers, &changes);
     if (changes.IsEmpty()) {
-        //#nv begin #omniverse
-        _isMutingLayers = false;
-        //nv end
         return;
     }
 
@@ -3372,10 +3354,6 @@ UsdStage::MuteAndUnmuteLayers(const std::vector<std::string> &muteLayers,
         .Send(self);
 
     UsdNotice::StageContentsChanged(self).Send(self);
-
-    //#nv begin #omniverse
-    _isMutingLayers = false;
-    //nv end
 }
 
 const std::vector<std::string>&
@@ -3941,11 +3919,6 @@ UsdStage::_HandleLayersDidChange(
 
     // Receivers can now refresh their caches... or just dirty them
     UsdNotice::StageContentsChanged(self).Send(self);
-
-    //#nv begin #omniverse
-    // Check if it's necessary to update muteness from custom data
-    _MuteLayersFromCustomData(n.GetLayers());
-    //nv end
 }
 
 void 
@@ -4407,58 +4380,6 @@ UsdStage::_RegisterPerLayerNotices()
     // Swap new set into place.
     _layersAndNoticeKeys.swap(newLayersAndNoticeKeys);
 }
-
-//#nv begin #omniverse
-void UsdStage::_MuteLayersFromCustomData(const SdfLayerHandleVector& changedLayers)
-{
-    if (!_isMutingLayers && _isGlobalMutenessState) {
-        SdfLayerHandle rootLayer = GetRootLayer();
-
-        bool rootLayerChanged = false;
-        for (auto changeLayer : changedLayers) {
-            if (changeLayer->GetIdentifier() == rootLayer->GetIdentifier()) {
-                rootLayerChanged = true;
-                break;
-            }
-        }
-
-        // Change muteness when root layer changed as it saves all meta
-        if (rootLayerChanged) {
-            VtDictionary rootLayerCustomData = rootLayer->GetCustomLayerData();
-            const VtValue* muteness = rootLayerCustomData.GetValueAtPath(OMNIVERSE_MUTENESS_CUSTOM_KEY);
-            VtDictionary mutenessDict;
-            if (muteness && !muteness->IsEmpty())
-                mutenessDict = muteness->Get<VtDictionary>();
-            std::vector<std::string> mutedLayers;
-            std::vector<std::string> unmutedLayers;
-            for (auto identifierMutenessPair : mutenessDict) {
-                auto layerIdentifier = identifierMutenessPair.first;
-                auto muted = identifierMutenessPair.second.Get<bool>();
-                if (muted != IsLayerMuted(layerIdentifier)) {
-                    if (muted)
-                        mutedLayers.push_back(layerIdentifier);
-                    else
-                        unmutedLayers.push_back(layerIdentifier);
-                }
-            }
-
-            if (mutedLayers.size() > 0 || unmutedLayers.size() > 0)
-                MuteAndUnmuteLayers(mutedLayers, unmutedLayers);
-        }
-    }
-}
-
-void UsdStage::SetMutenessStateScope(bool global)
-{
-    _isGlobalMutenessState = global;
-    _MuteLayersFromCustomData({ GetRootLayer() });
-}
-
-bool UsdStage::IsMutenessStateGlobal() const
-{
-    return _isGlobalMutenessState;
-}
-//nv end
 
 // #nv begin #fast-updates
 void
