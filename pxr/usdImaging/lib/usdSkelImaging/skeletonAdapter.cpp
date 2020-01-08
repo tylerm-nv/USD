@@ -987,6 +987,14 @@ UsdSkelImagingSkeletonAdapter::_RemovePrim(const SdfPath& cachePath,
     // Alternative way of finding whether this is a callback for the skeleton/
     // bone mesh.
     bool isSkelPath = _skelBindingMap.find(cachePath) != _skelBindingMap.end();
+
+    // #nv begin #missing-skel-root
+    // If the cachePath is not a SkelPath but can be found in _GetSkelData, 
+    // it means the skeleton hierarchy is ill-formed (for example the 
+    // Skeleton has no UsdSkelRoot), and we need to force a cleanup.
+    isSkelPath = isSkelPath || _GetSkelData(cachePath);
+    // nv end
+
     if (isSkelPath) {
 
         TF_DEBUG(USDIMAGING_CHANGES).Msg(
