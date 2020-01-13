@@ -881,10 +881,16 @@ UsdImagingDelegate::ApplyPendingFastUpdates()
 {
     // Default implementation treats fast updates the same as normal scene edits.
 
-    // Conservative invalidation of caches which can be affected by attribute value changes.
+    // Need to invalidate all caches if any stage objects have changed. This
+    // invalidation is overly conservative, but correct.
     _xformCache.Clear();
+    _materialBindingImplData.ClearCaches();
+    _materialBindingCache.Clear();
     _visCache.Clear();
+    _purposeCache.Clear();
     _drawModeCache.Clear();
+    _coordSysBindingCache.Clear();
+    _inheritedPrimvarCache.Clear();
 
     std::vector<SdfFastUpdateList::FastUpdate> fastUpdates;
     std::swap(fastUpdates, _fastUpdates);
@@ -904,7 +910,17 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
 
     for (const auto &itr : fastUpdates) {
         _RefreshObject(itr.path, dummyInfoFields, &indexProxy, refreshVariability);
+
+        // If any objects were removed as a result of the refresh (if it
+        // internally decided to resync), they must be ejected now,
+        // before the next call to _RefreshObject.
+        indexProxy._ProcessRemovals();
     }
+
+    // If any changes called Repopulate() on the indexProxy, we need to
+    // repopulate them before any updates. If the list is empty, _Populate is a
+    // no-op.
+    _Populate(&indexProxy);
 
     if (refreshVariability) {
         _ExecuteWorkForVariabilityUpdate(&worker);
