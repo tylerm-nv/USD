@@ -81,7 +81,6 @@ public:
     /// Called to populate the RenderIndex for this UsdPrim. The adapter is
     /// expected to create one or more prims in the render index using the
     /// given proxy.
-    USDIMAGING_API
     virtual SdfPath Populate(UsdPrim const& prim,
                 UsdImagingIndexProxy* index,
                 UsdImagingInstancerContext const* instancerContext = NULL) = 0;
@@ -120,7 +119,6 @@ public:
     /// cache.
     ///
     /// This method is expected to be called from multiple threads.
-    USDIMAGING_API
     virtual void TrackVariability(UsdPrim const& prim,
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
@@ -131,7 +129,6 @@ public:
     /// requestedBits.
     ///
     /// This method is expected to be called from multiple threads.
-    USDIMAGING_API
     virtual void UpdateForTime(UsdPrim const& prim,
                                SdfPath const& cachePath, 
                                UsdTimeCode time,
@@ -160,7 +157,6 @@ public:
 
     /// Returns a bit mask of attributes to be updated, or
     /// HdChangeTracker::AllDirty if the entire prim must be resynchronized.
-    USDIMAGING_API
     virtual HdDirtyBits ProcessPropertyChange(UsdPrim const& prim,
                                               SdfPath const& cachePath,
                                               TfToken const& propertyName) = 0;
@@ -183,7 +179,7 @@ public:
     virtual SdfPath GetPrimResyncRootPath(SdfPath const& primPath);
     //-NV_CHANGE FRZHANG
 
-    USDIMAGING_API
+
     virtual void MarkDirty(UsdPrim const& prim,
                            SdfPath const& cachePath,
                            HdDirtyBits dirty,
@@ -581,7 +577,6 @@ protected:
                                       TfToken const& propertyName,
                                       TfToken const& primvarName) const;
 
-    USDIMAGING_API
     virtual void _RemovePrim(SdfPath const& cachePath,
                              UsdImagingIndexProxy* index) = 0;
 
