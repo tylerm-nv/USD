@@ -475,6 +475,14 @@ UsdImagingPrimAdapter::SetDelegate(UsdImagingDelegate* delegate)
     _delegate = delegate;
 }
 
+// #nv begin #clean-property-invalidation
+UsdImagingDelegate*
+UsdImagingPrimAdapter::GetDelegate() const
+{
+    return _delegate;
+}
+// nv end
+
 bool
 UsdImagingPrimAdapter::IsChildPath(SdfPath const& path) const
 {

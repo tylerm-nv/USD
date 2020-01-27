@@ -383,6 +383,12 @@ public:
     USDIMAGING_API
     void SetDelegate(UsdImagingDelegate* delegate);
 
+    // #nv begin #clean-property-invalidation
+    /// A back-pointer to the scene delegate.
+    USDIMAGING_API
+    UsdImagingDelegate* GetDelegate() const;
+    // nv end
+
     USDIMAGING_API
     bool IsChildPath(SdfPath const& path) const;
     

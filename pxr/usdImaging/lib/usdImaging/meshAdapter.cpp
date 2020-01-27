@@ -394,6 +394,15 @@ UsdImagingMeshAdapter::ProcessPropertyChange(UsdPrim const& prim,
     if(propertyName == UsdGeomTokens->points)
         return HdChangeTracker::DirtyPoints;
 
+    // #nv begin #clean-property-invalidation
+    if (propertyName == UsdGeomTokens->normals)
+        return HdChangeTracker::DirtyNormals;
+
+    if ((propertyName == UsdGeomTokens->faceVertexCounts) || (propertyName == UsdGeomTokens->faceVertexIndices)) {
+        return HdChangeTracker::DirtyTopology;
+    }
+    // nv end
+
     // Check for UsdGeomSubset changes.
     // Do the cheaper property name filtering first.
     if ((propertyName == UsdGeomTokens->elementType ||

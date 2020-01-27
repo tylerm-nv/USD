@@ -111,6 +111,10 @@ static bool _IsEnabledStormMaterialNetworks() {
     return !_stormMatNet.empty() && std::stoi(_stormMatNet) > 0;
 }
 
+// #nv begin #clean-property-invalidation
+TF_DEFINE_ENV_SETTING(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN, 0,
+    "Process unknown properties as clean.");
+// nv end
 
 // -------------------------------------------------------------------------- //
 // Delegate Implementation.
@@ -2511,6 +2515,19 @@ UsdImagingDelegate::IsInInvisedPaths(SdfPath const &usdPath) const
     }
     return false;
 }
+
+// #nv begin #clean-property-invalidation
+HdDirtyBits
+UsdImagingDelegate::ProcessNonAdapterBasedPropertyChange(UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& property)
+{
+    if (TfGetEnvSetting(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN) == 1)
+        return HdChangeTracker::Clean;
+
+    return HdChangeTracker::AllDirty;
+}
+// nv end
 
 // #nv begin #fasat-updates
 bool
