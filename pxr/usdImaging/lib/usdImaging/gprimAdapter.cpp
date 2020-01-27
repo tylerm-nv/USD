@@ -43,9 +43,6 @@
 #include "pxr/usd/usdShade/material.h"
 #include "pxr/usd/usdShade/shader.h"
 
-// #nv begin #clean-property-invalidation
-#include "pxr/base/tf/envSetting.h"
-// nv end
 #include "pxr/base/tf/type.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -57,12 +54,6 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     // No factory here, GprimAdapter is abstract.
 }
-
-// #nv begin #clean-property-invalidation
-TF_DEFINE_ENV_SETTING(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN, 0,
-    "Process unknown properties as clean.");
-// nv end
-
 
 static TfTokenVector
 _CollectMaterialPrimvars(
@@ -462,11 +453,8 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
         return HdChangeTracker::DirtyPrimvar;
 
     // #nv begin #clean-property-invalidation
-    if (TfGetEnvSetting(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN) == 1)
-        return HdChangeTracker::Clean;
+    return GetDelegate()->ProcessNonAdapterBasedPropertyChange(prim, cachePath, propertyName);
     // nv end
-
-    return HdChangeTracker::AllDirty;
 }
 
 void

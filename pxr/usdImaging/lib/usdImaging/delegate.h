@@ -582,6 +582,14 @@ public:
     USDIMAGING_API
     bool IsInInvisedPaths(const SdfPath &usdPath) const;
 
+    // #nv begin #clean-property-invalidation
+    /// Handle property changes which are not tied to adapters (e.g., custom primvars, API schema properties).
+    USDIMAGING_API
+    virtual HdDirtyBits ProcessNonAdapterBasedPropertyChange(UsdPrim const& prim,
+        SdfPath const& cachePath,
+        TfToken const& property);
+    // nv end
+
     // #nv begin #fast-updates
     USDIMAGING_API
     bool HasPendingFastUpdates() const;
