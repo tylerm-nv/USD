@@ -114,6 +114,10 @@ static bool _IsEnabledStormMaterialNetworks() {
 // #nv begin #clean-property-invalidation
 TF_DEFINE_ENV_SETTING(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN, 0,
     "Process unknown properties as clean.");
+static bool _AreUnknownPropertiesClean() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN) == 1;
+    return _v;
+}
 // nv end
 
 // #nv begin #kit-gizmos
@@ -2482,7 +2486,7 @@ UsdImagingDelegate::ProcessNonAdapterBasedPropertyChange(UsdPrim const& prim,
     SdfPath const& cachePath,
     TfToken const& property)
 {
-    if (TfGetEnvSetting(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN) == 1)
+    if (_AreUnknownPropertiesClean())
         return HdChangeTracker::Clean;
 
     return HdChangeTracker::AllDirty;
