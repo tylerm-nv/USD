@@ -25,6 +25,9 @@
 #include "pxr/usd/usdGeom/xformCommonAPI.h"
 
 #include "pxr/base/gf/rotation.h"
+// #nv begin #xformcommonapi-doubles
+#include "pxr/base/tf/envSetting.h"
+// nv end
 #include "pxr/base/trace/trace.h"
 
 #include <map>
@@ -76,6 +79,15 @@ TF_MAKE_STATIC_DATA(std::set<UsdGeomXformOp::Type>, _validSingleAxisRotateTypes)
     };
 }
 
+// #nv begin #xformcommonapi-doubles
+TF_DEFINE_ENV_SETTING(USDGEOM_XFORMCOMMONAPI_ALLOW_DOUBLES, 0,
+    "Allow double-encoded xform attributes");
+static bool _IsSupportedXformAttrDoubles() {
+    static bool _v = TfGetEnvSetting(USDGEOM_XFORMCOMMONAPI_ALLOW_DOUBLES) == 1;
+    return _v;
+}
+
+// nv end
 
 /* virtual */
 UsdGeomXformCommonAPI::~UsdGeomXformCommonAPI()
@@ -355,23 +367,58 @@ UsdGeomXformCommonAPI::GetXformVectors(
         *translation = GfVec3d(0.);
     }
 
-    if (!_HasRotateOp() ||
+    // #nv begin #xformcommonapi-doubles
+    bool hasRotateOp = _HasRotateOp();
+    if (!hasRotateOp ||
         !_xformOps[_rotateOpIndex].Get(rotation, time)) 
     {
-        *rotation = GfVec3f(0.);
+        bool gotValue = false;
+        if (_IsSupportedXformAttrDoubles()) {
+            GfVec3d rotationD;
+            if (hasRotateOp && _xformOps[_rotateOpIndex].Get(&rotationD, time)) {
+                *rotation = GfVec3f(rotationD);
+                gotValue = true;
+            }
+        }
+        if (!gotValue) {
+            *rotation = GfVec3f(0.);
+        }
     }
 
-    if (!_HasScaleOp() ||
+    bool hasScaleOp = _HasScaleOp();
+    if (!hasScaleOp ||
         !_xformOps[_scaleOpIndex].Get(scale, time)) 
     {
-        *scale = GfVec3f(1.);
+        bool gotValue = false;
+        if (_IsSupportedXformAttrDoubles()) {
+            GfVec3d scaleD;
+            if (hasScaleOp && _xformOps[_scaleOpIndex].Get(&scaleD, time)) {
+                *scale = GfVec3f(scaleD);
+                gotValue = true;
+            }
+        }
+        if (!gotValue) {
+            *scale = GfVec3f(1.);
+        }
     }
 
-    if (!_HasPivotOp() ||
+    bool hasPivotOp = _HasPivotOp();
+    if (!hasPivotOp ||
         !_xformOps[_pivotOpIndex].Get(pivot, time)) 
     {
-        *pivot = GfVec3f(0.);
+        bool gotValue = false;
+        if (_IsSupportedXformAttrDoubles()) {
+            GfVec3d scaleD;
+            if (hasPivotOp && _xformOps[_scaleOpIndex].Get(&scaleD, time)) {
+                *scale = GfVec3f(scaleD);
+                gotValue = true;
+            }
+        }
+        if (!gotValue) {
+            *pivot = GfVec3f(0.);
+        }
     }
+    // nv end
 
     *rotOrder = _HasRotateOp() ? _GetRotationOrderFromRotateOp(_xformOps[_rotateOpIndex])
                                : RotationOrderXYZ; 
