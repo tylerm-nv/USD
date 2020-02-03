@@ -649,5 +649,24 @@ class TestUsdGeomXformAPI(unittest.TestCase):
             self.assertTrue(Gf.IsClose(
                 x.GetLocalTransformation(), transform, 1e-5))
 
+    #nv begin #xformcommonapi-doubles
+    def test_GetXformVectorsFromDoubles(self):
+        """"
+        Verify that GetXformVectors can extract data from double-encoded attributes.
+        """
+        import os
+        self.assertEqual(os.getenv("USDGEOM_XFORMCOMMONAPI_ALLOW_DOUBLES", "0"), "1")
+        stage = Usd.Stage.Open("cube.usda")
+        assert stage
+        prim = stage.GetPrimAtPath("/World/Cube")
+        assert prim
+        xform = UsdGeom.XformCommonAPI(prim)
+        assert xform
+        vecs = xform.GetXformVectors(Usd.TimeCode.Default())
+        self.assertEqual(vecs,
+            (Gf.Vec3d(0.0, 0.0, 0.0), Gf.Vec3f(0.0, 60.0, 0.0), Gf.Vec3f(1.0, 1.0, 1.0), Gf.Vec3f(0.0, 0.0, 0.0),
+            UsdGeom.XformCommonAPI.RotationOrderZYX))
+    #nv end
+
 if __name__ == "__main__":
     unittest.main()
