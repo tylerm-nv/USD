@@ -57,14 +57,46 @@ SdfLayerHandleVector
 SdfNotice::BaseLayersDidChange::GetLayers() const
 {
     SdfLayerHandleVector layers;
-    layers.reserve(_vec->size());
-    TF_FOR_ALL(i, *_vec) {
-        // XXX:bug 20833 It should be ok to return expired layers here.
-        if (i->first)
-            layers.push_back(i->first);
+    // #nv begin #fast-updates
+    size_t layerCount = (_vec && !_vec->empty()) ? _vec->size() : 0;
+    if (layerCount == 0 && _fastUpdates) {
+        layerCount = _fastUpdates->size();
     }
+    layers.reserve(layerCount);
+
+    if (_vec) {
+        TF_FOR_ALL(i, *_vec) {
+            // XXX:bug 20833 It should be ok to return expired layers here.
+            if (i->first)
+                layers.push_back(i->first);
+        }
+    }
+    if (_fastUpdates) {
+        TF_FOR_ALL(i, *_fastUpdates) {
+            // XXX:bug 20833 It should be ok to return expired layers here.
+            if (i->first)
+                layers.push_back(i->first);
+        }
+    }
+    // nv end
     return layers;
 }
+
+// #nv begin #fast-updates
+const SdfLayerChangeListVec &
+SdfNotice::BaseLayersDidChange::GetChangeListVec() const {
+    static SdfLayerChangeListVec emptyVec;
+    return _vec ? *_vec : emptyVec;
+
+}
+
+const SdfLayerFastUpdatesMap &
+SdfNotice::BaseLayersDidChange::GetFastUpdates() const
+{
+    static SdfLayerFastUpdatesMap emptyFastUpdatesMap;
+    return _fastUpdates ? *_fastUpdates : emptyFastUpdatesMap;
+}
+// nv end
 
 SdfNotice::LayerIdentifierDidChange::LayerIdentifierDidChange(
     const std::string& oldIdentifier, const std::string& newIdentifier) :

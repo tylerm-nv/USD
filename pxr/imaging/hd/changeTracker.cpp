@@ -766,6 +766,24 @@ HdChangeTracker::IsReprDirty(HdDirtyBits dirtyBits, SdfPath const &id)
     return isDirty;
 }
 
+//+NV_CHANGE FRZHANG
+/*static*/
+bool
+HdChangeTracker::IsSkinningBindingDirty(HdDirtyBits dirtyBits, SdfPath const &id)
+{
+	bool isDirty = (dirtyBits & NV_DirtySkinningBinding) != 0;
+	return isDirty;
+}
+
+/*static*/
+bool
+HdChangeTracker::IsSkelAnimXformDirty(HdDirtyBits dirtyBits, SdfPath const &id)
+{
+	bool isDirty = (dirtyBits & NV_DirtySkelAnimXform) != 0;
+	return isDirty;
+}
+//-NV_CHANGE FRZHANG
+
 void 
 HdChangeTracker::MarkPrimvarDirty(SdfPath const& id, TfToken const& name)
 {

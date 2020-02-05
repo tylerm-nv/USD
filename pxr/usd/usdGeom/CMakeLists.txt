@@ -202,6 +202,13 @@ pxr_install_test_dir(
     DEST testUsdGeomComputeAtTime
 )
 
+# nv begin #xformcommonapi-doubles
+pxr_install_test_dir(
+    SRC testenv/testUsdGeomXformCommonAPI
+    DEST testUsdGeomXformCommonAPI
+)
+# nv end
+
 pxr_install_test_dir(
     SRC testenv/testUsdGeomImageable
     DEST testUsdGeomImageable)
@@ -321,6 +328,10 @@ pxr_register_test(testUsdGeomXformCommonAPI
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdGeomXformCommonAPI"
     EXPECTED_RETURN_CODE 0
+    #nv begin #xformcommonapi-doubles
+    ENV
+        USDGEOM_XFORMCOMMONAPI_ALLOW_DOUBLES=1
+    #nv end
 )
 
 pxr_register_test(testUsdGeomExtentTransform

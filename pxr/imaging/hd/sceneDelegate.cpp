@@ -237,6 +237,54 @@ HdSceneDelegate::GetInstancerTransform(SdfPath const &instancerId)
     return GfMatrix4d(1);
 }
 
+//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+/*virtual*/
+bool HdSceneDelegate::UseNVGPUSkinningComputations()
+{
+    return false;
+}
+
+bool HdSceneDelegate::ShouldGenerateJointMesh()
+{
+    return true;
+}
+
+/*virtual*/
+bool HdSceneDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform)
+{
+	restPoints = VtVec3fArray();
+	geomBindXform = GfMatrix4d(1);
+	return false;
+}
+
+/*virtual*/
+bool
+HdSceneDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, 
+    int& numInfluencesPerPoint, bool& hasConstantInfluences,
+    TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights
+)
+{
+	jointIndices = VtIntArray();
+	jointWeights = VtFloatArray();
+	numInfluencesPerPoint = 0;
+	hasConstantInfluences = true;
+    skinningMethod = TfToken("ClassicLinear");
+    skinningBlendWeights = VtFloatArray();
+    hasConstantSkinningBlendWeights = true;
+	return false;
+}
+
+/*virtual*/
+bool
+HdSceneDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld)
+{
+	skinningXform = VtMatrix4dArray();
+	primWorldToLocal = GfMatrix4d(1);
+	skelLocalToWorld = GfMatrix4d(1);
+	return false;
+}
+//-NV_CHANGE FRZHANG
+
 /*virtual*/
 size_t
 HdSceneDelegate::SampleInstancerTransform(SdfPath const &instancerId,

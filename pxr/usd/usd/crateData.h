@@ -75,6 +75,16 @@ public:
     virtual void Erase(const SdfPath& path, 
                        const TfToken& fieldName);
     virtual std::vector<TfToken> List(const SdfPath& path) const;
+
+    // #nv begin #fast-updates
+    virtual SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
+
+    virtual void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle);
+
+    virtual bool Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value);
+
+    virtual bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const;
+    // nv end
     
     /// \name Time-sample API
     /// @{
@@ -109,6 +119,11 @@ public:
 
     virtual void
     EraseTimeSample(const SdfPath& path, double time);
+
+    // #nv begin #fast-updates
+    virtual void
+    SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value);
+    // nv end
 
     /// @}
 

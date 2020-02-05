@@ -64,6 +64,10 @@ public:
                          const UsdAttribute& jointIndices,
                          const UsdAttribute& jointWeights,
                          const UsdAttribute& geomBindTransform,
+                         //+NV_CHANGE FRZHANG
+                         const UsdAttribute& skinningMethod,
+                         const UsdAttribute& skinningBlendWeights,
+                         //-NV_CHANGE FRZHANG
                          const UsdAttribute& joints,
                          const UsdAttribute& blendShapes,
                          const UsdRelationship& blendShapeTargets);
@@ -111,6 +115,16 @@ public:
     const UsdGeomPrimvar& GetJointWeightsPrimvar() const {
         return _jointWeightsPrimvar;
     }
+
+    //+NV_CHANGE FRZHANG
+    const UsdAttribute& GetSkinningMethodAttr() const {
+        return _skinningMethodAttr;
+    }
+
+    const UsdGeomPrimvar& GetSkinningBlendWeightsPrimvar() const {
+        return _skinningBlendWeightsPrimvar;
+    }
+    //-NV_CHANGE FRZHANG
 
     const UsdAttribute& GetBlendShapesAttr() const {
         return _blendShapes;
@@ -267,6 +281,10 @@ private:
     UsdGeomPrimvar _jointIndicesPrimvar;
     UsdGeomPrimvar _jointWeightsPrimvar;
     UsdAttribute _geomBindTransformAttr;
+    //+NV_CHANGE FRZHANG
+    UsdAttribute _skinningMethodAttr;
+    UsdGeomPrimvar _skinningBlendWeightsPrimvar;
+    //-NV_CHANGE FRZHANG
     UsdAttribute _blendShapes;
     UsdRelationship _blendShapeTargets;
     UsdSkelAnimMapperRefPtr _jointMapper;

@@ -41,6 +41,9 @@
 #include "pxr/usd/usdGeom/xformCache.h"
 
 #include "pxr/base/tf/type.h"
+//+NV_CHANGE FRZHANG
+#include "pxr/base/gf/matrix4f.h"
+//-NV_CHANGE FRZHANG
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -278,6 +281,13 @@ UsdImagingMeshAdapter::ProcessPropertyChange(UsdPrim const& prim,
     if(propertyName == UsdGeomTokens->points)
         return HdChangeTracker::DirtyPoints;
 
+    // #nv begin #clean-property-invalidation
+    // TODO: test that  UsdGeomTokens->normals is handled propertly below.
+    if ((propertyName == UsdGeomTokens->faceVertexCounts) || (propertyName == UsdGeomTokens->faceVertexIndices)) {
+        return HdChangeTracker::DirtyTopology;
+    }
+    // nv end
+
     // Check for UsdGeomSubset changes.
     // XXX: We can't check right now whether this was called on behalf of a
     // geom subset, since the "prim" field is mangled by instance adapters. We
@@ -416,6 +426,46 @@ UsdImagingMeshAdapter::GetSubdivTags(UsdPrim const& prim,
     return tags;
 }
 
+// #nv begin #gpu-skinning
+// +NV_CHANGE FRZHANG : Skel Animation Update API
+void
+UsdImagingMeshAdapter::UpdateRestPoints(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+    const VtVec3fArray& restPoints)
+{
+    UsdImagingValueCache* valueCache = _GetValueCache();
+    valueCache->GetPoints(cachePath) = restPoints;
+    valueCache->GetRestPoints(cachePath) = restPoints;
+}
+
+void
+UsdImagingMeshAdapter::UpdateSkinningBinding(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+    const GfMatrix4d& bindTransform,
+    const VtIntArray& jointIndices, const VtFloatArray& jointWeights,
+    int numInfluencesPerPoint, bool hasConstantInfluences,
+    const TfToken& skinningMethod, const VtFloatArray& skinningBlendWeights, bool hasConstantSkinningBlendWeights
+)
+{
+    UsdImagingValueCache* valueCache = _GetValueCache();
+    valueCache->GetGeomBindXform(cachePath) = bindTransform;
+    valueCache->GetJointIndices(cachePath) = jointIndices;
+    valueCache->GetJointWeights(cachePath) = jointWeights;
+    valueCache->GetNumInfluencesPerPoint(cachePath) = numInfluencesPerPoint;
+    valueCache->GetHasConstantInfluences(cachePath) = hasConstantInfluences;
+    valueCache->GetSkinningMethod(cachePath) = skinningMethod;
+    valueCache->GetSkinningBlendWeights(cachePath) = skinningBlendWeights;
+    valueCache->GetHasConstantSkinningBlendWeights(cachePath) = hasConstantSkinningBlendWeights;
+}
+
+void
+UsdImagingMeshAdapter::UpdateSkelAnim(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+    const VtMatrix4fArray& skelAnim, const GfMatrix4d& primWorldToLocal, const GfMatrix4d& skelLocalToWorld)
+{
+    UsdImagingValueCache* valueCache = _GetValueCache();
+    valueCache->GetSkinningXforms(cachePath) = skelAnim;
+    valueCache->GetPrimWorldToLocal(cachePath) = primWorldToLocal;
+    valueCache->GetSkelLocalToWorld(cachePath) = skelLocalToWorld;
+}
+//-NV_CHANGE FRZHANG
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

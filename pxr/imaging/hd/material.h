@@ -103,7 +103,13 @@ bool operator==(const HdMaterialRelationship& lhs,
 struct HdMaterialNode {
     SdfPath path;
     TfToken identifier;
+// #nv begin #new-MDL-schema    
+    TfToken subIdentifier;
+// #nv end    
     std::map<TfToken, VtValue> parameters;
+// #nv begin #parameter-colorSpace-to-hydra
+    std::map<TfToken, TfToken> paramColorSpace;
+// #nv end    
 };
 
 // VtValue requirements

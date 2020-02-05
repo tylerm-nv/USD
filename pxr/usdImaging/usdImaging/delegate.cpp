@@ -100,6 +100,23 @@ static bool _IsEnabledDrawModeCache() {
     return _v;
 }
 
+// #nv begin #clean-property-invalidation
+TF_DEFINE_ENV_SETTING(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN, 0,
+    "Process unknown properties as clean.");
+static bool _AreUnknownPropertiesClean() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_UNKNOWN_PROPERTIES_ARE_CLEAN) == 1;
+    return _v;
+}
+// nv end
+
+// #nv begin #kit-gizmos
+TF_DEFINE_ENV_SETTING(USDIMAGING_ENABLE_NESTED_GPRIMS, 0,
+    "Enable draw refresh for nested gprims.");
+static bool _IsEnabledNestedGprims() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_ENABLE_NESTED_GPRIMS) == 1;
+    return _v;
+}
+// nv end
 
 // -------------------------------------------------------------------------- //
 // Delegate Implementation.
@@ -861,6 +878,60 @@ UsdImagingDelegate::GetTimeWithOffset(float offset) const
 // Change Processing 
 // -------------------------------------------------------------------------- //
 
+// #nv begin #fast-updates
+void
+UsdImagingDelegate::ApplyPendingFastUpdates()
+{
+    // Default implementation treats fast updates the same as normal scene edits.
+
+    // Need to invalidate all caches if any stage objects have changed. This
+    // invalidation is overly conservative, but correct.
+    _xformCache.Clear();
+    _materialBindingImplData.ClearCaches();
+    _materialBindingCache.Clear();
+    _visCache.Clear();
+    _purposeCache.Clear();
+    _drawModeCache.Clear();
+    _coordSysBindingCache.Clear();
+    _inheritedPrimvarCache.Clear();
+
+    std::vector<SdfFastUpdateList::FastUpdate> fastUpdates;
+    std::swap(fastUpdates, _fastUpdates);
+
+    _RefreshObjectsForFastUpdates(fastUpdates, true);
+}
+
+void
+UsdImagingDelegate::_RefreshObjectsForFastUpdates(
+    const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
+    bool refreshVariability)
+{
+    TfTokenVector dummyInfoFields;
+
+    UsdImagingDelegate::_Worker worker;
+    UsdImagingIndexProxy indexProxy(this, &worker);
+
+    for (const auto &itr : fastUpdates) {
+        _RefreshUsdObject(itr.path, dummyInfoFields, &indexProxy, refreshVariability);
+
+        // If any objects were removed as a result of the refresh (if it
+        // internally decided to resync), they must be ejected now,
+        // before the next call to _RefreshObject.
+        indexProxy._ProcessRemovals();
+    }
+
+    // If any changes called Repopulate() on the indexProxy, we need to
+    // repopulate them before any updates. If the list is empty, _Populate is a
+    // no-op.
+    _Populate(&indexProxy);
+
+    if (refreshVariability) {
+        _ExecuteWorkForVariabilityUpdate(&worker);
+    }
+
+}
+// nv end
+
 void
 UsdImagingDelegate::_GatherDependencies(SdfPath const& subtree,
                                         SdfPathVector *affectedCachePaths,
@@ -901,6 +972,12 @@ UsdImagingDelegate::ApplyPendingUpdates()
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
+
+    // #nv begin #fast-updates
+    if (!_fastUpdates.empty()) {
+        ApplyPendingFastUpdates();
+    }
+    // nv end
 
     // Early out if there are no updates.
     if (_usdPathsToResync.empty() && _usdPathsToUpdate.empty()) {
@@ -1000,6 +1077,13 @@ UsdImagingDelegate::_OnUsdObjectsChanged(
                             "from stage with root layer @%s@\n",
                         sender->GetRootLayer()->GetIdentifier().c_str());
 
+    // #nv begin #fast-updates
+    const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates = notice.GetFastUpdates();
+    if (!fastUpdates.empty()) {
+        _fastUpdates.insert(_fastUpdates.end(), fastUpdates.begin(), fastUpdates.end());
+    }
+    // nv end
+
     using PathRange = UsdNotice::ObjectsChanged::PathRange;
 
     // These paths are subtree-roots representing entire subtrees that may have
@@ -1044,6 +1128,14 @@ UsdImagingDelegate::_OnUsdObjectsChanged(
                                                  it->GetText());
             }
         }
+
+        // #nv begin #fast-updates
+        TF_FOR_ALL(it, _fastUpdates) {
+            TF_DEBUG(USDIMAGING_CHANGES).Msg(" - Fast update queued: %s\n",
+                it->path.GetText());
+        }
+        // nv end
+
     }
 }
 
@@ -1137,7 +1229,10 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
                 primInfo->adapter->ProcessPrimResync(cachePath, proxy);
             }
         }
-        if (range.first != range.second) {
+        if ((range.first != range.second)
+            // #nv begin #kit-gizmos
+            && !_IsEnabledNestedGprims()) {
+            // nv end
             return;
         }
     }
@@ -1150,6 +1245,9 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
     SdfPathVector affectedCachePaths;
     _GatherDependencies(usdPath, &affectedCachePaths);
     if (affectedCachePaths.size() > 0) {
+        //+NV_CHANGE FRZHANG : fix skelmesh resync
+        SdfPath rootPathToRepopulate = usdPath;
+        //-NV_CHANGE FRZHANG
         for (SdfPath const& affectedCachePath : affectedCachePaths) {
 
             TF_DEBUG(USDIMAGING_CHANGES).Msg("  - affected child prim: <%s>\n",
@@ -1166,6 +1264,15 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
                 // similar to ProcessPrimRemoval, but then additionally
                 // call proxy->Repopulate() on itself.
                 if (repopulateFromRoot) {
+                    //+NV_CHANGE FRZHANG : fix skelmesh resync
+                    // affectedPrims are all descendants of usdPath, so only calculate ancestor in single direction, otherwise should calculate common ancestor
+                    // Doing rootpath calculation before prim removal
+                    SdfPath resyncRootPath = primInfo->adapter->GetPrimResyncRootPath(usdPath);
+                    if (resyncRootPath != usdPath && rootPathToRepopulate.HasPrefix(resyncRootPath))
+                    {
+                        rootPathToRepopulate = resyncRootPath;
+                    }
+                    //-NV_CHANGE FRZHANG
                     primInfo->adapter->ProcessPrimRemoval(
                         affectedCachePath, proxy);
                 } else {
@@ -1176,7 +1283,9 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
         }
         if (repopulateFromRoot) {
             TF_DEBUG(USDIMAGING_CHANGES).Msg("  (repopulating from root)\n");
-            proxy->Repopulate(usdPath);
+            //+NV_CHANGE FRZHANG
+            proxy->Repopulate(rootPathToRepopulate);
+            //-NV_CHANGE FRZHANG
         } else {
             // If we resynced prims individually, walk the subtree for new prims
             UsdPrimRange range(_stage->GetPrimAtPath(usdPath));
@@ -1225,7 +1334,8 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
 void 
 UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath, 
                                       TfTokenVector const& changedInfoFields,
-                                      UsdImagingIndexProxy* proxy) 
+                                      UsdImagingIndexProxy* proxy,
+                                      bool checkVariability)
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
@@ -2253,6 +2363,27 @@ UsdImagingDelegate::IsInInvisedPaths(SdfPath const &usdPath) const
     return false;
 }
 
+// #nv begin #clean-property-invalidation
+HdDirtyBits
+UsdImagingDelegate::ProcessNonAdapterBasedPropertyChange(UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& property)
+{
+    if (_AreUnknownPropertiesClean())
+        return HdChangeTracker::Clean;
+
+    return HdChangeTracker::AllDirty;
+}
+// nv end
+
+// #nv begin #fasat-updates
+bool
+UsdImagingDelegate::HasPendingFastUpdates() const
+{
+    return !(_fastUpdates.empty());
+}
+// nv end
+
 /*virtual*/
 bool
 UsdImagingDelegate::GetVisible(SdfPath const& id)
@@ -2307,23 +2438,20 @@ UsdImagingDelegate::Get(SdfPath const& id, TfToken const& key)
             // XXX: Getting all primvars here when we only want color is wrong.
             _UpdateSingleValue(cachePath,HdChangeTracker::DirtyPrimvar);
             if (!TF_VERIFY(_valueCache.ExtractColor(cachePath, &value))){
-                VtVec3fArray vec(1);
-                vec.push_back(GfVec3f(.5,.5,.5));
+                VtVec3fArray vec(1, GfVec3f(.5, .5, .5));
                 value = VtValue(vec);
             }
         } else if (key == HdTokens->displayOpacity) {
             // XXX: Getting all primvars here when we only want opacity is bad.
             _UpdateSingleValue(cachePath,HdChangeTracker::DirtyPrimvar);
             if (!TF_VERIFY(_valueCache.ExtractOpacity(cachePath, &value))){
-                VtFloatArray vec(1);
-                vec.push_back(1.0f);
+                VtFloatArray vec(1, 1.0f);
                 value = VtValue(vec);
             }
         } else if (key == HdTokens->widths) {
             _UpdateSingleValue(cachePath,HdChangeTracker::DirtyWidths);
             if (!TF_VERIFY(_valueCache.ExtractWidths(cachePath, &value))){
-                VtFloatArray vec(1);
-                vec.push_back(1.0f);
+                VtFloatArray vec(1, 1.0f);
                 value = VtValue(vec);
             }
         } else if (key == HdTokens->transform) {
@@ -2369,6 +2497,74 @@ UsdImagingDelegate::Get(SdfPath const& id, TfToken const& key)
 
     return value;
 }
+
+//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+/*virtual*/
+bool UsdImagingDelegate::UseNVGPUSkinningComputations()
+{
+    if (GetRenderIndex().GetRenderDelegate())
+    {
+        return GetRenderIndex().GetRenderDelegate()->GetRenderSetting<bool>(HdTokens->NVGPUSkinning, false);
+    }
+    return HdSceneDelegate::UseNVGPUSkinningComputations();
+}
+
+/*virtual*/
+bool UsdImagingDelegate::ShouldGenerateJointMesh()
+{
+    if (GetRenderIndex().GetRenderDelegate())
+    {
+        return GetRenderIndex().GetRenderDelegate()->GetRenderSetting<bool>(HdTokens->generateJointMesh, true);
+    }
+    return HdSceneDelegate::ShouldGenerateJointMesh();
+}
+
+/*virtual*/
+bool UsdImagingDelegate::GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform)
+{
+	SdfPath usdPath = ConvertIndexPathToCachePath(id);
+	if (_valueCache.ExtractRestPoints(usdPath, &restPoints) 
+		&& _valueCache.ExtractGeomBindXform(usdPath, &geomBindXform) )
+	{
+		return true;
+	}
+	return HdSceneDelegate::GetSkinningBindingValues(id, restPoints, geomBindXform);
+}
+
+/*virtual*/
+bool
+UsdImagingDelegate::GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, int& numInfluencesPerPoint, bool& hasConstantInfluences, TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights)
+{
+	SdfPath usdPath = ConvertIndexPathToCachePath(id);
+	if (_valueCache.ExtractJointIndices(usdPath, &jointIndices) 
+		&& _valueCache.ExtractJointWeights(usdPath, &jointWeights)
+		&& _valueCache.ExtractNumInfluencesPerPoint(usdPath, &numInfluencesPerPoint)
+		&& _valueCache.ExtractHasConstantInfluences(usdPath, &hasConstantInfluences)
+        && _valueCache.ExtractSkinningMethod(usdPath, &skinningMethod)
+        && _valueCache.ExtractSkinningBlendWeights(usdPath, &skinningBlendWeights)
+        && _valueCache.ExtractHasConstantSkinningBlendWeights(usdPath, &hasConstantSkinningBlendWeights)
+		)
+	{
+		return true;
+	}
+	return HdSceneDelegate::GetSkinningBlendValues(id, jointIndices, jointWeights, numInfluencesPerPoint, hasConstantInfluences, skinningMethod, skinningBlendWeights, hasConstantSkinningBlendWeights);
+}
+
+/*virtual*/
+bool
+UsdImagingDelegate::GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld)
+{
+	SdfPath usdPath = ConvertIndexPathToCachePath(id);
+	if (_valueCache.ExtractSkinningXforms(usdPath, &skinningXform)
+		&& _valueCache.ExtractPrimWorldToLocal(usdPath, &primWorldToLocal)
+		&& _valueCache.ExtractSkelLocalToWorld(usdPath, &skelLocalToWorld)
+		)
+	{
+		return true;
+	}
+	return HdSceneDelegate::GetSkelAnimXformValues(id, skinningXform, primWorldToLocal, skelLocalToWorld);
+}
+//-NV_CHANGE FRZHANG
 
 HdIdVectorSharedPtr
 UsdImagingDelegate::GetCoordSysBindings(SdfPath const& id)

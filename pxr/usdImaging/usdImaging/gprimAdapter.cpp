@@ -479,7 +479,10 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
         }
     }
 
-    return HdChangeTracker::AllDirty;
+    // #nv begin #clean-property-invalidation
+    // TODO test that UsdGeomTokens->primvarsDisplayColor is handled above!
+    return GetDelegate()->ProcessNonAdapterBasedPropertyChange(prim, cachePath, propertyName);
+    // nv end
 }
 
 void

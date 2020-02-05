@@ -12,8 +12,8 @@
 #include "pxr/base/tf/pathUtils.h"
 #include "pxr/base/tf/staticTokens.h"
 #include "pxr/base/tf/stringUtils.h"
-#include "pxr/usd/usdMdl/neuray.h"
-#include "pxr/usd/usdMdl/utils.h"
+#include "pxr/usd/plugin/usdMdl/neuray.h"
+#include "pxr/usd/plugin/usdMdl/utils.h"
 #include <mi/neuraylib/imdl_compiler.h>
 #include <iostream>
 
@@ -198,6 +198,7 @@ public:
                                   context,
                                   m_discoveryResult.sourceType,
                                   m_discoveryResult.uri,
+                                  m_discoveryResult.resolvedUri,
                                   std::move(properties),
                                   std::move(m_discoveryResult.metadata)));
         }

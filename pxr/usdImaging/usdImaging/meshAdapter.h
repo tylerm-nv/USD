@@ -82,6 +82,26 @@ public:
                                UsdImagingInstancerContext const* 
                                    instancerContext = NULL) const override;
 
+    //+NV_CHANGE FRZHANG
+    /////+++Update Skinning Animation API
+    USDIMAGING_API
+        void UpdateRestPoints(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+            const VtVec3fArray& restPoints);
+
+    USDIMAGING_API
+        void UpdateSkinningBinding(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+            const GfMatrix4d& bindTransform,
+            const VtIntArray& jointIndices, const VtFloatArray& jointweights,
+            int numInfluencesPerPoint, bool hasConstantInfluences,
+            const TfToken& skinningMethod, const VtFloatArray& skinningBlendweights, bool hasConstantSkinningBlendWeights
+        );
+
+    USDIMAGING_API
+        void UpdateSkelAnim(UsdPrim const& prim, SdfPath const& cachePath, UsdTimeCode time,
+            const VtMatrix4fArray& skelAnim, const GfMatrix4d& primWorldToLocal, const GfMatrix4d& skelLocalToWorld
+        );
+    //-NV_CHANGE FRZHANG
+
     // ---------------------------------------------------------------------- //
     /// \name Change Processing
     // ---------------------------------------------------------------------- //

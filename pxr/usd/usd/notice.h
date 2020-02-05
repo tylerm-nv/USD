@@ -109,12 +109,23 @@ public:
             std::map<SdfPath, std::vector<const SdfChangeList::Entry*>>;
 
         friend class UsdStage;
+        // #nv begin #fast-updates
         ObjectsChanged(const UsdStageWeakPtr &stage,
-                       const _PathsToChangesMap *resyncChanges,
-                       const _PathsToChangesMap *infoChanges)
+            const _PathsToChangesMap *resyncChanges,
+            const _PathsToChangesMap *infoChanges)
             : StageNotice(stage)
             , _resyncChanges(resyncChanges)
-            , _infoChanges(infoChanges) {}
+            , _infoChanges(infoChanges)
+            , _fastUpdates(nullptr) {}
+        ObjectsChanged(const UsdStageWeakPtr &stage,
+                       const _PathsToChangesMap *resyncChanges,
+                       const _PathsToChangesMap *infoChanges,
+                       const std::vector<SdfFastUpdateList::FastUpdate> *fastUpdates)
+            : StageNotice(stage)
+            , _resyncChanges(resyncChanges)
+            , _infoChanges(infoChanges)
+            , _fastUpdates(fastUpdates) {}
+        // nv end
     public:
         USD_API virtual ~ObjectsChanged();
 
@@ -274,9 +285,17 @@ public:
         /// \overload
         USD_API bool HasChangedFields(const SdfPath &path) const;
 
+        // #nv begin #fast-updates
+        USD_API const std::vector<SdfFastUpdateList::FastUpdate>& GetFastUpdates() const;
+        // nv end
+
     private:
         const _PathsToChangesMap *_resyncChanges;
         const _PathsToChangesMap *_infoChanges;
+
+        // #nv begin #fast-updates
+        const std::vector<SdfFastUpdateList::FastUpdate>*_fastUpdates;
+        // nv end
     };
 
     /// \class StageEditTargetChanged

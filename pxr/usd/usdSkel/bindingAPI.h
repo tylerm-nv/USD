@@ -260,6 +260,53 @@ public:
 
 public:
     // --------------------------------------------------------------------- //
+    // SKINNINGMETHOD 
+    // --------------------------------------------------------------------- //
+    /// Different calculation method for skinning. LBS, DQ, and blendWeight
+    ///
+    /// \n  C++ Type: TfToken
+    /// \n  Usd Type: SdfValueTypeNames->Token
+    /// \n  Variability: SdfVariabilityUniform
+    /// \n  Fallback Value: ClassicLinear
+    /// \n  \ref UsdSkelTokens "Allowed Values": [ClassicLinear, DualQuaternion, WeightedBlend]
+    USDSKEL_API
+    UsdAttribute GetSkinningMethodAttr() const;
+
+    /// See GetSkinningMethodAttr(), and also 
+    /// \ref Usd_Create_Or_Get_Property for when to use Get vs Create.
+    /// If specified, author \p defaultValue as the attribute's default,
+    /// sparsely (when it makes sense to do so) if \p writeSparsely is \c true -
+    /// the default for \p writeSparsely is \c false.
+    USDSKEL_API
+    UsdAttribute CreateSkinningMethodAttr(VtValue const &defaultValue = VtValue(), bool writeSparsely=false) const;
+
+public:
+    // --------------------------------------------------------------------- //
+    // SKINNINGBLENDWEIGHTS 
+    // --------------------------------------------------------------------- //
+    /// Weights for weighted blend skinning method. The primvar can have either 
+    /// *constant* or *vertex* interpolation.
+    /// Constant interpolation means every vertex share the same single blend weight.
+    /// Vertex interpolation means every vertex has their own blend weight. The element
+    /// size should match the vertices count in this case.
+    ///
+    /// \n  C++ Type: VtArray<float>
+    /// \n  Usd Type: SdfValueTypeNames->FloatArray
+    /// \n  Variability: SdfVariabilityUniform
+    /// \n  Fallback Value: No Fallback
+    USDSKEL_API
+    UsdAttribute GetSkinningBlendWeightsAttr() const;
+
+    /// See GetSkinningBlendWeightsAttr(), and also 
+    /// \ref Usd_Create_Or_Get_Property for when to use Get vs Create.
+    /// If specified, author \p defaultValue as the attribute's default,
+    /// sparsely (when it makes sense to do so) if \p writeSparsely is \c true -
+    /// the default for \p writeSparsely is \c false.
+    USDSKEL_API
+    UsdAttribute CreateSkinningBlendWeightsAttr(VtValue const &defaultValue = VtValue(), bool writeSparsely=false) const;
+
+public:
+    // --------------------------------------------------------------------- //
     // BLENDSHAPES 
     // --------------------------------------------------------------------- //
     /// An array of tokens defining the order onto which blend shape
@@ -386,6 +433,26 @@ public:
     /// make a primitive rigidly deformed by a single joint.
     USDSKEL_API
     bool SetRigidJointInfluence(int jointIndex, float weight=1) const;
+
+    //+NV_CHANGE FRZHANG
+    /// Convenience function to get the SkinningBlendWeights attribute as a primvar.
+    ///
+    /// \sa GetSkinningBlendWeightsAttr
+    USDSKEL_API
+    UsdGeomPrimvar GetSkinningBlendWeightsPrimvar() const;
+
+    /// Convenience function to create the SkinningBlendWeight primvar, optionally
+    /// specifying elementSize.
+    /// If \p constant is true, the resulting primvar is configured 
+    /// with 'constant' interpolation, and retrived to ClassicLinear or DualQuaternion.
+    /// Otherwise, the primvar is configured with 'vertex' interpolation,
+    /// and describes blend weight that vary per point.
+    ///
+    /// \sa CreateSkinningBlendWeightsAttr(), GetSkinningBlendWeightsPrimvar()
+    USDSKEL_API
+    UsdGeomPrimvar CreateSkinningBlendWeightsPrimvar(bool constant,
+            int elementSize = -1) const;
+    //-NV_CHANGE FRZHANG
 
     /// Convenience method to query the Skeleton bound on this prim.
     /// Returns true if a Skeleton binding is defined, and sets \p skel to

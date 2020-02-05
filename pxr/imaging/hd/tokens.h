@@ -77,6 +77,10 @@ PXR_NAMESPACE_OPEN_SCOPE
     (materialParams)                            \
     (nonperiodic)                               \
     (normals)                                   \
+	/*NV_CHANGE FRZHANG*/						\
+	(NVGPUSkinning)							    \
+	(generateJointMesh)							\
+	/*_NV_CHANGE FRZHANG*/						\
     (params)                                    \
     (patchParam)                                \
     (periodic)                                  \

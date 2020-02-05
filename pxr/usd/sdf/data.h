@@ -90,6 +90,21 @@ public:
     SDF_API
     virtual VtValue Get(const SdfPath& path, 
                         const TfToken& fieldName) const;
+
+    // #nv begin #fast-updates
+    SDF_API
+    virtual SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
+
+    SDF_API
+    virtual void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle);
+
+    SDF_API
+    virtual bool Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value);
+
+    SDF_API
+    virtual bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const;
+    // nv end
+
     SDF_API
     virtual void Set(const SdfPath& path, const TfToken& fieldName,
                      const VtValue & value);
@@ -132,6 +147,11 @@ public:
     virtual bool
     QueryTimeSample(const SdfPath& path, double time, 
                     VtValue *value) const;
+
+    // #nv begin #fast-updates
+    SDF_API
+    virtual void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value);
+    // nv end
 
     SDF_API
     virtual void
@@ -177,6 +197,24 @@ private:
     typedef TfHashMap<_Key, _SpecData, _KeyHash> _HashTable;
 
     _HashTable _data;
+
+    // #nv begin #fast-updates
+    class _FieldHandleData : public SdfAbstractDataFieldAccess {
+    public:
+        virtual ~_FieldHandleData();
+        _FieldHandleData(const SdfPath &path,
+                         const TfToken &fieldName,
+                         VtValue *vtValue_ = nullptr) :
+            SdfAbstractDataFieldAccess(path, fieldName), vtValue(vtValue_) {}
+        VtValue *vtValue;
+    };
+
+    // Hashtables with fast access to field values on specs.
+    typedef TfHashMap<TfToken, TfRefPtr<_FieldHandleData>, TfToken::HashFunctor> _SpecFieldHandleHashTable;
+    typedef TfHashMap<_Key, _SpecFieldHandleHashTable, _KeyHash> _AllFieldHandleHashTable;
+    _AllFieldHandleHashTable _fieldHandles;
+    // nv end
+
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

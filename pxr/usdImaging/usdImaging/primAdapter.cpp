@@ -158,6 +158,15 @@ UsdImagingPrimAdapter::ProcessPrimRemoval(SdfPath const& cachePath,
     _RemovePrim(cachePath, index);
 }
 
+//+NV_CHANGE FRZHANG : fix skelmesh resync
+/*virtual*/
+SdfPath
+UsdImagingPrimAdapter::GetPrimResyncRootPath(SdfPath const& primPath)
+{
+    return primPath;
+}
+//-NV_CHANGE FRZHANG 
+
 /*virtual*/
 void
 UsdImagingPrimAdapter::MarkRefineLevelDirty(UsdPrim const& prim,
@@ -454,6 +463,14 @@ UsdImagingPrimAdapter::SetDelegate(UsdImagingDelegate* delegate)
     _delegate = delegate;
 }
 
+// #nv begin #clean-property-invalidation
+UsdImagingDelegate*
+UsdImagingPrimAdapter::GetDelegate() const
+{
+    return _delegate;
+}
+// nv end
+
 bool
 UsdImagingPrimAdapter::IsChildPath(SdfPath const& path) const
 {
@@ -740,6 +757,20 @@ UsdImagingPrimAdapter::_DoesDelegateSupportCoordSys() const
 {
     return _delegate->_coordSysEnabled;
 }
+
+//+NV_CHANGE FRZHANG
+bool
+UsdImagingPrimAdapter::_UseNVGPUSkinningComputations() const
+{
+    return _delegate->UseNVGPUSkinningComputations();
+} 
+
+bool
+UsdImagingPrimAdapter::_ShouldGenerateJointMesh() const
+{
+    return _delegate->ShouldGenerateJointMesh();
+}
+//-NV_CHANGE FRZHANG
 
 bool 
 UsdImagingPrimAdapter::_IsVarying(UsdPrim prim,

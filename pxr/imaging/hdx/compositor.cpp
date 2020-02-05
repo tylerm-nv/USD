@@ -64,17 +64,19 @@ HdxCompositor::~HdxCompositor()
 {
     if (_colorTexture != 0) {
         glDeleteTextures(1, &_colorTexture);
+        GLF_POST_PENDING_GL_ERRORS();
     }
     if (_depthTexture != 0) {
         glDeleteTextures(1, &_depthTexture);
+        GLF_POST_PENDING_GL_ERRORS();
     }
     if (_vertexBuffer != 0) {
         glDeleteBuffers(1, &_vertexBuffer);
+        GLF_POST_PENDING_GL_ERRORS();
     }
     if (_compositorProgram) {
         _compositorProgram.reset();
     }
-    GLF_POST_PENDING_GL_ERRORS();
 }
 
 void

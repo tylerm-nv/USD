@@ -341,14 +341,14 @@ HdStSurfaceShader::SetBufferSources(HdBufferSourceVector &bufferSources,
                                                   bufferSpecs,
                                                   HdBufferArrayUsageHint());
 
-            if (!TF_VERIFY(range->IsValid())) {
+            if (!range || !TF_VERIFY(range->IsValid())) {
                 _paramArray.reset();
             } else {
                 _paramArray = range;
             }
         }
 
-        if (_paramArray->IsValid()) {
+        if (_paramArray && _paramArray->IsValid()) {
             resourceRegistry->AddSources(_paramArray, bufferSources);
         }
     }

@@ -178,7 +178,12 @@ UsdSkel_CacheImpl::ReadScope::_FindOrCreateSkinningQuery(
         skelQuery ? skelQuery.GetJointOrder() : VtTokenArray(),
         animQuery ? animQuery.GetBlendShapeOrder() : VtTokenArray(),
         key.jointIndicesAttr, key.jointWeightsAttr,
-        key.geomBindTransformAttr, key.jointsAttr,
+        key.geomBindTransformAttr,
+        //+NV_CHANGE FRZHANG
+        key.skinningMethodAttr,
+        key.skinningBlendWeightsAttr,
+        //-NV_CHANGE FRZHANG
+        key.jointsAttr,
         key.blendShapesAttr, key.blendShapeTargetsRel);
 }
 
@@ -259,6 +264,14 @@ UsdSkel_CacheImpl::ReadScope::Populate(const UsdSkelRoot& root)
 
         if (const UsdAttribute attr = binding.GetJointsAttr())
             key.jointsAttr = attr;
+
+        //+NV_CHANGE FRZHANG
+        if (const UsdAttribute attr = binding.GetSkinningMethodAttr())
+            key.skinningMethodAttr = attr;
+
+        if (const UsdAttribute attr = binding.GetSkinningBlendWeightsAttr())
+            key.skinningBlendWeightsAttr = attr;
+        //-NV_CHANGE FRZHANG
 
         if (const UsdAttribute attr = binding.GetBlendShapesAttr())
             key.blendShapesAttr = attr;

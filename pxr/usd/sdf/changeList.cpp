@@ -334,6 +334,19 @@ SdfChangeList::DidChangeInfo(const SdfPath & path, const TfToken & key,
     }
 }
 
+// #nv begin #fast-updates
+void
+SdfChangeList::FastUpdateFallback(const SdfPath &attrPath)
+{
+    // Make a dummy change entry for each fast update whose path does not already have a change entry.
+    // These will not have the normal infoChanged data or the flags set, but semantically has
+    // the desired effect of invalidating the data at these paths without triggering recomposition.
+    // This works as long as there are no notice listeners which need to respond specifically
+    // to changes in attribute defaults and timesamples.
+    _GetEntry(attrPath) = Entry();
+}
+// nv end
+
 void
 SdfChangeList::DidChangePrimName(const SdfPath & oldPath, 
                                  const SdfPath & newPath)

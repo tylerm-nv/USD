@@ -48,6 +48,57 @@ TF_REGISTRY_FUNCTION(TfType)
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
 
+// #nv begin #new-MDL-schema
+static void
+_GetShaderNodeForSourceTypeFallbackNV(
+    UsdShadeShader const& shader,
+    TfToken const& networkSelector,
+    TfToken* identifier=nullptr,
+    TfToken* subIdentifier=nullptr)
+{
+    TfToken implSource = shader.GetImplementationSource();
+
+    if (implSource == UsdShadeTokens->id) {
+        TfToken shaderId;
+
+        if (shader.GetShaderId(&shaderId)) {
+            auto &shaderReg = SdrRegistry::GetInstance();
+            if (SdrShaderNodeConstPtr sdrNode = 
+                    shaderReg.GetShaderNodeByIdentifierAndType(shaderId, 
+                        networkSelector)) {
+                if (identifier) {
+                    *identifier = TfToken(sdrNode->GetSourceURI());
+                }
+            }
+        }
+    } else if (implSource == UsdShadeTokens->sourceAsset) {
+        SdfAssetPath sourceAsset;
+        if (shader.GetSourceAsset(&sourceAsset, networkSelector)) {
+            std::string path = sourceAsset.GetResolvedPath();
+            if (path.empty()) {
+                path = ArGetResolver().Resolve(sourceAsset.GetAssetPath());
+            }
+            if (path.empty()) {
+                path = sourceAsset.GetAssetPath();
+            }
+            if (identifier) {
+                *identifier = TfToken(path);
+            }
+        }
+        if (subIdentifier) {
+            shader.GetSourceAssetSubIdentifier(subIdentifier, networkSelector);
+        }
+    } else if (implSource == UsdShadeTokens->sourceCode) {
+        std::string sourceCode;
+        if (shader.GetSourceCode(&sourceCode, networkSelector)) {
+            if (identifier) {
+                *identifier = TfToken(sourceCode);
+            }
+        }
+    }  
+}
+// #nv end
+
 UsdImagingMaterialAdapter::~UsdImagingMaterialAdapter()
 {
 }
@@ -154,6 +205,14 @@ UsdImagingMaterialAdapter::ProcessPropertyChange(
         // Materials aren't affected by visibility
         return HdChangeTracker::Clean;
     }
+
+    // #nv begin #material-resync
+    if (UsdGeomXformOp::IsXformOp(propertyName))
+    {
+        // Materials aren't affected by transform
+        return HdChangeTracker::Clean;
+    }
+    // #nv end
 
     // The only meaningful change is to dirty the computed resource,
     // an HdMaterialNetwork.
@@ -330,6 +389,14 @@ void _WalkGraph(
             }
 
             *timeVarying |= attr.ValueMightBeTimeVarying();
+
+// #nv begin #parameter-colorSpace-to-hydra
+            TfToken colorSpaceToken = attr.GetColorSpace();
+            if (!colorSpaceToken.IsEmpty())
+            {
+                node.paramColorSpace[inputName] = colorSpaceToken;
+            }
+// #nv end 
         }
     }
 
@@ -358,7 +425,14 @@ void _WalkGraph(
         _ExtractPrimvarsFromNode(
             shadeNode, node, materialNetwork, networkSelector);
     } 
-    
+
+ // #nv begin #new-MDL-schema   
+    if (node.identifier.IsEmpty()) {
+        _GetShaderNodeForSourceTypeFallbackNV(
+            shadeNode, networkSelector, &node.identifier, &node.subIdentifier);
+    }  
+// #nv end
+
     materialNetwork->nodes.push_back(node);
     visitedNodes->emplace(node.path);
 }

@@ -152,6 +152,10 @@ HdStMesh::Sync(HdSceneDelegate *delegate,
     // XXX: GetInitialDirtyBitsMask sets certain dirty bits that aren't
     // reset (e.g. DirtyExtent, DirtyPrimID) that make this necessary.
     *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
+	//+NV_CHANGE FRZHANG
+	*dirtyBits &= ~HdChangeTracker::NV_DirtySkinningBinding;
+	*dirtyBits &= ~HdChangeTracker::NV_DirtySkelAnimXform;
+	//-NV_CHANGE FRZHANG
 }
 
 HdMeshTopologySharedPtr
@@ -1739,6 +1743,10 @@ HdStMesh::_UpdateDrawItem(HdSceneDelegate *sceneDelegate,
     // will try to extract topology (for instance) twice, and this won't
     // work with delegates that don't keep information around once extracted.
     *dirtyBits &= ~HdChangeTracker::AllSceneDirtyBits;
+	//+NV_CHANGE FRZHANG
+	*dirtyBits &= ~HdChangeTracker::NV_DirtySkinningBinding;
+	*dirtyBits &= ~HdChangeTracker::NV_DirtySkelAnimXform;
+	//-NV_CHANGE FRZHANG
 
     TF_VERIFY(drawItem->GetConstantPrimvarRange());
     // Topology and VertexPrimvar may be null, if the mesh has zero faces.

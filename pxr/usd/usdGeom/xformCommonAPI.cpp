@@ -29,6 +29,10 @@
 #include "pxr/usd/sdf/types.h"
 #include "pxr/usd/sdf/assetPath.h"
 
+// #nv begin #xformcommonapi-doubles
+#include "pxr/base/tf/envSetting.h"
+// nv end
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 // Register the schema with the TfType system.
@@ -43,6 +47,16 @@ TF_DEFINE_PRIVATE_TOKENS(
     _schemaTokens,
     (XformCommonAPI)
 );
+
+// #nv begin #xformcommonapi-doubles
+TF_DEFINE_ENV_SETTING(USDGEOM_XFORMCOMMONAPI_ALLOW_DOUBLES, 0,
+    "Allow double-encoded xform attributes");
+static bool _IsSupportedXformAttrDoubles() {
+    static bool _v = TfGetEnvSetting(USDGEOM_XFORMCOMMONAPI_ALLOW_DOUBLES) == 1;
+    return _v;
+}
+
+// nv end
 
 /* virtual */
 UsdGeomXformCommonAPI::~UsdGeomXformCommonAPI()
@@ -492,15 +506,45 @@ UsdGeomXformCommonAPI::GetXformVectors(
     }
 
     if (!r || !r.Get(rotation, time)) {
-        *rotation = GfVec3f(0.);
+        bool gotValue = false;
+        if (_IsSupportedXformAttrDoubles()) {
+            GfVec3d rotationD;
+            if (r && r.Get(&rotationD, time)) {
+                *rotation = GfVec3f(rotationD);
+                gotValue = true;
+            }
+        }
+        if (!gotValue) {
+            *rotation = GfVec3f(0.);
+        }
     }
 
     if (!s || !s.Get(scale, time)) {
-        *scale = GfVec3f(1.);
+        bool gotValue = false;
+        if (_IsSupportedXformAttrDoubles()) {
+            GfVec3d scaleD;
+            if (s && s.Get(&scaleD, time)) {
+                *scale = GfVec3f(scaleD);
+                gotValue = true;
+            }
+        }
+        if (!gotValue) {
+            *scale = GfVec3f(1.);
+        }
     }
 
     if (!p || !p.Get(pivot, time)) {
-        *pivot = GfVec3f(0.);
+        bool gotValue = false;
+        if (_IsSupportedXformAttrDoubles()) {
+            GfVec3d scaleD;
+            if (p && p.Get(&scaleD, time)) {
+                *scale = GfVec3f(scaleD);
+                gotValue = true;
+            }
+        }
+        if (!gotValue) {
+            *pivot = GfVec3f(0.);
+        }
     }
 
     *rotOrder = r ? ConvertOpTypeToRotationOrder(r.GetOpType())

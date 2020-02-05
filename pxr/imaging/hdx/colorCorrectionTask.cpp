@@ -81,31 +81,34 @@ HdxColorCorrectionTask::HdxColorCorrectionTask(HdSceneDelegate* delegate,
 
 HdxColorCorrectionTask::~HdxColorCorrectionTask()
 {
-    if (_texture != 0) {
-        glDeleteTextures(1, &_texture);
-    }
+    //if (_owningContext && _owningContext->IsValid()) {
+        //GlfGLContextScopeHolder contextHolder(_owningContext);
+        if (_texture != 0) {
+            glDeleteTextures(1, &_texture);
+        }
 
-    if (_texture3dLUT != 0) {
-        glDeleteTextures(1, &_texture3dLUT);
-    }
+        if (_texture3dLUT != 0) {
+            glDeleteTextures(1, &_texture3dLUT);
+        }
 
-    if (_vertexBuffer != 0) {
-        glDeleteBuffers(1, &_vertexBuffer);
-    }
+        if (_vertexBuffer != 0) {
+            glDeleteBuffers(1, &_vertexBuffer);
+        }
 
-    if (_shaderProgram) {
-        _shaderProgram.reset();
-    }
+        if (_shaderProgram) {
+            _shaderProgram.reset();
+        }
 
-    if (_copyFramebuffer != 0) {
-        glDeleteFramebuffers(1, &_copyFramebuffer);
-    }
+        if (_copyFramebuffer != 0) {
+            glDeleteFramebuffers(1, &_copyFramebuffer);
+        }
 
-    if (_aovFramebuffer != 0) {
-        glDeleteFramebuffers(1, &_aovFramebuffer);
-    }
+        if (_aovFramebuffer != 0) {
+            glDeleteFramebuffers(1, &_aovFramebuffer);
+        }
 
-    GLF_POST_PENDING_GL_ERRORS();
+        GLF_POST_PENDING_GL_ERRORS();
+    //}
 }
 
 std::string

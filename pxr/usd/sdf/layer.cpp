@@ -485,7 +485,9 @@ SdfLayer::_CreateNew(
 
         layer = _CreateNewWithFormat(
             fileFormat, absIdentifier, localPath, assetInfo, args);
-
+    }
+    if (layer)
+    {
         // XXX 2011-08-19 Newly created layers should not be
         // saved to disk automatically.
         //
@@ -494,6 +496,7 @@ SdfLayer::_CreateNew(
         if (!TF_VERIFY(layer) || !layer->_Save(/* force = */ true)) {
             // Dropping the layer reference will destroy it, and
             // the destructor will remove it from the registry.
+            layer->_FinishInitialization(/* success = */ false);
             return TfNullPtr;
         }
 
@@ -1343,6 +1346,60 @@ template void SdfLayer::_PrimSetTimeSample(
 // End of SdfLayer static functions
 // ---
 
+// #nv begin #fast-updates
+void
+SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time,
+                        const VtValue & value)
+{
+    if (!fieldHandle) {
+        TF_CODING_ERROR("Cannot set time sample via field handle on @%s@.  "
+            "Field handle has expired.",
+            GetIdentifier().c_str());
+        return;
+    }
+
+    SdfChangeBlock block;
+    if (!PermissionToEdit()) {
+        TF_CODING_ERROR("Cannot set time sample on <%s>.  "
+            "Layer @%s@ is not editable.",
+            fieldHandle->GetPath().GetString().c_str(),
+            GetIdentifier().c_str());
+        return;
+    }
+
+    // Fast path does not perform type checking (just like fast and slow path for setting info fields).
+
+    if (_stateDelegate) {
+        _stateDelegate->_OnSetTimeSample(fieldHandle->GetPath(), time, value);
+    }
+
+    // TODO(USD):optimization: Analyze the affected time interval.
+    // For now, time samples do not trigger special change notification for fast updates.
+    // Current use cases for fast updates are focused on streaming updates to attribute defaults.
+    Sdf_ChangeManager::Get()
+        .DidChangeAttributeTimeSamples(SdfLayerHandle(this),
+            fieldHandle->GetPath());
+
+#if 0
+    // TODO (fast-updates): Indicate affected time interval in change notice.
+    Sdf_ChangeManager::Get()
+        .DidFastUpdate(SdfLayerHandle(this),
+            fieldHandle->GetPath(),
+            value,
+            fieldHandle->HasCompositionDependents());
+#endif
+
+    _data->SetTimeSample(fieldHandle, time, value);
+}
+
+void
+SdfLayer::SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time,
+                        const SdfAbstractDataConstValue& value)
+{
+    SetTimeSample(fieldHandle, time, _GetVtValue(value));
+}
+// nv end
+
 void
 SdfLayer::_InitializeFromIdentifier(
     const string& identifier,
@@ -1875,6 +1932,7 @@ SdfLayer::_CanGetSpecAtPath(
     const SdfPath& path, 
     SdfPath* canonicalPath, SdfSpecType* specType) const
 {
+    TRACE_FUNCTION();
     if (path.IsEmpty()) {
         return false;
     }
@@ -3241,6 +3299,48 @@ SdfLayer::GetField(const SdfPath& path,
     return result;
 }
 
+// #nv begin #fast-updates
+VtValue
+SdfLayer::GetField(const SdfAbstractDataFieldAccessHandle &fieldHandle) const
+{
+    VtValue result;
+
+    if (!fieldHandle) {
+        TF_CODING_ERROR("Cannot gewt value via field handle on @%s@.  "
+            "Field handle has expired.",
+            GetIdentifier().c_str());
+        return result;
+    }
+
+    if (!_data->Get(fieldHandle, result))
+    {
+        // Otherwise if this is a required field, and the data has a spec here,
+        // return the fallback value.
+        if (SdfSchema::FieldDefinition const *def =
+            _GetRequiredFieldDef(fieldHandle->GetPath(), fieldHandle->GetFieldName()))
+        {
+            result = def->GetFallbackValue();
+        }
+    }
+    return result;
+}
+
+SdfAbstractDataFieldAccessHandle
+SdfLayer::CreateFieldHandle(const SdfPath &path, const TfToken &fieldName)
+{
+    return _data->CreateFieldHandle(path, fieldName);
+}
+
+void
+SdfLayer::ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle)
+{
+    if (!fieldHandle || !(*fieldHandle))
+        return;
+
+    _data->ReleaseFieldHandle(fieldHandle);
+}
+// nv end
+
 VtValue
 SdfLayer::GetFieldDictValueByKey(const SdfPath& path,
                                  const TfToken& fieldName,
@@ -3287,6 +3387,63 @@ SdfLayer::SetField(const SdfPath& path, const TfToken& fieldName,
     if (value != oldValue)
         _PrimSetField(path, fieldName, value, &oldValue);
 }
+
+// #nv begin #fast-updates
+void
+SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue& value)
+{
+    TRACE_FUNCTION();
+    if (!fieldHandle) {
+        TF_CODING_ERROR("Cannot set field via field handle on @%s@.  "
+            "Field handle has expired.",
+            GetIdentifier().c_str());
+        return;
+    }
+
+    if (value.IsEmpty())
+        return EraseField(fieldHandle->GetPath(), fieldHandle->GetFieldName());
+
+    if (ARCH_UNLIKELY(!PermissionToEdit())) {
+        TF_CODING_ERROR("Cannot set %s on <%s>. Layer @%s@ is not editable.",
+            fieldHandle->GetFieldName().GetText(), fieldHandle->GetPath().GetString().c_str(),
+            GetIdentifier().c_str());
+        return;
+    }
+
+    VtValue oldValue;
+    _data->Get(fieldHandle, oldValue);
+    if (value != oldValue) {
+        // Send notification when leaving the change block,
+        // if we are not already nested in another change block.
+        SdfChangeBlock block;
+
+        _stateDelegate->_OnSetField(fieldHandle->GetPath(), fieldHandle->GetFieldName(), value);
+
+        const TfToken &fieldName = fieldHandle->GetFieldName();
+
+        if (fieldName == SdfFieldKeys->Default) {
+            Sdf_ChangeManager::Get()
+                .DidFastUpdate(SdfLayerHandle(this),
+                    fieldHandle->GetPath(),
+                    value,
+                    fieldHandle->HasCompositionDependents());
+        } else {
+            Sdf_ChangeManager::Get().DidChangeField(
+                SdfLayerHandle(this),
+                fieldHandle->GetPath(), fieldHandle->GetFieldName(), oldValue, value);
+        }
+
+        _data->Set(fieldHandle, value);
+    }
+}
+
+void
+SdfLayer::SetField(const SdfAbstractDataFieldAccessHandle &fieldHandle, const SdfAbstractDataConstValue& value)
+{
+    TRACE_FUNCTION();
+    SetField(fieldHandle, _GetVtValue(value));
+}
+// nv end
 
 void
 SdfLayer::SetField(const SdfPath& path, const TfToken& fieldName,
@@ -3644,7 +3801,8 @@ SdfLayer::_PrimSetField(const SdfPath& path,
                         const TfToken& fieldName,
                         const T& value,
                         const VtValue *oldValuePtr,
-                        bool useDelegate)
+                        bool useDelegate,
+                        bool fastUpdates)
 {
     // Send notification when leaving the change block.
     SdfChangeBlock block;
@@ -3658,19 +3816,35 @@ SdfLayer::_PrimSetField(const SdfPath& path,
         oldValuePtr ? *oldValuePtr : GetField(path, fieldName);
     const VtValue& newValue = _GetVtValue(value);
 
-    Sdf_ChangeManager::Get().DidChangeField(
-        SdfLayerHandle(this),
-        path, fieldName, oldValue, newValue);
+    // #nv begin #fast-updates
+    if ((fastUpdates || SdfChangeBlock::IsFastUpdating()) && (fieldName == SdfFieldKeys->Default)) {
+        Sdf_ChangeManager::Get()
+            .DidFastUpdate(SdfLayerHandle(this),
+                path,
+                newValue,
+                // TODO: Provide a way for the caller to determine this.
+                true /*hasCompositionDependents*/);
+    } else {
+        Sdf_ChangeManager::Get().DidChangeField(
+            SdfLayerHandle(this),
+            path, fieldName, oldValue, newValue);
+    }
+    // nv end
 
     _data->Set(path, fieldName, value);
 }
 
+// #nv begin #fast-updates
 template void SdfLayer::_PrimSetField(
     const SdfPath&, const TfToken&, 
-    const VtValue&, const VtValue *, bool);
+    const VtValue&, const VtValue *, bool, bool);
+// nv end
+
+// #nv begin #fast-updates
 template void SdfLayer::_PrimSetField(
     const SdfPath&, const TfToken&, 
-    const SdfAbstractDataConstValue&, const VtValue *, bool);
+    const SdfAbstractDataConstValue&, const VtValue *, bool, bool);
+// nv end
 
 template <class T>
 void
@@ -4240,6 +4414,10 @@ SdfLayer::_WriteToFile(const string & newFileName,
         return false;
     }
 
+	/*
+	NVIDIA-BrianH: The fileFormat may be a special non-disk format, so it
+	doesn't make sense to try to create the directory here. It should be done
+	in the fileFormat itself.
     string layerDir = TfGetPathName(newFileName);
     if (!(layerDir.empty() || TfIsDir(layerDir) || TfMakeDirs(layerDir))) {
         TF_RUNTIME_ERROR(
@@ -4247,6 +4425,7 @@ SdfLayer::_WriteToFile(const string & newFileName,
             layerDir.c_str());
         return false;
     }
+	*/
     
     bool ok = fileFormat->WriteToFile(*this, newFileName, comment, args);
 

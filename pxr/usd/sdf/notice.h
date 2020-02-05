@@ -59,11 +59,27 @@ public:
     ///
     class BaseLayersDidChange {
     public:
+        // #nv begin #fast-updates
         BaseLayersDidChange(const SdfLayerChangeListVec &changeVec,
                             size_t serialNumber)
             : _vec(&changeVec)
             , _serialNumber(serialNumber)
+            , _fastUpdates(nullptr)
             {}
+
+        BaseLayersDidChange(size_t serialNumber)
+            : _vec(nullptr)
+            , _serialNumber(serialNumber)
+            , _fastUpdates(nullptr)
+        {}
+
+        BaseLayersDidChange(size_t serialNumber,
+                           const SdfLayerFastUpdatesMap& fastUpdates)
+            : _vec(nullptr)
+            , _serialNumber(serialNumber)
+            , _fastUpdates(&fastUpdates)
+        {}
+        // nv end
 
         using const_iterator = SdfLayerChangeListVec::const_iterator;
         using iterator = const_iterator;
@@ -73,7 +89,10 @@ public:
         SdfLayerHandleVector GetLayers() const;
 
         /// A list of layers and the changes that occurred to them.
-        const SdfLayerChangeListVec &GetChangeListVec() const { return *_vec; }
+        // #nv begin #fast-updates
+        SDF_API
+        const SdfLayerChangeListVec &GetChangeListVec() const;
+        // nv end
 
         const_iterator begin() const { return _vec->begin(); }
         const_iterator cbegin() const { return _vec->cbegin(); }
@@ -95,9 +114,17 @@ public:
         /// The serial number for this round of change processing.
         size_t GetSerialNumber() const { return _serialNumber; }
 
+        // #nv begin #fast-updates
+        SDF_API const SdfLayerFastUpdatesMap &GetFastUpdates() const;
+        // nv end
+
     private:
         const SdfLayerChangeListVec *_vec;
         const size_t _serialNumber;
+
+        // #nv begin #fast-updates
+        const SdfLayerFastUpdatesMap *_fastUpdates;
+        // nv end
     };
 
     /// \class LayersDidChangeSentPerLayer
@@ -115,6 +142,11 @@ public:
         LayersDidChangeSentPerLayer(const SdfLayerChangeListVec &changeVec,
                                     size_t serialNumber)
             : BaseLayersDidChange(changeVec, serialNumber) {}
+        // #nv begin #fast-updates
+        LayersDidChangeSentPerLayer(const SdfLayerFastUpdatesMap& fastUpdates,
+            size_t serialNumber)
+            : BaseLayersDidChange(serialNumber, fastUpdates) {}
+        // nv end
         SDF_API virtual ~LayersDidChangeSentPerLayer();
     };
 
@@ -128,6 +160,11 @@ public:
         LayersDidChange(const SdfLayerChangeListVec &changeVec,
                         size_t serialNumber)
             : BaseLayersDidChange(changeVec, serialNumber) {}
+        // #nv begin #fast-updates
+        LayersDidChange(const SdfLayerFastUpdatesMap& fastUpdates,
+                        size_t serialNumber)
+            : BaseLayersDidChange(serialNumber, fastUpdates) {}
+        // nv end
         SDF_API virtual ~LayersDidChange();
     };
 

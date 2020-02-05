@@ -174,6 +174,11 @@ public:
     virtual void ProcessPrimRemoval(SdfPath const& cachePath,
                                    UsdImagingIndexProxy* index);
 
+    //+NV_CHANGE FRZHANG : fix skelmesh resync
+    USDIMAGING_API
+    virtual SdfPath GetPrimResyncRootPath(SdfPath const& primPath);
+    //-NV_CHANGE FRZHANG
+
 
     virtual void MarkDirty(UsdPrim const& prim,
                            SdfPath const& cachePath,
@@ -365,6 +370,12 @@ public:
     /// A thread-local XformCache provided by the delegate.
     USDIMAGING_API
     void SetDelegate(UsdImagingDelegate* delegate);
+
+    // #nv begin #clean-property-invalidation
+    /// A back-pointer to the scene delegate.
+    USDIMAGING_API
+    UsdImagingDelegate* GetDelegate() const;
+    // nv end
 
     USDIMAGING_API
     bool IsChildPath(SdfPath const& path) const;
@@ -570,6 +581,14 @@ protected:
 
     USDIMAGING_API
     bool _DoesDelegateSupportCoordSys() const;
+
+    //+NV_CHANGE FRZHANG
+    USDIMAGING_API
+    bool _UseNVGPUSkinningComputations() const;
+
+    USDIMAGING_API
+    bool _ShouldGenerateJointMesh() const;
+    //-NV_CHANGE FRZHANG
 
     // Conversion functions between usd and hydra enums.
     USDIMAGING_API

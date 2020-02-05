@@ -33,13 +33,25 @@ PXR_NAMESPACE_OPEN_SCOPE
 class Hd_UnitTestNullRenderDelegate final : public HdRenderDelegate
 {
 public:
+    HD_API
     Hd_UnitTestNullRenderDelegate() = default;
+
+    HD_API
     virtual ~Hd_UnitTestNullRenderDelegate() = default;
 
+    HD_API
     virtual const TfTokenVector &GetSupportedRprimTypes() const override;
+
+    HD_API
     virtual const TfTokenVector &GetSupportedSprimTypes() const override;
+
+    HD_API
     virtual const TfTokenVector &GetSupportedBprimTypes() const override;
+
+    HD_API
     virtual HdRenderParam *GetRenderParam() const override;
+
+    HD_API
     virtual HdResourceRegistrySharedPtr GetResourceRegistry() const override;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -48,6 +60,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////////////
 
+    HD_API
     virtual HdRenderPassSharedPtr CreateRenderPass(HdRenderIndex *index,
                 HdRprimCollection const& collection) override;
 
@@ -57,10 +70,12 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////////////
 
+    HD_API
     virtual HdInstancer *CreateInstancer(HdSceneDelegate *delegate,
                                          SdfPath const& id,
                                          SdfPath const& instancerId) override;
 
+    HD_API
     virtual void DestroyInstancer(HdInstancer *instancer) override;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -69,23 +84,32 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////////////
 
+    HD_API
     virtual HdRprim *CreateRprim(TfToken const& typeId,
                                  SdfPath const& rprimId,
                                  SdfPath const& instancerId) override;
 
+    HD_API
     virtual void DestroyRprim(HdRprim *rPrim) override;
 
+    HD_API
     virtual HdSprim *CreateSprim(TfToken const& typeId,
                                  SdfPath const& sprimId) override;
 
+    HD_API
     virtual HdSprim *CreateFallbackSprim(TfToken const& typeId) override;
+
+    HD_API
     virtual void DestroySprim(HdSprim *sprim) override;
 
+    HD_API
     virtual HdBprim *CreateBprim(TfToken const& typeId,
                                  SdfPath const& bprimId) override;
 
+    HD_API
     virtual HdBprim *CreateFallbackBprim(TfToken const& typeId) override;
 
+    HD_API
     virtual void DestroyBprim(HdBprim *bprim) override;
 
     ////////////////////////////////////////////////////////////////////////////
@@ -94,6 +118,7 @@ public:
     ///
     ////////////////////////////////////////////////////////////////////////////
 
+    HD_API
     virtual void CommitResources(HdChangeTracker *tracker) override;
 
 

@@ -98,6 +98,11 @@ public:
                                       const SdfPath& cachePath,
                                       const TfToken& propertyName) override;
 
+    //+NV_CHANGE FRZHANG : fix skelmesh resync
+    USDSKELIMAGING_API
+    virtual SdfPath GetPrimResyncRootPath(SdfPath const& primPath) override;
+    //-NV_CHANGE FRZHANG
+
     USDSKELIMAGING_API
     void ProcessPrimResync(SdfPath const& primPath,
                            UsdImagingIndexProxy* index) override;
@@ -285,6 +290,13 @@ private:
             HdDirtyBits requestedBits,
             const UsdImagingInstancerContext* instancerContext=nullptr) const;
 
+    //+NV_CHANGE FRZHANG
+    // ---------------------------------------------------------------------- //
+    /// Handlers for skelAnimation
+    // ---------------------------------------------------------------------- //
+    bool _IsSkelAnimPrimPath(const SdfPath& cachePath) const;
+    
+    //-NV_CHANGE FRZHANG
 
     // ---------------------------------------------------------------------- //
     /// Populated skeleton state
@@ -331,6 +343,11 @@ private:
         UsdSkelAnimMapper blendShapeMapper;
         SdfPath skelPath, skelRootPath;
         bool hasJointInfluences = false;
+        //+NV_CHANGE FRZHANG
+        std::shared_ptr<UsdSkelSkinningQuery>	skinningQueryPtr;
+        void NVGPUSKIN_InitSkinInfo(const UsdSkelSkeletonQuery& skelQuery,
+            const UsdSkelSkinningQuery& skinningQuery);
+        //-NV_CHANGE FRZHANG
     };
 
     const _SkinnedPrimData* _GetSkinnedPrimData(const SdfPath& cachePath) const;
@@ -347,6 +364,18 @@ private:
     using _SkelBindingMap =
         std::unordered_map<SdfPath, UsdSkelBinding, SdfPath::Hash>;
     _SkelBindingMap _skelBindingMap;
+
+    //+NV_CHANGE FRZHANG
+    /// SkelAnim -> Skeleton -> SkinnedMesh
+    /// (Populated via UsdSkelImagingSkeletonAdaptor::Populate)
+
+    using _SkelSkinMap =
+        std::unordered_map<SdfPath, SdfPathSet, SdfPath::Hash>;
+    
+    using _SkelAnimMap =
+        std::unordered_map<SdfPath, _SkelSkinMap, SdfPath::Hash>;
+    _SkelAnimMap _skelAnimMap;
+    //-NV_CHANGE FRZHANG
 };
 
 

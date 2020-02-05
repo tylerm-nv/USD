@@ -163,6 +163,14 @@ void wrapUsdSkelSkinningQuery()
         .def("GetJointWeightsPrimvar", &This::GetJointWeightsPrimvar,
              return_value_policy<return_by_value>())
 
+        //+NV_CHANGE FRZHANG
+        .def("GetSkinningMethodAttr", &This::GetSkinningMethodAttr,
+            return_value_policy<return_by_value>())
+
+        .def("GetSkinningBlendWeightsPrimvar", &This::GetSkinningBlendWeightsPrimvar,
+            return_value_policy<return_by_value>())
+        //-NV_CHANGE FRZHANG
+
         // deprecated
         .def("GetMapper", &This::GetMapper,
              return_value_policy<return_by_value>())

@@ -579,36 +579,18 @@ ZLIB = Dependency("zlib", InstallZlib, "include/zlib.h")
 # boost
 
 if Linux():
-<<<<<<< HEAD
     BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
-=======
-    BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.gz"
->>>>>>> v20.02
     BOOST_VERSION_FILE = "include/boost/version.hpp"
 elif MacOS():
     BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
     BOOST_VERSION_FILE = "include/boost/version.hpp"
 elif Windows():
-<<<<<<< HEAD
     BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
-=======
-    # On Visual Studio 2017 we need at least boost 1.65.1
->>>>>>> v20.02
     # The default installation of boost on Windows puts headers in a versioned 
     # subdirectory, which we have to account for here. In theory, specifying 
     # "layout=system" would make the Windows install match Linux/MacOS, but that 
     # causes problems for other dependencies that look for boost.
-<<<<<<< HEAD
     BOOST_VERSION_FILE = "include/boost-1_68_0/boost/version.hpp"
-=======
-    if IsVisualStudio2017OrGreater():
-        BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.65.1/boost_1_65_1.tar.gz"
-        BOOST_VERSION_FILE = "include/boost-1_65_1/boost/version.hpp"
-    else:
-        BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.gz"
-        BOOST_VERSION_FILE = "include/boost-1_61/boost/version.hpp"
-
->>>>>>> v20.02
 
 def InstallBoost(context, force, buildArgs):
     # Documentation files in the boost archive can have exceptionally

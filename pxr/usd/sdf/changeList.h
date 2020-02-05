@@ -44,6 +44,26 @@ typedef std::vector<
     std::pair<SdfLayerHandle, SdfChangeList>
     > SdfLayerChangeListVec;
 
+// #nv begin #fast-updates
+class SdfFastUpdateList
+{
+public:
+    SdfFastUpdateList() : hasCompositionDependents(false) {}
+    bool hasCompositionDependents;
+    struct FastUpdate {
+        SdfPath path;
+        VtValue value;
+    };
+    std::vector<FastUpdate> fastUpdates;
+};
+
+inline bool operator==(const SdfFastUpdateList::FastUpdate &lhs, const SdfFastUpdateList::FastUpdate &rhs) {
+    return (lhs.path == rhs.path) && (rhs.value == rhs.value);
+}
+
+typedef std::map<SdfLayerHandle, SdfFastUpdateList> SdfLayerFastUpdatesMap;
+// nv end
+
 /// \class SdfChangeList
 ///
 /// A list of scene description modifications, organized by the namespace
@@ -94,6 +114,12 @@ public:
 
     void DidChangeInfo(const SdfPath &path, const TfToken &key,
                        const VtValue &oldValue, const VtValue &newValue);
+
+    // #nv begin #fast-updates
+    // When a change list contains both fast updates and normal edits, treat the fast updates as normal.
+    void FastUpdateFallback(const SdfPath &attrPath);
+    // nv end
+
 
     /// \struct Entry
     ///

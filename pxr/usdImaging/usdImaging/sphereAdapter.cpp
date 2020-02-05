@@ -119,6 +119,21 @@ UsdImagingSphereAdapter::GetPoints(UsdPrim const& prim,
     return GetMeshPoints(prim, time);   
 }
 
+// #nv begin #fast-updates
+/*virtual*/
+HdDirtyBits
+UsdImagingSphereAdapter::ProcessPropertyChange(UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
+{
+    if (propertyName == UsdGeomTokens->radius)
+        return HdChangeTracker::DirtyTransform;
+
+    // Allow base class to handle change processing.
+    return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
+}
+// nv end
+
 static GfMatrix4d
 _GetImplicitGeomScaleTransform(UsdPrim const& prim, UsdTimeCode time)
 {

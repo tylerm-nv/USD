@@ -2,9 +2,9 @@
  * Copyright 2019 NVIDIA Corporation. All rights reserved.
  *****************************************************************************/
 #include "pxr/pxr.h"
-#include "pxr/usd/usdMdl/usdToMdl.h"
-#include "pxr/usd/usdMdl/utils.h"
-#include "pxr/usd/usdMdl/neuray.h"
+#include "pxr/usd/plugin/usdMdl/usdToMdl.h"
+#include "pxr/usd/plugin/usdMdl/utils.h"
+#include "pxr/usd/plugin/usdMdl/neuray.h"
 
 using std::string;
 using mi::neuraylib::Mdl;

@@ -75,6 +75,9 @@ class Usd_Resolver;
 class UsdPrim;
 class UsdPrimRange;
 
+// #nv begin #fast-updates
+SDF_DECLARE_HANDLES(SdfAbstractDataFieldAccess);
+// nv end
 SDF_DECLARE_HANDLES(SdfLayer);
 
 /// \class UsdStage
@@ -2144,6 +2147,16 @@ private:
 
     void _RegisterPerLayerNotices();
 
+// #nv begin #fast-updates
+public:
+    // Checks whether the given field handle has composition dependents
+    // (e.g., lives on a class or referenced prim), and starts tracking
+    // it internally for fast updates and recomposition changes
+    // if it is a new field handle.
+    USD_API
+    void CheckFieldForCompositionDependents(const SdfLayerHandle &layer, SdfAbstractDataFieldAccessHandle fieldHandle, bool isNewHandle = true);
+// nv end
+
 private:
 
     // The 'pseudo root' prim.
@@ -2193,6 +2206,15 @@ private:
     UsdStageLoadRules _loadRules;
     
     bool _isClosingStage;
+
+    // #nv begin #fast-updates
+    // Field handle cache for fast field access.
+    struct FieldHandleEntry {
+        SdfAbstractDataFieldAccessHandle defaultHandle;
+        SdfAbstractDataFieldAccessHandle timeSamplesHandle;
+    };
+    std::map<SdfLayerHandle, std::unordered_map<SdfPath, struct FieldHandleEntry, SdfPath::Hash> > _fieldHandles;
+    // nv end
 
     friend class UsdAPISchemaBase;
     friend class UsdAttribute;

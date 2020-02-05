@@ -165,6 +165,12 @@ public:
     USDIMAGING_API
     void ApplyPendingUpdates();
 
+    // #nv begin #fast-updates
+    /// Applies any fast (non-structural) updates which have been queued up by notices from USD.
+    USDIMAGING_API
+    virtual void ApplyPendingFastUpdates();
+    // nv end
+
     /// Returns the refinement level that is used when prims have no explicit
     /// level set.
     ///
@@ -333,6 +339,35 @@ public:
     USDIMAGING_API
     virtual GfMatrix4d GetInstancerTransform(SdfPath const &instancerId) 
         override;
+
+	//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+	/// NV_Edit
+	/// provide direct access to value cache.
+	/// CAUTION!!! please don't use this function is you have no idea about what is valueCache.
+	USDIMAGING_API
+	const UsdImagingValueCache& ValueCache() const { return _valueCache; }
+
+    //+NV_CHANGE FRZHANG
+    //If use NV_GPUSkinning computation path, in this case don't generate usd's skinning computation sprim.
+    //Caution if you want to set this value in render delegate's RenderSettings, please do this before scene populate at the beging of the app.
+    //we're not support dynamically change this flag.
+    USDIMAGING_API
+    virtual bool UseNVGPUSkinningComputations() override;
+    //If don't generate joint mesh in skeletonAdaptor, in this case don't generate usd hydra's jointmesh Rprim.
+    //Caution if you want to set this value in render delegate's RenderSettings, please do this before scene populate at the beging of the app.
+    //we're not support dynamically change this flag.
+    USDIMAGING_API
+    virtual bool ShouldGenerateJointMesh() override;
+
+	USDIMAGING_API
+	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform) override;
+	USDIMAGING_API
+	virtual bool GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights, 
+        int& numInfluencesPerPoint, bool& hasConstantInfluences, 
+        TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights) override;
+	USDIMAGING_API
+	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld) override;
+	//-NV_CHANGE FRZHANG
 
     // Motion samples
     USDIMAGING_API
@@ -533,6 +568,30 @@ public:
     USDIMAGING_API
     bool IsInInvisedPaths(const SdfPath &usdPath) const;
 
+    // #nv begin #clean-property-invalidation
+    /// Handle property changes which are not tied to adapters (e.g., custom primvars, API schema properties).
+    USDIMAGING_API
+    virtual HdDirtyBits ProcessNonAdapterBasedPropertyChange(UsdPrim const& prim,
+        SdfPath const& cachePath,
+        TfToken const& property);
+    // nv end
+
+    // #nv begin #fast-updates
+    USDIMAGING_API
+    bool HasPendingFastUpdates() const;
+    // nv end
+
+// #nv begin #fast-updates
+protected:
+    USDIMAGING_API
+    void _RefreshObjectsForFastUpdates(
+        const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
+        bool refreshVariability);
+
+    UsdImaging_XformCache _xformCache;
+    std::vector<SdfFastUpdateList::FastUpdate> _fastUpdates;
+// nv end
+
 private:
     // Internal friend class.
     class _Worker;
@@ -571,9 +630,12 @@ private:
     // If \p path is a prim path, changedPrimInfoFields will be populated
     // with the list of scene description fields that caused this prim to
     // be refreshed.
-    void _RefreshUsdObject(SdfPath const& usdPath, 
-                           TfTokenVector const& changedPrimInfoFields,
-                           UsdImagingIndexProxy* proxy);
+    // #nv begin #fast-updates
+    void _RefreshUsdObject(SdfPath const& path,
+        TfTokenVector const& changedPrimInfoFields,
+        UsdImagingIndexProxy* proxy,
+        bool checkVariability = true);
+    // nv end
 
     // Heavy-weight invalidation of an entire prim subtree. All cached data is
     // reconstructed for all prims below \p rootPath.
@@ -736,7 +798,6 @@ private:
         _PathsToUpdateMap;
     _PathsToUpdateMap _usdPathsToUpdate;
 
-    UsdImaging_XformCache _xformCache;
     UsdImaging_MaterialBindingImplData _materialBindingImplData;
     UsdImaging_MaterialBindingCache _materialBindingCache;
     UsdImaging_CoordSysBindingImplData _coordSysBindingImplData;

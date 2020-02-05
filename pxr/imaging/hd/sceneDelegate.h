@@ -396,6 +396,21 @@ public:
     HD_API
     virtual VtArray<TfToken> GetCategories(SdfPath const& id);
 
+	//+NV_CHANGE FRZHANG  : GPU SKinning value fetch
+    HD_API
+    virtual bool UseNVGPUSkinningComputations();
+    HD_API
+    virtual bool ShouldGenerateJointMesh();
+	HD_API
+	virtual bool GetSkinningBindingValues(SdfPath const&id, VtValue& restPoints, GfMatrix4d& geomBindXform);
+	HD_API
+    virtual bool GetSkinningBlendValues(SdfPath const& id, VtValue& jointIndices, VtValue& jointWeights,
+            int& numInfluencesPerPoint, bool& hasConstantInfluences,
+            TfToken& skinningMethod, VtValue& skinningBlendWeights, bool& hasConstantSkinningBlendWeights);
+	HD_API
+	virtual bool GetSkelAnimXformValues(SdfPath const& id, VtValue& skinningXform, GfMatrix4d& primWorldToLocal, GfMatrix4d& skelLocalToWorld);
+	//-NV_CHANGE FRZHANG
+
     /// Returns the categories for all instances in the instancer.
     HD_API
     virtual std::vector<VtArray<TfToken>>

@@ -1,8 +1,8 @@
 /******************************************************************************
  * Copyright 2019 NVIDIA Corporation. All rights reserved.
  *****************************************************************************/
-#include "pxr/usd/usdMdl/neuray.h"
-#include "pxr/usd/usdMdl/utils.h"
+#include "pxr/usd/plugin/usdMdl/neuray.h"
+#include "pxr/usd/plugin/usdMdl/utils.h"
 #include "pxr/base/tf/stringUtils.h"
 #include "pxr/base/tf/getenv.h"
 #include "pxr/base/arch/fileSystem.h"

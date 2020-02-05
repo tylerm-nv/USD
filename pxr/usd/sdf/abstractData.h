@@ -53,6 +53,40 @@ class SdfAbstractDataValue;
 TF_DECLARE_PUBLIC_TOKENS(SdfDataTokens, SDF_API, SDF_DATA_TOKENS);
 
 
+// #nv begin #fast-updates
+class SdfAbstractDataFieldAccess : public TfRefBase, public TfWeakBase
+{
+public:
+    SdfAbstractDataFieldAccess(const SdfPath &path,
+                               const TfToken &fieldName) :
+        _path(path), _fieldName(&fieldName),
+        _hasCompositionDependents(true) {}
+    SDF_API
+    virtual ~SdfAbstractDataFieldAccess();
+
+    SDF_API
+    const SdfPath &GetPath() { return _path; }
+
+    SDF_API
+    const TfToken &GetFieldName() { return *_fieldName; }
+
+    SDF_API
+    bool HasCompositionDependents() const { return _hasCompositionDependents;  }
+
+    SDF_API
+    void SetHasCompositionDependents(bool val) { _hasCompositionDependents = val; }
+private:
+    const SdfPath _path;
+    const TfToken *_fieldName;
+
+    // If all fields updated have no composition dependents, we can
+    // avoid computing dependent paths to update during change notification.
+    bool _hasCompositionDependents;
+};
+
+SDF_DECLARE_HANDLES(SdfAbstractDataFieldAccess);
+// nv end
+
 /// \class SdfAbstractData
 ///
 /// Interface for scene description data storage.
@@ -151,7 +185,7 @@ public:
     /// The visitor may not modify the SdfAbstractData object it is visiting.
     /// \sa SdfAbstractDataSpecVisitor
     SDF_API
-    void VisitSpecs(SdfAbstractDataSpecVisitor* visitor) const;
+    virtual void VisitSpecs(SdfAbstractDataSpecVisitor* visitor) const;
 
     /// @}
 
@@ -217,6 +251,20 @@ public:
     SDF_API
     virtual std::type_info const &
     GetTypeid(const SdfPath &path, const TfToken &fieldName) const;
+
+    // #nv begin #fast-updates
+    SDF_API
+    virtual SdfAbstractDataFieldAccessHandle CreateFieldHandle(const SdfPath &path, const TfToken &fieldName);
+
+    SDF_API
+    virtual void ReleaseFieldHandle(SdfAbstractDataFieldAccessHandle *fieldHandle);
+
+    SDF_API
+    virtual bool Set(const SdfAbstractDataFieldAccessHandle &fieldHandle, const VtValue &value);
+
+    SDF_API
+    virtual bool Get(const SdfAbstractDataFieldAccessHandle &fieldHandle, VtValue &value) const;
+    // nv end
 
     /// Set the value of the given \a path and \a fieldName.
     ///
@@ -352,6 +400,11 @@ public:
     virtual bool
     QueryTimeSample(const SdfPath& path, double time,
                     SdfAbstractDataValue *optionalValue) const = 0;
+
+    // #nv begin #fast-updates
+    SDF_API
+    virtual void SetTimeSample(const SdfAbstractDataFieldAccessHandle &fieldHandle, double time, const VtValue& value);
+    // nv end
 
     SDF_API
     virtual void
