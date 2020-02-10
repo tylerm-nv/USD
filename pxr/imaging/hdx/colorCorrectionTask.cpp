@@ -81,34 +81,55 @@ HdxColorCorrectionTask::HdxColorCorrectionTask(HdSceneDelegate* delegate,
 
 HdxColorCorrectionTask::~HdxColorCorrectionTask()
 {
-    //if (_owningContext && _owningContext->IsValid()) {
-        //GlfGLContextScopeHolder contextHolder(_owningContext);
-        if (_texture != 0) {
-            glDeleteTextures(1, &_texture);
-        }
+    // #nv begin gl-errors
+    bool performedGLOperation = false;
+    // nv end
 
-        if (_texture3dLUT != 0) {
-            glDeleteTextures(1, &_texture3dLUT);
-        }
+    if (_texture != 0) {
+        glDeleteTextures(1, &_texture);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
+    }
 
-        if (_vertexBuffer != 0) {
-            glDeleteBuffers(1, &_vertexBuffer);
-        }
+    if (_texture3dLUT != 0) {
+        glDeleteTextures(1, &_texture3dLUT);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
+    }
 
-        if (_shaderProgram) {
-            _shaderProgram.reset();
-        }
+    if (_vertexBuffer != 0) {
+        glDeleteBuffers(1, &_vertexBuffer);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
+    }
 
-        if (_copyFramebuffer != 0) {
-            glDeleteFramebuffers(1, &_copyFramebuffer);
-        }
+    if (_shaderProgram) {
+        _shaderProgram.reset();
+    }
 
-        if (_aovFramebuffer != 0) {
-            glDeleteFramebuffers(1, &_aovFramebuffer);
-        }
+    if (_copyFramebuffer != 0) {
+        glDeleteFramebuffers(1, &_copyFramebuffer);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
+    }
 
+    if (_aovFramebuffer != 0) {
+        glDeleteFramebuffers(1, &_aovFramebuffer);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
+    }
+
+    // #nv begin gl-errors
+    if (performedGLOperation) {
         GLF_POST_PENDING_GL_ERRORS();
-    //}
+    }
+    // nv end
+
 }
 
 std::string

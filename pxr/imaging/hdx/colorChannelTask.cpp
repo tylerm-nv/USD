@@ -70,12 +70,22 @@ HdxColorChannelTask::HdxColorChannelTask(HdSceneDelegate* delegate,
 
 HdxColorChannelTask::~HdxColorChannelTask()
 {
+    // #nv begin gl-errors
+    bool performedGLOperation = false;
+    // nv end
+
     if (_texture != 0) {
         glDeleteTextures(1, &_texture);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
     }
 
     if (_vertexBuffer != 0) {
         glDeleteBuffers(1, &_vertexBuffer);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
     }
 
     if (_shaderProgram) {
@@ -84,9 +94,16 @@ HdxColorChannelTask::~HdxColorChannelTask()
 
     if (_copyFramebuffer != 0) {
         glDeleteFramebuffers(1, &_copyFramebuffer);
+        // #nv begin gl-errors
+        performedGLOperation = true;
+        // nv end
     }
 
-    GLF_POST_PENDING_GL_ERRORS();
+    // #nv begin gl-errors
+    if (performedGLOperation) {
+        GLF_POST_PENDING_GL_ERRORS();
+    }
+    // nv end
 }
 
 bool
