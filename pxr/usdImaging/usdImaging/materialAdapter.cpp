@@ -38,6 +38,10 @@
 #include "pxr/usd/sdr/shaderNode.h"
 #include "pxr/usd/sdr/shaderProperty.h"
 
+// #nv begin #new-MDL-schema
+#include "pxr/base/tf/envSetting.h"
+// nv end
+
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -97,6 +101,14 @@ _GetShaderNodeForSourceTypeFallbackNV(
         }
     }  
 }
+
+TF_DEFINE_ENV_SETTING(USDIMAGING_ALLOW_UNREGISTERED_SHADER_IDS, 0,
+    "Allows material networks to be defined under IDs which are not known to SdrRegistry.");
+static bool _UnregisteredShaderIDsAllowed() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_ALLOW_UNREGISTERED_SHADER_IDS) == 1;
+    return _v;
+}
+
 // #nv end
 
 UsdImagingMaterialAdapter::~UsdImagingMaterialAdapter()
@@ -468,15 +480,21 @@ _BuildHdMaterialNetworkFromTerminal(
     // Store terminals on material so backend can easily access them.
     materialNetworkMap->terminals.push_back(terminalNode.path);
 
-    // Validate that idenfitier (info:id) is known to Sdr.
-    // Return empty network if it fails so backend can use fallback material.
-    SdrRegistry &shaderReg = SdrRegistry::GetInstance();
-    if (!shaderReg.GetNodeByIdentifier(terminalNode.identifier)) {
-        TF_WARN("Invalid info:id %s node: %s", 
+    // #nv begin #new-MDL-schema
+    if (!_UnregisteredShaderIDsAllowed()) {
+    // nv end
+        // Validate that idenfitier (info:id) is known to Sdr.
+        // Return empty network if it fails so backend can use fallback material.
+        SdrRegistry &shaderReg = SdrRegistry::GetInstance();
+        if (!shaderReg.GetNodeByIdentifier(terminalNode.identifier)) {
+            TF_WARN("Invalid info:id %s node: %s",
                 terminalNode.identifier.GetText(),
                 terminalNode.path.GetText());
-        *materialNetworkMap = HdMaterialNetworkMap();
+            *materialNetworkMap = HdMaterialNetworkMap();
+        }
+    // #nv begin #new-MDL-schema
     }
+    // nv end
 };
 
 void 
