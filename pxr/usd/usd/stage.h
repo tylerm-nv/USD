@@ -2154,7 +2154,10 @@ public:
     // it internally for fast updates and recomposition changes
     // if it is a new field handle.
     USD_API
-    void CheckFieldForCompositionDependents(const SdfLayerHandle &layer, SdfAbstractDataFieldAccessHandle fieldHandle, bool isNewHandle = true);
+    void CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
+                                            SdfAbstractDataFieldAccessHandle fieldHandle,
+                                            bool isNewHandle = true,
+                                            bool* handleIsValid = nullptr);
 // nv end
 
 private:

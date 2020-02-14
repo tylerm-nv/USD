@@ -85,6 +85,20 @@ class TestUsdFastUpdates(unittest.TestCase):
         assert self.layersChangedInvoked
         assert self.objectsChangedInvoked
 
+        # Verify no crash when removing a sublayer after authoring fast updates on it.
+        self._layersChangedListener.Revoke()
+        self._objectsChangedListener.Revoke()
+        self.layer.Clear()
+        self.stage = Usd.Stage.Open(self.layer)
+        self.sublayer = Sdf.Layer.CreateAnonymous()
+        self.layer.subLayerPaths.append(self.sublayer.identifier)
+        with Usd.EditContext(self.stage, self.sublayer):
+            sphere = self.stage.DefinePrim(Sdf.Path("/sphere"), "Sphere")
+        with Usd.EditContext(self.stage, self.sublayer):
+            with Sdf.ChangeBlock(True):
+                sphere.GetAttribute("radius").Set(36.0)
+        self.layer.subLayerPaths.remove(self.sublayer.identifier)
+
 if __name__ == "__main__":
     unittest.main()
 # nv end

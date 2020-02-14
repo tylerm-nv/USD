@@ -3932,13 +3932,12 @@ UsdStage::_HandleLayersDidChange(
             while (fieldHandleItr != itr->second.end()) {
                 bool gotHandle = false;
                 if (fieldHandleItr->second.defaultHandle) {
-                    CheckFieldForCompositionDependents(itr->first, fieldHandleItr->second.defaultHandle);
-                    gotHandle = true;
-                    //fieldHandleItr++;
+                    CheckFieldForCompositionDependents(
+                        itr->first, fieldHandleItr->second.defaultHandle, false /* isNewHandle */, &gotHandle);
                 }
                 if (fieldHandleItr->second.timeSamplesHandle) {
-                    CheckFieldForCompositionDependents(itr->first, fieldHandleItr->second.timeSamplesHandle);
-                    gotHandle = true;
+                    CheckFieldForCompositionDependents(
+                        itr->first, fieldHandleItr->second.timeSamplesHandle, false /* isNewHandle */, &gotHandle);
                 }
                 if (gotHandle) {
                     fieldHandleItr++;
@@ -4431,13 +4430,25 @@ UsdStage::_RegisterPerLayerNotices()
 void
 UsdStage::CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
                                              SdfAbstractDataFieldAccessHandle fieldHandle,
-                                             bool isNewHandle)
+                                             bool isNewHandle,
+                                             bool* handleIsValid)
 {
     if (!layer || !fieldHandle)
         return;
     SdfPathVector dependentPaths;
     _AddAffectedStagePaths(layer, fieldHandle->GetPath(),
         *_cache, &dependentPaths, nullptr /* extraData*/);
+
+    // If the field has no dependent paths, it is no longer valid,
+    // e.g., lives in a sublayer that is not longer part of the layer stack.
+    if (dependentPaths.empty()) {
+        if (handleIsValid)
+            *handleIsValid = false;
+        return;
+    }
+    if (handleIsValid)
+        *handleIsValid = true;
+
     bool hasCompositionDependents = dependentPaths.size() > 1 || *dependentPaths.begin() != fieldHandle->GetPath();
     fieldHandle->SetHasCompositionDependents(hasCompositionDependents);
 
