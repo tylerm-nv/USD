@@ -50,6 +50,15 @@ TF_DEFINE_PRIVATE_TOKENS(
     (renderType)
 );
 
+// #nv begin #old-mdl-schema
+TF_DEFINE_ENV_SETTING(USDSHADE_OLD_MDL_SCHEMA_SUPPORT, 0,
+    "Support old mdl schema by allowing non-UsdShade-compliant inputs");
+static bool UsdShadeInput_OldMdlSupported() {
+    static bool _v = TfGetEnvSetting(USDSHADE_OLD_MDL_SCHEMA_SUPPORT) == 1;
+    return _v;
+}
+// nv end
+
 UsdShadeInput::UsdShadeInput(const UsdAttribute &attr)
     : _attr(attr)
 {
@@ -199,9 +208,21 @@ UsdShadeInput::ClearSdrMetadataByKey(const TfToken &key) const
 bool 
 UsdShadeInput::IsInput(const UsdAttribute &attr)
 {
+    // #nv begin #old-mdl-schema
+#if 0
     return attr && attr.IsDefined() && 
              TfStringStartsWith(attr.GetName().GetString(), 
                                 UsdShadeTokens->inputs);
+#else
+    // To support the old mdl schema, we allow UsdShadeInputs that have an empty
+    // namespace instead of the standard "inputs:"
+    bool hasInputPrefix = TfStringStartsWith(attr.GetName().GetString(), UsdShadeTokens->inputs);
+    bool attrIsInput = !UsdShadeInput_OldMdlSupported() ?
+        hasInputPrefix :
+        hasInputPrefix || attr.GetNamespace().IsEmpty();
+    return attr && attr.IsDefined() && attrIsInput;
+#endif
+    // nv end
 }
 
 /* static */

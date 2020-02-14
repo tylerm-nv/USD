@@ -31,9 +31,17 @@
 #include "pxr/usd/ndr/declare.h"
 #include "pxr/usd/usdShade/utils.h"
 
+// #nv begin #old-mdl-schema
+#include "pxr/base/tf/envSetting.h"
+// nv end
+
 #include <vector>
 
 PXR_NAMESPACE_OPEN_SCOPE
+
+// #nv begin #old-mdl-schema
+extern TfEnvSetting<int> USDSHADE_OLD_MDL_SCHEMA_SUPPORT;
+// nv end
 
 class UsdShadeConnectableAPI;
 class UsdShadeOutput;

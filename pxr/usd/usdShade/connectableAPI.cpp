@@ -31,6 +31,13 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+// #nv begin old-mdl-schema
+static bool UsdShadeConnectableAPI_OldMdlSupported() {
+    static bool _v = TfGetEnvSetting(USDSHADE_OLD_MDL_SCHEMA_SUPPORT) == 1;
+    return _v;
+}
+// nv end
+
 // Register the schema with the TfType system.
 TF_REGISTRY_FUNCTION(TfType)
 {
@@ -651,6 +658,20 @@ UsdShadeConnectableAPI::GetInputs() const
             ret.push_back(UsdShadeInput(attr));
             continue;
         }
+
+        // #nv begin #old-mdl-schema
+        if (!UsdShadeConnectableAPI_OldMdlSupported()) {
+            continue;
+        }
+
+        if (attr.GetNamespace().IsEmpty()) {
+            // Assume that the attribute belongs to a shader.
+            // If it's an unnamespaced (parameter) attribute on a shader,
+            // wrap it in a UsdShadeInput object and add it to the list of
+            // inputs.
+            ret.push_back(UsdShadeInput(attr));
+        }
+        // nv end
     }
 
     return ret;
