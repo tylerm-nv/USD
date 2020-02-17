@@ -43,6 +43,9 @@
 #include "pxr/usd/usdShade/material.h"
 #include "pxr/usd/usdShade/shader.h"
 
+// #nv begin #primvar-invalidation
+#include "pxr/base/tf/envSetting.h"
+// nv end
 #include "pxr/base/tf/type.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -54,6 +57,16 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     // No factory here, GprimAdapter is abstract.
 }
+
+// #nv begin #primvar-invalidation
+TF_DEFINE_ENV_SETTING(USDIMAGING_GPRIMADAPTER_PRIMVAR_INVALIDATION, 1,
+    "Enables primvar invalidation logic in UsdImagingGprimAdapter.");
+static bool UsdImagingGprimAdapter_ProcessesPrimvarInvalidation() {
+    static bool processesPrimvarInvalidation =
+        TfGetEnvSetting(USDIMAGING_GPRIMADAPTER_PRIMVAR_INVALIDATION) == 1;
+    return processesPrimvarInvalidation;
+}
+// nv end
 
 static TfTokenVector
 _CollectMaterialPrimvars(
@@ -462,25 +475,31 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
                                 UsdTokens->collection.GetString())) {
         return HdChangeTracker::DirtyMaterialId;
     }
-    
-    // Is the property a primvar?
-    static std::string primvarsNS = "primvars:";
-    if (TfStringStartsWith(propertyName.GetString(), primvarsNS)) {
-        TfToken primvarName = TfToken(
-            propertyName.GetString().substr(primvarsNS.size()));
 
-        if (!_IsBuiltinPrimvar(primvarName)) {
-            if (_PrimvarChangeRequiresResync(
+    // #nv begin #primvar-invalidation
+    if (UsdImagingGprimAdapter_ProcessesPrimvarInvalidation()) {
+    // nv end
+
+        // Is the property a primvar?
+        static std::string primvarsNS = "primvars:";
+        if (TfStringStartsWith(propertyName.GetString(), primvarsNS)) {
+            TfToken primvarName = TfToken(
+                propertyName.GetString().substr(primvarsNS.size()));
+
+            if (!_IsBuiltinPrimvar(primvarName)) {
+                if (_PrimvarChangeRequiresResync(
                     prim, cachePath, propertyName, primvarName)) {
-                return HdChangeTracker::AllDirty;
-            } else {
-                return HdChangeTracker::DirtyPrimvar;
+                    return HdChangeTracker::AllDirty;
+                } else {
+                    return HdChangeTracker::DirtyPrimvar;
+                }
             }
         }
+    // #nv begin #primvar-invalidation
     }
+    // nv end
 
     // #nv begin #clean-property-invalidation
-    // TODO test that UsdGeomTokens->primvarsDisplayColor is handled above!
     return GetDelegate()->ProcessNonAdapterBasedPropertyChange(prim, cachePath, propertyName);
     // nv end
 }
