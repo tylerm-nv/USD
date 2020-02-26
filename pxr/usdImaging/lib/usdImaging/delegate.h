@@ -698,6 +698,10 @@ private:
     // worker.
     static void _ExecuteWorkForVariabilityUpdate(_Worker* worker);
 
+    // #nv begin #parallel-xform-children
+    static void _ExecuteWorkForAffectedCachePaths(_Worker* worker);
+    // nv end
+
     /// Returns true if the given prim is visible, taking into account inherited
     /// visibility values. Inherited values are strongest, Usd has no notion of
     /// "super vis/invis".
