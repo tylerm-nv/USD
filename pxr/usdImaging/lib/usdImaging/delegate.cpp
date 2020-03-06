@@ -512,10 +512,10 @@ public:
                             combinedBits, proxy);
                     }
                 } else {
-                    // It is not thread-safe to directly call delegate->_ResyncUsdPrim here,
-                    // so we mark all dirty bits instead.
-                    adapter->MarkDirty(primInfo->usdPrim, affectedCachePath,
-                        HdChangeTracker::AllDirty, proxy);
+                    // If we want to resync the hydra prim, generate a fake resync
+                    // notice for the usd prim in its primInfo.
+                    delegate->_ResyncUsdPrim(
+                        primInfo->usdPrim.GetPath(), proxy, false /* repopulateFromRoot*/, true /* fromThread */);
                 }
             }
         }
@@ -1270,8 +1270,15 @@ UsdImagingDelegate::_OnUsdObjectsChanged(
 void 
 UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath, 
                                    UsdImagingIndexProxy* proxy,
-                                   bool repopulateFromRoot) 
+                                   bool repopulateFromRoot,
+                                   bool fromThread)
 {
+    static tbb::spin_mutex resyncMutex;
+    std::unique_ptr<tbb::spin_mutex::scoped_lock> lock;
+    if (fromThread) {
+        lock.reset(new tbb::spin_mutex::scoped_lock(resyncMutex));
+    }
+
     TF_DEBUG(USDIMAGING_CHANGES).Msg("[Resync Prim]: <%s>\n",
             usdPath.GetText());
 
