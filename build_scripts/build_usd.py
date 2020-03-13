@@ -39,27 +39,33 @@ import shutil
 import subprocess
 import sys
 import tarfile
-import urllib2
 import zipfile
+
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
 
 # Helpers for printing output
 verbosity = 1
 
 def Print(msg):
     if verbosity > 0:
-        print msg
+        print(msg)
 
 def PrintWarning(warning):
     if verbosity > 0:
-        print "WARNING:", warning
+        print("WARNING:", warning)
 
 def PrintStatus(status):
     if verbosity >= 1:
-        print "STATUS:", status
+        print("STATUS:", status)
 
 def PrintInfo(info):
     if verbosity >= 2:
-        print "INFO:", info
+        print("INFO:", info)
 
 def PrintCommandOutput(output):
     if verbosity >= 3:
@@ -69,7 +75,7 @@ def PrintError(error):
     if verbosity >= 3 and sys.exc_info()[1] is not None:
         import traceback
         traceback.print_exc()
-    print "ERROR:", error
+    print("ERROR:", error)
 
 # Helpers for determining platform
 def Windows():
@@ -393,7 +399,7 @@ def DownloadFileWithPowershell(url, outputFilename):
     Run(cmd,logCommandOutput=False)
 
 def DownloadFileWithUrllib(url, outputFilename):
-    r = urllib2.urlopen(url)
+    r = urlopen(url)
     with open(outputFilename, "wb") as outfile:
         outfile.write(r.read())
 
