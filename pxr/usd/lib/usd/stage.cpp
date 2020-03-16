@@ -4392,6 +4392,17 @@ UsdStage::CheckFieldForCompositionDependents(const SdfLayerHandle &layer,
     SdfPathVector dependentPaths;
     _AddAffectedStagePaths(layer, fieldHandle->GetPath(),
         *_cache, &dependentPaths, nullptr /* extraData*/);
+
+    // If the field has no dependent paths, it is no longer valid,
+    // e.g., lives in a sublayer that is not longer part of the layer stack.
+    // For GTC (19.11), we ignore this.
+    // In 20.02, we clean up the stale field handle (https://gitlab-master.nvidia.com/omniverse/USD/merge_requests/90/diffs?commit_id=0a644eca837e394de97a1694af98a1691bb4cc78)
+    // which requires changing the function signature. To avoid having to roll out this fix over all nv_usd dependents,
+    // we leave and ignore the stale field handles in GTC 19.11.
+    if (dependentPaths.empty()) {
+        return;
+    }
+
     bool hasCompositionDependents = dependentPaths.size() > 1 || *dependentPaths.begin() != fieldHandle->GetPath();
     fieldHandle->SetHasCompositionDependents(hasCompositionDependents);
 
