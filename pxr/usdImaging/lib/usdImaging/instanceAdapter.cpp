@@ -1245,10 +1245,34 @@ UsdImagingInstanceAdapter::ProcessPropertyChange(UsdPrim const& prim,
         return dirtyBits;
     }
 
-    // If one of the attributes of the instance prim changed, blast everything.
-    // This will trigger a prim resync; see ProcessPrimResync.
-    // XXX: It would be great to turn this into a dirty bit change instead,
-    // but that requires refactoring instancer data ownership.
+    // Transform changes to instance prims end up getting folded into the
+    // "instanceTransform" instance-rate primvar.
+    if (UsdGeomXformable::IsTransformationAffectedByAttrNamed(propertyName)) {
+        return HdChangeTracker::DirtyPrimvar;
+    }
+
+    // Visibility changes to instance prims end up getting folded into the
+    // instance map.
+    if (propertyName == UsdGeomTokens->visibility) {
+        return HdChangeTracker::DirtyInstanceIndex;
+    }
+
+    // Is the property a primvar?
+    static std::string primvarsNS = "primvars:";
+    if (TfStringStartsWith(propertyName.GetString(), primvarsNS)) {
+        TfToken primvarName = TfToken(
+            propertyName.GetString().substr(primvarsNS.size()));
+        if (_PrimvarChangeRequiresResync(
+            prim, cachePath, propertyName, primvarName)) {
+            return HdChangeTracker::AllDirty;
+        }
+        else {
+            return HdChangeTracker::DirtyPrimvar;
+        }
+    }
+
+    // For other property changes, blast everything.  This will trigger a
+    // prim resync.
     return HdChangeTracker::AllDirty;
 }
 
