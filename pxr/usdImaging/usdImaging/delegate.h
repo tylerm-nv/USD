@@ -645,7 +645,10 @@ private:
     // true, Repopulate() will be called on \p rootPath instead. This is slower,
     // but handles changes in tree topology.
     void _ResyncUsdPrim(SdfPath const& usdRootPath, UsdImagingIndexProxy* proxy,
-                        bool repopulateFromRoot = false);
+                        bool repopulateFromRoot = false,
+                        // #nv begin #parallel-xform-children
+                        bool fromThread = false);
+                        // nv end
 
     // ---------------------------------------------------------------------- //
     // Usd Data-Access Helper Methods
@@ -683,6 +686,10 @@ private:
     // Execute all variability update tasks that have been added to the given
     // worker.
     static void _ExecuteWorkForVariabilityUpdate(_Worker* worker);
+
+    // #nv begin #parallel-xform-children
+    static void _ExecuteWorkForAffectedCachePaths(_Worker* worker);
+    // nv end
 
     /// Returns true if the given prim is visible, taking into account inherited
     /// visibility values. Inherited values are strongest, Usd has no notion of
