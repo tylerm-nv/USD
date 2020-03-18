@@ -8,4 +8,6 @@ if (${PXR_BUILD_MATERIALX_PLUGIN})
     add_subdirectory(usdMtlx)
 endif()
 add_subdirectory(sdrOsl)
-add_subdirectory(usdMdl)
+
+# Disabled until usdMdl works with mdl_sdk 2019.327300.1956.rel
+#add_subdirectory(usdMdl)
