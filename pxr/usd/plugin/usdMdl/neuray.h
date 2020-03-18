@@ -409,9 +409,9 @@ namespace mi {
             ~Logger();
 
             /// Callback function logging a message.
-            void message(
-                mi::base::Message_severity level,
-                const char* module_category,
+            void message(mi::base::Message_severity level,
+                const char* mc,
+                const mi::base::Message_details& md,
                 const char* message);
 
             void SetVerbosity(int level)
