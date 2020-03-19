@@ -10,4 +10,4 @@ endif()
 add_subdirectory(sdrOsl)
 
 # Disabled until usdMdl works with mdl_sdk 2019.327300.1956.rel
-#add_subdirectory(usdMdl)
+add_subdirectory(usdMdl)
