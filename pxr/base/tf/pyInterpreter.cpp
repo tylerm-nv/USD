@@ -41,7 +41,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
-#include <Python.h>
+#include "pxr/base/tf/pySafePython.h"
 #include <signal.h>
 
 using std::string;
@@ -77,9 +77,14 @@ TfPyInitialize()
 
         const std::string s = ArchGetExecutablePath();
 
+#if PY_MAJOR_VERSION == 2
+        // In Python 2 it is safe to call this before Py_Initialize(), but this
+        // is no longer true in python 3.
+        //
         // Initialize Python threading.  This grabs the GIL.  We'll release it
         // at the end of this function.
         PyEval_InitThreads();
+#endif
 
         // Setting the program name is necessary in order for python to 
         // find the correct built-in modules. 
@@ -106,6 +111,15 @@ TfPyInitialize()
 #if !defined(ARCH_OS_WINDOWS)
         // Restore original sigint handler.
         sigaction(SIGINT, &origSigintHandler, NULL);
+#endif
+
+#if PY_MAJOR_VERSION > 2
+        // In python 3 PyEval_InitThreads must be called after Py_Initialize()
+        // see https://docs.python.org/3/c-api/init.html
+        //
+        // Initialize Python threading.  This grabs the GIL.  We'll release it
+        // at the end of this function.
+        PyEval_InitThreads();
 #endif
 
 #if PY_MAJOR_VERSION == 2

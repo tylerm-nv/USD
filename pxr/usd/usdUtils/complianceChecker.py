@@ -528,12 +528,12 @@ class ComplianceChecker(object):
     def DumpAllRules():
         print('Base rules:')
         for ruleNum, rule in enumerate(GetBaseRules()):
-            print(('[%s] %s' % (ruleNum + 1, rule.GetDescription())))
-        print(('-' * 30))
+            print('[%s] %s' % (ruleNum + 1, rule.GetDescription()))
+        print('-' * 30)
         print('ARKit rules: ')
         for ruleNum, rule in enumerate(GetBaseRules()):
-            print(('[%s] %s' % (ruleNum + 1, rule.GetDescription())))
-        print(('-' * 30))
+            print('[%s] %s' % (ruleNum + 1, rule.GetDescription()))
+        print('-' * 30)
             
     def __init__(self, arkit=False, skipARKitRootLayerCheck=False,
                  rootPackageOnly=False, skipVariants=False, verbose=False):
@@ -569,8 +569,8 @@ class ComplianceChecker(object):
         descriptions = [rule.GetDescription() for rule in self._rules]
         print('Checking rules: ')
         for ruleNum, rule in enumerate(descriptions):
-            print(('[%s] %s' % (ruleNum + 1, rule)))
-        print(('-' * 30))
+            print('[%s] %s' % (ruleNum + 1, rule))
+        print('-' * 30)
 
     def GetFailedChecks(self):
         failedChecks = []

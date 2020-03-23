@@ -55,11 +55,9 @@ class _Printer():
 
     def __PrintImpl(self, stream, *args):
         if len(args):
-            for arg in args[:-1]:
-                print(arg, file=stream, end='')
-            print(args[-1], file=stream)
+            print('\n'.join([str(x) for x in args]), file=stream)
         else:
-             print('\n', file=stream)
+            print('\n', file=stream)
 
     def __call__(self, *args):
         if not self._quiet:

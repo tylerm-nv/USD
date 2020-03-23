@@ -22,6 +22,8 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 
+from __future__ import print_function
+
 import sys, unittest
 from pxr import Sdf, Tf
 
@@ -66,7 +68,7 @@ class TestSdfPath(unittest.TestCase):
             self.assertTrue(Sdf.Path(badPath).isEmpty)
             self.assertEqual(Sdf.Path(badPath), Sdf.Path())
             self.assertEqual(Sdf.Path(badPath), Sdf.Path.emptyPath)
-            self.assertFalse(Sdf.Path.IsValidPathString(badPath)[0])
+            self.assertFalse(Sdf.Path.IsValidPathString(badPath))
         print('\tPassed')
         
         # Test lessthan
@@ -296,7 +298,7 @@ class TestSdfPath(unittest.TestCase):
         # ========================================================================
         # Test GetPrimOrPrimVariantSelectionPath
         # ========================================================================
-        print "Test GetPrimOrPrimVariantSelectionPath"
+        print("Test GetPrimOrPrimVariantSelectionPath")
         
         primPath = Sdf.Path("/A/B/C{set=sel}").GetPrimOrPrimVariantSelectionPath()
         self.assertEqual(primPath, Sdf.Path("/A/B/C{set=sel}"))
@@ -321,7 +323,7 @@ class TestSdfPath(unittest.TestCase):
         primPath = Sdf.Path("../C{set=sel}.foo:bar:baz").GetPrimOrPrimVariantSelectionPath()
         self.assertEqual(primPath, Sdf.Path("../C{set=sel}"))
         
-        print '\tPassed'
+        print('\tPassed')
 
         # ========================================================================
         # Test HasPrefix and ReplacePrefix
@@ -878,7 +880,7 @@ class TestSdfPath(unittest.TestCase):
         # ========================================================================
         
         def testFindPrefixedRangeAndFindLongestPrefix():
-            print("Test FindPrefixedRange and FindLongest(Strict)Prefix")
+            print("Test FindPrefixedRange and FindLongestPrefix")
         
             import random, time
             rgen = random.Random()

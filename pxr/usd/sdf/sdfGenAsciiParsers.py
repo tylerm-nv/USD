@@ -26,6 +26,8 @@
 # This takes the flex and bison sources in Sdf and generates C++
 # source files using flex and bison. 
 
+from __future__ import print_function
+
 from distutils.spawn import find_executable
 from tempfile import mkdtemp
 from argparse import ArgumentParser

@@ -23,6 +23,8 @@
 # language governing permissions and limitations under the Apache License.
 #
 
+from __future__ import print_function
+
 import sys
 from pxr import Tf
 
@@ -128,7 +130,7 @@ class TestPython(unittest.TestCase):
 
         with self.assertRaises(Tf.ErrorException) as cm:
             Tf._mightRaise(True)
-        for x in cm.exception:
+        for x in cm.exception.args:
             self.assertTrue(len(repr(x)))
 
         with self.assertRaises(Tf.ErrorException):
@@ -413,7 +415,8 @@ class TestPython(unittest.TestCase):
                 Tf.Debug.SetOutputFile(f.file)
 
         # argument checking.
-        with self.assertRaises(TypeError):
+        # Will raise Tf.ErrorException.
+        with self.assertRaises(Tf.ErrorException):
             Tf.Debug.SetOutputFile(1234)
 
 

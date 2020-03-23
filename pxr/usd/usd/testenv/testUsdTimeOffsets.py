@@ -90,7 +90,7 @@ def VerifyOffset(adjPrim):
     prim = adjPrim.prim
     offset = adjPrim.layerOffset
 
-    print("Testing offset:", end=' ')
+    print("Testing offset:", end=' ') 
     print(offset, "scale:", offset.scale, "prim:", adjPrim.prim.GetPath())
 
     # When offset=1.0:
@@ -233,7 +233,7 @@ class TestUsdTimeOffsets(unittest.TestCase):
             for adjPrim in adjPrims:
                 VerifyOffset(adjPrim)
 
-            print
+            print("")
             print("-"*80)
             print("Testing nested offsets:")
             print("-"*80)
@@ -310,8 +310,8 @@ class TestUsdTimeOffsets(unittest.TestCase):
                      attr.Get(time=2.0)))
                 # Check that the time value in the payload is correctly
                 # transformed.
-                authoredTime = bazPayload.attributes[
-                    'attrFromBaz'].GetInfo('timeSamples').keys()[0]
+                authoredTime = list(bazPayload.attributes[
+                    'attrFromBaz'].GetInfo('timeSamples').keys())[0]
                 self.assertEqual(payloadOffset.GetInverse() * 2.0, authoredTime)
 
             # Make an EditTarget to author into the sublayer.

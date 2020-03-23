@@ -143,7 +143,7 @@ private:
             .def("update", &This::_UpdateList)
             .def("copy", &This::_Copy)
             .add_property("expired", &Type::IsExpired)
-            .def(PyBoolBuiltinFuncName, &This::_NonZero)
+            .def(TfPyBoolBuiltinFuncName, &This::_NonZero)
             .def(self == self)
             .def(self != self)
             ;
@@ -151,19 +151,19 @@ private:
         class_<_Iterator<_ExtractItem> >
             ((name + "_Iterator").c_str(), no_init)
             .def("__iter__", &This::template _Iterator<_ExtractItem>::GetCopy)
-            .def(PyIteratorNextMethodName, &This::template _Iterator<_ExtractItem>::GetNext)
+            .def(TfPyIteratorNextMethodName, &This::template _Iterator<_ExtractItem>::GetNext)
             ;
 
         class_<_Iterator<_ExtractKey> >
             ((name + "_KeyIterator").c_str(), no_init)
             .def("__iter__", &This::template _Iterator<_ExtractKey>::GetCopy)
-            .def(PyIteratorNextMethodName, &This::template _Iterator<_ExtractKey>::GetNext)
+            .def(TfPyIteratorNextMethodName, &This::template _Iterator<_ExtractKey>::GetNext)
             ;
 
         class_<_Iterator<_ExtractValue> >
             ((name + "_ValueIterator").c_str(), no_init)
             .def("__iter__", &This::template _Iterator<_ExtractValue>::GetCopy)
-            .def(PyIteratorNextMethodName, &This::template _Iterator<_ExtractValue>::GetNext)
+            .def(TfPyIteratorNextMethodName, &This::template _Iterator<_ExtractValue>::GetNext)
             ;
     }
 

@@ -43,15 +43,16 @@ import shutil
 import subprocess
 import sys
 import tarfile
-try:
-    # python 2
-    from urllib2 import urlopen
-except:
-    # python 3
-    from urllib.request import urlopen
 import zipfile
 import sysconfig
 import codecs
+
+try:
+    # For Python 3.0 and later
+    from urllib.request import urlopen
+except ImportError:
+    # Fall back to Python 2's urllib2
+    from urllib2 import urlopen
 
 # Helpers for printing output
 verbosity = 1
@@ -80,7 +81,7 @@ def PrintError(error):
     if verbosity >= 3 and sys.exc_info()[1] is not None:
         import traceback
         traceback.print_exc()
-    print ("ERROR:", error)
+    print("ERROR:", error)
 
 # Helpers for determining platform
 def Windows():
