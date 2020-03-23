@@ -506,7 +506,8 @@ mi::neuraylib::Logger::~Logger()
 
 void mi::neuraylib::Logger::message(
     mi::base::Message_severity level,
-    const char* module_category,
+    const char* mc,
+    const mi::base::Message_details& md,
     const char* message)
 {
     if (int(level) < m_level)
