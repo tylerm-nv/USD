@@ -180,6 +180,22 @@ UsdImagingConeAdapter::GetMeshTopology()
     return VtValue(HdMeshTopology(UsdImagingGetUnitConeMeshTopology()));
 }
 
+// #nv begin #clean-property-invalidation
+/*virtual*/
+HdDirtyBits
+UsdImagingConeAdapter::ProcessPropertyChange(
+    UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
+{
+    if ((propertyName == UsdGeomTokens->height) || (propertyName == UsdGeomTokens->radius) ||
+        (propertyName == UsdGeomTokens->axis))
+        return HdChangeTracker::DirtyPoints;
+
+    // Allow base class to handle change processing.
+    return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
+}
+// nv end
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

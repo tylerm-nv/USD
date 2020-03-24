@@ -160,5 +160,22 @@ UsdImagingCapsuleAdapter::GetMeshTopology()
     return VtValue(HdMeshTopology(UsdImagingGetCapsuleMeshTopology()));
 }
 
+// #nv begin #clean-property-invalidation
+/*virtual*/
+HdDirtyBits
+UsdImagingCapsuleAdapter::ProcessPropertyChange(
+    UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
+{
+    if ((propertyName == UsdGeomTokens->height) || (propertyName == UsdGeomTokens->radius) ||
+        (propertyName == UsdGeomTokens->axis))
+        return HdChangeTracker::DirtyPoints;
+
+    // Allow base class to handle change processing.
+    return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
+}
+// nv end
+
 PXR_NAMESPACE_CLOSE_SCOPE
 

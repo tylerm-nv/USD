@@ -156,6 +156,21 @@ UsdImagingCubeAdapter::GetMeshTopology()
     return VtValue(HdMeshTopology(UsdImagingGetUnitCubeMeshTopology()));
 }
 
+// #nv begin #clean-property-invalidation
+/*virtual*/
+HdDirtyBits
+UsdImagingCubeAdapter::ProcessPropertyChange(
+    UsdPrim const& prim,
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
+{
+    if (propertyName == UsdGeomTokens->size)
+        return HdChangeTracker::DirtyPoints;
+
+    // Allow base class to handle change processing.
+    return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
+}
+// nv end
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

@@ -127,7 +127,7 @@ UsdImagingSphereAdapter::ProcessPropertyChange(UsdPrim const& prim,
     TfToken const& propertyName)
 {
     if (propertyName == UsdGeomTokens->radius)
-        return HdChangeTracker::DirtyTransform;
+        return HdChangeTracker::DirtyPoints;
 
     // Allow base class to handle change processing.
     return BaseAdapter::ProcessPropertyChange(prim, cachePath, propertyName);
