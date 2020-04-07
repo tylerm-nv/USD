@@ -28,6 +28,8 @@
 # output from run to run. However, the assertions made
 # by this test should always be valid.
 
+from __future__ import print_function
+
 from pxr import Usd, Sdf, Tf
 import unittest
 
@@ -173,7 +175,11 @@ class TestUsdInstancing(unittest.TestCase):
         # Print a newline before each test so that the output for
         # each test case starts on a newline instead of the last
         # line of the unittest output.
+<<<<<<< HEAD
         print("\n")
+=======
+        print()
+>>>>>>> v20.05-rc1
 
     def test_Basic(self):
         """Test instancing and change processing with basic asset structure
@@ -983,6 +989,34 @@ class TestUsdInstancing(unittest.TestCase):
                 '/World/sets/Set_1/Prop_1',
                 '/World/sets/Set_1/Prop_2', 
                 '/World/sets/Set_1/Prop_3'])
+
+    def test_GetInstances(self):
+        """Test retrieving instances from prims"""
+        s = Usd.Stage.Open('nested/root.usda')
+
+        worldPrim = s.GetPrimAtPath('/World')
+        expectedInstances = []
+        instancesForWorldPrim = [p.GetPath().pathString for p
+                                                    in worldPrim.GetInstances()]
+        self.assertEqual(expectedInstances, instancesForWorldPrim)
+
+        master1 = s.GetMasters()[0]
+        expectedInstancePathsForMaster1 = ['/World/sets/Set_1']
+        instancePathsForMaster1 = [p.GetPath().pathString for p
+                                                    in master1.GetInstances()]
+
+        self.assertEqual(expectedInstancePathsForMaster1, 
+                                                    instancePathsForMaster1)
+
+        master2 = s.GetMasters()[1]
+        expectedInstancePathsForMaster2 = \
+                                        ['/__Master_1/Prop_1',
+                                        '/__Master_1/Prop_2']
+        instancePathsForMaster2 = \
+                [p.GetPath().pathString for p in master2.GetInstances()]
+        
+        self.assertEqual(expectedInstancePathsForMaster2,
+                                                    instancePathsForMaster2)
 
     def test_Editing(self):
         """Test that edits cannot be made on objects in masters"""

@@ -52,7 +52,12 @@ class TestVtValue(unittest.TestCase):
         self.assertEqual(Vt._test_Str((1,2,3)), str((1,2,3)))
         self.assertEqual(Vt._test_Str(Vt.DoubleArray()), str(Vt.DoubleArray()))
         self.assertEqual(Vt._test_Str(1.234), str(1.234))
+<<<<<<< HEAD
         self.assertEqual(Vt._test_Str('unicode'), 'unicode')
+=======
+        self.assertEqual(Vt._test_Str(u'unicode'), 'unicode')
+        self.assertEqual(Vt._test_Str(Vt.Token('hello')), 'hello')
+>>>>>>> v20.05-rc1
 
     def test_ValueTypeName(self):
         self.assertEqual(Vt._test_ValueTypeName(True), 'bool')
@@ -73,6 +78,15 @@ class TestVtValue(unittest.TestCase):
         self.assertEqual(Vt._test_ValueTypeName(Vt.Float(1.234)), 'float')
         self.assertEqual(Vt._test_ValueTypeName(Vt.Double(1.234)), 'double')
 
+<<<<<<< HEAD
+=======
+        # Make sure that Python strings end up as strings, unless they're
+        # coerced via Vt.Token
+        self.assertEqual(Vt._test_ValueTypeName('hello'), 'string')
+        self.assertEqual(Vt._test_ValueTypeName(u'hello'), 'string')
+        self.assertEqual(Vt._test_ValueTypeName(Vt.Token('hello')), 'TfToken')
+
+>>>>>>> v20.05-rc1
     def test_IntValueRoundTrip(self):
         '''Make sure we correctly convert ints of various sizes in the value
         python bindings

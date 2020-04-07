@@ -24,26 +24,17 @@
 #
 from __future__ import print_function
 
-import datetime
-import logging
 import os
-import shutil
-import sys
 import time
 import unittest
 
 from pxr import Tf
 
-def Lstat(path):
-    return int(os.lstat(path).st_mtime)
-
-def Strftime(t):
-    return datetime.datetime.fromtimestamp(float(str(t))).strftime('%c')
-
 class TestFileUtils(unittest.TestCase):
     """
     Test Tf File Utils (The python wrapped porting of the utility functions).
     """
+<<<<<<< HEAD
 
     EmptyDirStructure = [
     ('empty', ['sub1','sub2','sub3'], []),
@@ -195,67 +186,37 @@ class TestFileUtils(unittest.TestCase):
             os.remove(f)
 
 
+=======
+>>>>>>> v20.05-rc1
     def test_Touch(self):
         """Testing Touch() function"""
+        try:
+            print("Touch non-existent file")
+            self.assertFalse(Tf.TouchFile("touchFile", False))
+            self.assertFalse(os.path.isfile("touchFile"))
 
-        self.log.info("Touch non-existent file")
-        self.assertFalse(Tf.TouchFile("touchFile", False))
-        self.assertFalse(os.path.isfile("touchFile"))
+            print("Touch non-existent file with create flag")
+            self.assertTrue(Tf.TouchFile("touchFile", True))
+            self.assertTrue(os.path.isfile("touchFile"))
 
-        self.log.info("Touch non-existent file with create flag")
-        self.assertTrue(Tf.TouchFile("touchFile", True))
-        self.assertTrue(os.path.isfile("touchFile"))
-
-        self.log.info("Test if touch updates the mod time")
-
-        st = os.stat("touchFile")
-        oldTime = st.st_mtime
+            print("Test if touch updates the mod time")
+            
+            st = os.stat("touchFile")
+            oldTime = st.st_mtime
     
-        time.sleep(1)
+            time.sleep(1)
     
-        self.assertTrue(Tf.TouchFile("touchFile", False))
+            self.assertTrue(Tf.TouchFile("touchFile", False))
     
-        st = os.stat("touchFile")
-        newTime = st.st_mtime
+            st = os.stat("touchFile")
+            newTime = st.st_mtime
     
-        # Mod time should have been updated by the Has() call.
-        self.assertTrue(newTime > oldTime)
-    
-        self.files.append("touchFile")
+            # Mod time should have been updated by the Has() call.
+            self.assertTrue(newTime > oldTime)
 
-    Links = [
-        ('file', 'a'),
-        ('a', 'b'),
-        ('b', 'c'),
-        ('c', 'd'),
-        ]
-
-    def PrintTestLinks(self):
-        mtime = Lstat(self.Links[0][0])
-        self.log.info('%s %s %s' % (
-            mtime, Strftime(mtime), self.Links[0][0]))
-        for sp,dp in self.Links:
-            mtime = Lstat(dp)
-            self.log.info('%s %s %s -> %s' % (
-                mtime, Strftime(mtime), dp, sp))
-
-    def RemoveTestLinks(self):
-        allFiles = set()
-        [allFiles.update(list(i)) for i in self.Links]
-        for f in allFiles:
-            try: os.unlink(f) 
-            except OSError:
-                pass
-
-    def CreateTestLinks(self):
-        self.RemoveTestLinks()
-        filePath = self.Links[0][0]
-        open(filePath, 'w').write('The real file\n')
-        linkPaths = []
-        for s,d in self.Links:
-            self.CreateSymlink(s, d)
-        self.PrintTestLinks()
-
+        finally:
+            if os.path.isfile("touchFile"):
+                os.remove("touchFile")
 
 if __name__ == '__main__':
     unittest.main()

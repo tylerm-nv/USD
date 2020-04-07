@@ -90,8 +90,13 @@ def VerifyOffset(adjPrim):
     prim = adjPrim.prim
     offset = adjPrim.layerOffset
 
+<<<<<<< HEAD
     print("Testing offset:", end=' ') 
     print(offset, "scale:", offset.scale, "prim:", adjPrim.prim.GetPath())
+=======
+    print("Testing offset:", offset.offset, "scale:", offset.scale,
+          "prim:", adjPrim.prim.GetPath())
+>>>>>>> v20.05-rc1
 
     # When offset=1.0:
     #
@@ -233,7 +238,11 @@ class TestUsdTimeOffsets(unittest.TestCase):
             for adjPrim in adjPrims:
                 VerifyOffset(adjPrim)
 
+<<<<<<< HEAD
             print("")
+=======
+            print()
+>>>>>>> v20.05-rc1
             print("-"*80)
             print("Testing nested offsets:")
             print("-"*80)

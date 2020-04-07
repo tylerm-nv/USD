@@ -22,6 +22,9 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 #
+
+from __future__ import print_function
+
 from pxr import Usd
 from pxr import UsdGeom
 from pxr import UsdDraco
@@ -203,7 +206,11 @@ def ParseOptions():
 
   # Perform additional option checks.
   if not os.path.isfile(options.input):
+<<<<<<< HEAD
     print('Input file is missing.'
+=======
+    print('Input file is missing.')
+>>>>>>> v20.05-rc1
     parser.print_usage()
     exit(1)
 
@@ -241,8 +248,8 @@ def main():
   # Save the modified USD stage that references encoded meshes.
   stage.GetRootLayer().Export(options.output)
   if options.verbose:
-    print 'Stage:'
-    print '  saved ' + options.output
+    print('Stage:')
+    print('  saved ' + options.output)
 
 
 main()

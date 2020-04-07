@@ -477,11 +477,13 @@ class TestUsdCreateProperties(unittest.TestCase):
                 self.assertEqual([ap.path for ap in arrayAssetValue],
                             [ap.path for ap in arrayAssetQueryValue])
 
-                # NOTE: We use os.path.abspath() to ensure the paths can be
+                # NOTE: We use os.path.normcase() to ensure the paths can be
                 #       accurately compared.  On Windows this will change
                 #       forward slash directory separators to backslashes.
-                self.assertEqual(os.path.abspath(singleAssetValue.resolvedPath), targetFile.name)
-                self.assertTrue(all([os.path.abspath(ap.resolvedPath) == targetFile.name
+                self.assertEqual(os.path.normcase(singleAssetValue.resolvedPath), 
+                                 os.path.normcase(targetFile.name))
+                self.assertTrue(all([os.path.normcase(ap.resolvedPath) == 
+                                     os.path.normcase(targetFile.name)
                                 for ap in arrayAssetValue]))
                 self.assertEqual(singleAssetValue.resolvedPath, 
                             singleAssetQueryValue.resolvedPath)

@@ -259,11 +259,7 @@ UsdImagingGprimAdapter::TrackVariability(UsdPrim const& prim,
                timeVaryingBits,
                true);
 
-    TfToken purpose = GetPurpose(prim);
-    // Empty purpose means there is no opinion, fall back to geom.
-    if (purpose.IsEmpty())
-        purpose = UsdGeomTokens->default_;
-    valueCache->GetPurpose(cachePath) = purpose;
+    valueCache->GetPurpose(cachePath) = GetPurpose(prim, instancerContext);
 }
 
 void
@@ -289,7 +285,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
                                    instancerContext) const
 {
     UsdImagingValueCache* valueCache = _GetValueCache();
-    HdPrimvarDescriptorVector& primvars = valueCache->GetPrimvars(cachePath);
+    HdPrimvarDescriptorVector& vPrimvars = valueCache->GetPrimvars(cachePath);
 
     if (requestedBits & HdChangeTracker::DirtyPoints) {
 
@@ -297,7 +293,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
 
         // Expose points as a primvar.
         _MergePrimvar(
-            &primvars,
+            &vPrimvars,
             HdTokens->points,
             HdInterpolationVertex,
             HdPrimvarRoleTokens->point);
@@ -311,7 +307,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
             pointBased.GetVelocitiesAttr().Get(&velocities, time)) {
             // Expose velocities as a primvar.
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->velocities,
                 HdInterpolationVertex,
                 HdPrimvarRoleTokens->vector);
@@ -327,7 +323,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
             pointBased.GetAccelerationsAttr().Get(&accelerations, time)) {
             // Expose accelerations as a primvar.
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->accelerations,
                 HdInterpolationVertex,
                 HdPrimvarRoleTokens->vector);
@@ -361,7 +357,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
         if (GetColor(prim, time, &colorInterp, &color)) {
             valueCache->GetColor(cachePath) = color;
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->displayColor,
                 _UsdToHdInterpolation(colorInterp),
                 HdPrimvarRoleTokens->color);
@@ -378,7 +374,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
         if (GetOpacity(prim, time, &opacityInterp, &opacity)) {
             valueCache->GetOpacity(cachePath) = opacity;
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->displayOpacity,
                 _UsdToHdInterpolation(opacityInterp));
         } else {
@@ -475,6 +471,7 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
                                 UsdTokens->collection.GetString())) {
         return HdChangeTracker::DirtyMaterialId;
     }
+<<<<<<< HEAD
 
     // #nv begin #primvar-invalidation
     if (UsdImagingGprimAdapter_ProcessesPrimvarInvalidation()) {
@@ -496,6 +493,14 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
             }
         }
     // #nv begin #primvar-invalidation
+=======
+    
+    // Note: This doesn't handle "built-in" attributes that are treated as
+    // primvars. That responsibility falls on the child adapter.
+    if (UsdImagingPrimAdapter::_HasPrimvarsPrefix(propertyName)) {
+        return UsdImagingPrimAdapter::_ProcessPrefixedPrimvarPropertyChange(
+                prim, cachePath, propertyName);
+>>>>>>> v20.05-rc1
     }
     // nv end
 

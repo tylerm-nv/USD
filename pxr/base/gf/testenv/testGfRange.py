@@ -26,6 +26,8 @@ from __future__ import print_function
 
 from __future__ import print_function
 
+from __future__ import print_function
+
 import sys, math
 import unittest
 from pxr import Gf, Tf

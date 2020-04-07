@@ -345,12 +345,13 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
     }
 
     _SpecData &spec = i->second;
-    for (size_t j=0, jEnd = spec.fields.size(); j != jEnd; ++j) {
-        if (spec.fields[j].first == field) {
-            return &spec.fields[j].second;
+    for (auto &f: spec.fields) {
+        if (f.first == field) {
+            return &f.second;
         }
     }
 
+<<<<<<< HEAD
     // #nv begin #fast-updates
     const _FieldValuePair *fieldsData = spec.fields.data();
     spec.fields.push_back( _FieldValuePair(field,
@@ -367,6 +368,12 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
         }
     }
     // nv end
+=======
+    spec.fields.emplace_back(std::piecewise_construct,
+                             std::forward_as_tuple(field),
+                             std::forward_as_tuple());
+
+>>>>>>> v20.05-rc1
     return &spec.fields.back().second;
 }
 

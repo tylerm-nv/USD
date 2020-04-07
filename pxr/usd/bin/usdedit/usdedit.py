@@ -22,6 +22,9 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 #
+
+from __future__ import print_function
+
 import os, sys
 
 import platform
@@ -220,6 +223,11 @@ def main():
                      ". Your edits can be found in %s. " \
                      %(usdFileName, usdaFileName))
 
+<<<<<<< HEAD
+=======
+    if readOnly:
+        os.chmod(usdaFileName, 0o644)
+>>>>>>> v20.05-rc1
     os.remove(usdaFileName)
 
 if __name__ == "__main__":

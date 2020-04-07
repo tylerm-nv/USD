@@ -23,11 +23,6 @@
 //
 
 #include "pxr/pxr.h"
-#include "pxr/base/arch/pragmas.h"
-
-ARCH_PRAGMA_PUSH
-ARCH_PRAGMA_PLACEMENT_NEW  // because of pyFunction.h and boost::function
-
 #include "pxr/base/vt/value.h"
 
 #include "pxr/base/vt/array.h"
@@ -311,6 +306,11 @@ void wrapValue()
     def("Double", Vt_ValueWrapper::Create<double>, 
         TfStringPrintf(funcDocString, "Double","double","double").c_str());
 
+    // Since strings and tokens are indistiguishable in Python-land, users need to
+    // manually declare when they want a VtValue with a token
+    def("Token", Vt_ValueWrapper::Create<TfToken>,
+        TfStringPrintf(funcDocString, "TfToken","TfToken","TfToken").c_str());
+
     // Register conversions for VtValue from python, but first make sure that
     // nobody's registered anything before us.
 
@@ -349,5 +349,3 @@ void wrapValue()
     TfPyFunctionFromPython<VtValue ()>();
     
 }
-
-ARCH_PRAGMA_POP
