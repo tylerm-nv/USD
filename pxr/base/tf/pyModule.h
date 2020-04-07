@@ -127,16 +127,6 @@ PyObject* BOOST_PP_CAT(PyInit__, MFB_PACKAGE_NAME)() {
 
     static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
-<<<<<<< HEAD
-        BOOST_PP_STRINGIZE(BOOST_PP_CAT(_, MFB_PACKAGE_NAME)), // m_name
-        0,                                                     // m_doc
-        -1,                                                    // m_size
-        NULL,                                                  // m_methods
-        0,                                                     // m_reload
-        0,                                                     // m_traverse
-        0,                                                     // m_clear
-        0,                                                     // m_free
-=======
         TF_PP_STRINGIZE(BOOST_PP_CAT(_, MFB_PACKAGE_NAME)), // m_name
         0,                                                  // m_doc
         -1,                                                 // m_size
@@ -145,7 +135,6 @@ PyObject* BOOST_PP_CAT(PyInit__, MFB_PACKAGE_NAME)() {
         0,                                                  // m_traverse
         0,                                                  // m_clear
         0,                                                  // m_free
->>>>>>> v20.05-rc1
     };
 
     PXR_NAMESPACE_USING_DIRECTIVE
@@ -159,16 +148,6 @@ PyObject* BOOST_PP_CAT(PyInit_lib, MFB_PACKAGE_NAME)() {
 
     static struct PyModuleDef moduledef = {
         PyModuleDef_HEAD_INIT,
-<<<<<<< HEAD
-        BOOST_PP_STRINGIZE(BOOST_PP_CAT(lib, MFB_PACKAGE_NAME)), // m_name
-        0,                                                       // m_doc
-        -1,                                                      // m_size
-        NULL,                                                    // m_methods
-        0,                                                       // m_reload
-        0,                                                       // m_traverse
-        0,                                                       // m_clear
-        0,                                                       // m_free
-=======
         TF_PP_STRINGIZE(BOOST_PP_CAT(lib, MFB_PACKAGE_NAME)), // m_name
         0,                                                    // m_doc
         -1,                                                   // m_size
@@ -177,7 +156,6 @@ PyObject* BOOST_PP_CAT(PyInit_lib, MFB_PACKAGE_NAME)() {
         0,                                                    // m_traverse
         0,                                                    // m_clear
         0,                                                    // m_free
->>>>>>> v20.05-rc1
     };
 
     PXR_NAMESPACE_USING_DIRECTIVE

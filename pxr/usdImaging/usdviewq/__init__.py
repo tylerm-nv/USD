@@ -21,13 +21,9 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 #
-<<<<<<< HEAD
-from __future__ import print_function
-=======
 
 from __future__ import print_function
 
->>>>>>> v20.05-rc1
 import sys, argparse, os
 
 from .qt import QtWidgets
@@ -249,16 +245,9 @@ class Launcher(object):
                     # perhaps we should error here? For now just pre-pending
                     # root, and printing warning...
                     from pxr import Sdf
-<<<<<<< HEAD
-                    print(
-                        "WARNING: camera path %r was not absolute, prepending "
-                        "%r to make it absolute" % (str(camPath),
-                            str(Sdf.Path.absoluteRootPath)), file=sys.stderr)
-=======
                     print("WARNING: camera path %r was not absolute, prepending "
                           "%r to make it absolute" % (str(camPath),
                               str(Sdf.Path.absoluteRootPath)), file=sys.stderr)
->>>>>>> v20.05-rc1
                     arg_parse_result.camera = camPath.MakeAbsolutePath(
                         Sdf.Path.absoluteRootPath)
 

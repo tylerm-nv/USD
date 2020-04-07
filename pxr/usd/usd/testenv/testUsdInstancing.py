@@ -175,11 +175,7 @@ class TestUsdInstancing(unittest.TestCase):
         # Print a newline before each test so that the output for
         # each test case starts on a newline instead of the last
         # line of the unittest output.
-<<<<<<< HEAD
-        print("\n")
-=======
         print()
->>>>>>> v20.05-rc1
 
     def test_Basic(self):
         """Test instancing and change processing with basic asset structure

@@ -449,60 +449,43 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
 
 HdDirtyBits
 UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
-                                      SdfPath const& cachePath, 
-                                      TfToken const& propertyName)
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
 {
-    if(propertyName == UsdGeomTokens->visibility 
-          || propertyName == UsdGeomTokens->purpose)
+    if (propertyName == UsdGeomTokens->visibility
+        || propertyName == UsdGeomTokens->purpose)
         return HdChangeTracker::DirtyVisibility;
 
     else if (UsdGeomXformable::IsTransformationAffectedByAttrNamed(propertyName))
         return HdChangeTracker::DirtyTransform;
 
-    else if (propertyName == UsdGeomTokens->extent) 
+    else if (propertyName == UsdGeomTokens->extent)
         return HdChangeTracker::DirtyExtent;
 
-    else if (propertyName == UsdGeomTokens->doubleSided) 
+    else if (propertyName == UsdGeomTokens->doubleSided)
         return HdChangeTracker::DirtyDoubleSided;
 
     else if (TfStringStartsWith(propertyName.GetString(),
-                               UsdShadeTokens->materialBinding.GetString()) ||
-             TfStringStartsWith(propertyName.GetString(),
-                                UsdTokens->collection.GetString())) {
+        UsdShadeTokens->materialBinding.GetString()) ||
+        TfStringStartsWith(propertyName.GetString(),
+            UsdTokens->collection.GetString())) {
         return HdChangeTracker::DirtyMaterialId;
     }
-<<<<<<< HEAD
 
     // #nv begin #primvar-invalidation
     if (UsdImagingGprimAdapter_ProcessesPrimvarInvalidation()) {
-    // nv end
+        // nv end
 
-        // Is the property a primvar?
-        static std::string primvarsNS = "primvars:";
-        if (TfStringStartsWith(propertyName.GetString(), primvarsNS)) {
-            TfToken primvarName = TfToken(
-                propertyName.GetString().substr(primvarsNS.size()));
-
-            if (!_IsBuiltinPrimvar(primvarName)) {
-                if (_PrimvarChangeRequiresResync(
-                    prim, cachePath, propertyName, primvarName)) {
-                    return HdChangeTracker::AllDirty;
-                } else {
-                    return HdChangeTracker::DirtyPrimvar;
-                }
-            }
-        }
-    // #nv begin #primvar-invalidation
-=======
-    
-    // Note: This doesn't handle "built-in" attributes that are treated as
-    // primvars. That responsibility falls on the child adapter.
-    if (UsdImagingPrimAdapter::_HasPrimvarsPrefix(propertyName)) {
-        return UsdImagingPrimAdapter::_ProcessPrefixedPrimvarPropertyChange(
+            // Note: This doesn't handle "built-in" attributes that are treated as
+            // primvars. That responsibility falls on the child adapter.
+        if (UsdImagingPrimAdapter::_HasPrimvarsPrefix(propertyName)) {
+            return UsdImagingPrimAdapter::_ProcessPrefixedPrimvarPropertyChange(
                 prim, cachePath, propertyName);
->>>>>>> v20.05-rc1
+            // #nv begin #primvar-invalidation
+
+        }
+        // nv end
     }
-    // nv end
 
     // #nv begin #clean-property-invalidation
     return GetDelegate()->ProcessNonAdapterBasedPropertyChange(prim, cachePath, propertyName);

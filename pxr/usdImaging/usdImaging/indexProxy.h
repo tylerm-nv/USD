@@ -203,16 +203,13 @@ private:
         , _worker(worker)
     {}
 
-<<<<<<< HEAD
-    // #nv begin #nv-gpu-skel
-    USDIMAGING_API
-    // nv end
-=======
     // Sort and de-duplicate "repopulate" paths to prevent double-inserts.
     // Called by UsdImagingDelegate::ApplyPendingUpdates.
     void _UniqueifyPathsToRepopulate();
 
->>>>>>> v20.05-rc1
+    // #nv begin #nv-gpu-skel
+    USDIMAGING_API
+    // nv end
     bool _AddHdPrimInfo(SdfPath const& cachePath,
                         UsdPrim const& usdPrim,
                         UsdImagingPrimAdapterSharedPtr const& adapter);

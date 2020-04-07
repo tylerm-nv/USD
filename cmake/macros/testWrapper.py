@@ -148,12 +148,6 @@ def _diff(fileName, baselineDir, verbose):
         diff = 'fc.exe'
     else:
         diff = '/usr/bin/diff'
-<<<<<<< HEAD
-    cmd = [diff, _resolvePath(baselineDir, fileName), fileName]
-    if verbose:
-        print("diffing with {0}".format(cmd))
-=======
->>>>>>> v20.05-rc1
 
     filesToDiff = glob.glob(fileName)
     if not filesToDiff:

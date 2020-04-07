@@ -334,7 +334,8 @@ UsdImagingDelegate::_GetDisplayPredicate() const
 
 class UsdImagingDelegate::_Worker {
 private:
-<<<<<<< HEAD
+// XXX:aluk Revisit this
+#if 0
     struct _Task {
         _Task() : delegate(nullptr) { }
         _Task(UsdImagingDelegate* delegate_,
@@ -366,10 +367,9 @@ private:
         // nv end
     };
     std::vector<_Task> _tasks;
-=======
+#endif
     SdfPathVector _tasks;
     UsdImagingDelegate *_delegate;
->>>>>>> v20.05-rc1
 
 public:
     _Worker(UsdImagingDelegate *delegate)
@@ -377,17 +377,17 @@ public:
     {
     }
 
-<<<<<<< HEAD
+// XXX:aluk Revisit this
+#if 0
     // #nv begin #parallel-xform-children
     void AddTask(UsdImagingDelegate* delegate, SdfPath const& cachePath,
         TfTokenVector const *changedInfoFields=nullptr, UsdImagingIndexProxy *proxy=nullptr,
         const SdfPath *sourcePath=nullptr,
         bool checkVariability=true) {
         _tasks.push_back(_Task(delegate, cachePath, changedInfoFields, proxy, sourcePath, checkVariability));
-=======
+#endif
     void AddTask(SdfPath const& cachePath) {
         _tasks.push_back(cachePath);
->>>>>>> v20.05-rc1
     }
     // nv end
 
@@ -455,6 +455,8 @@ public:
         }
     }
 
+    // XXX:aluk Revisit this.
+#if 0
     // #nv begin #parallel-xform-children
     void UpdateAffectedCachePath(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
@@ -522,6 +524,7 @@ public:
         }
     }
     // nv end
+#endif
 };
 
 void 
@@ -887,10 +890,13 @@ UsdImagingDelegate::_ExecuteWorkForAffectedCachePaths(_Worker* worker)
         // Release the GIL to ensure that threaded work won't deadlock if
         // they also need the GIL.
         TF_PY_ALLOW_THREADS_IN_SCOPE();
+        // XXX:aluk Revisit this.
+#if 0
         WorkParallelForN(
             worker->GetTaskCount(),
             std::bind(&UsdImagingDelegate::_Worker::UpdateAffectedCachePath,
                 worker, std::placeholders::_1, std::placeholders::_2));
+#endif
     }
     worker->EnableValueCacheMutations();
 }
@@ -997,6 +1003,8 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
     bool refreshVariability)
 {
+    // XXX:aluk Revisit this.
+#if 0
     TfTokenVector dummyInfoFields;
 
     UsdImagingDelegate::_Worker worker;
@@ -1019,7 +1027,7 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     if (refreshVariability) {
         _ExecuteWorkForVariabilityUpdate(&worker);
     }
-
+#endif
 }
 // nv end
 
@@ -1354,8 +1362,12 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
 
                 // Note: ProcessPrimResync will remove the prim from the index,
                 // similar to ProcessPrimRemoval, but then additionally
-<<<<<<< HEAD
-                // call proxy->Repopulate() on itself.
+                // call proxy->Repopulate() on itself. In the case of
+                // "repopulateFromRoot", this is redundant with us repopulating
+                // the whole subtree below, but change processing will
+                // remove the redundancy.  It's important to call
+                // ProcessPrimResync to add Repopulate calls for objects not
+                // under "usdPath" (such as sibling native instances)..
                 if (repopulateFromRoot) {
                     //+NV_CHANGE FRZHANG : fix skelmesh resync
                     // affectedPrims are all descendants of usdPath, so only calculate ancestor in single direction, otherwise should calculate common ancestor
@@ -1372,16 +1384,6 @@ UsdImagingDelegate::_ResyncUsdPrim(SdfPath const& usdPath,
                     primInfo->adapter->ProcessPrimResync(
                         affectedCachePath, proxy);
                 }
-=======
-                // call proxy->Repopulate() on itself. In the case of
-                // "repopulateFromRoot", this is redundant with us repopulating
-                // the whole subtree below, but change processing will
-                // remove the redundancy.  It's important to call
-                // ProcessPrimResync to add Repopulate calls for objects not
-                // under "usdPath" (such as sibling native instances).
-                primInfo->adapter->ProcessPrimResync(
-                    affectedCachePath, proxy);
->>>>>>> v20.05-rc1
             }
         }
         if (repopulateFromRoot) {
@@ -1547,12 +1549,13 @@ UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath,
         }
     }
 
-<<<<<<< HEAD
+// XXX:aluk Revisit this.
+#if 0
     // #nv begin #parallel-xform-children
     UsdImagingDelegate::_Worker worker;
     for (SdfPath const& affectedCachePath : affectedCachePaths) {
         worker.AddTask(this, affectedCachePath, &changedInfoFields, proxy, &usdPath, checkVariability);
-=======
+#endif
     // PERFORMANCE: We could execute this in parallel, for large numbers of
     // prims.
     for (SdfPath const& affectedCachePath: affectedCachePaths) {
@@ -1611,10 +1614,12 @@ UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath,
                 _ResyncUsdPrim(primInfo->usdPrim.GetPath(), proxy);
             }
         }
->>>>>>> v20.05-rc1
     }
+    // XXX:aluk Revisit this.
+#if 0
     _ExecuteWorkForAffectedCachePaths(&worker);
     // nv end
+#endif
 }
 
 // -------------------------------------------------------------------------- //
@@ -2487,11 +2492,7 @@ UsdImagingDelegate::Get(SdfPath const& id, TfToken const& key)
             // XXX: Getting all primvars here when we only want color is wrong.
             _UpdateSingleValue(cachePath,HdChangeTracker::DirtyPrimvar);
             if (!TF_VERIFY(_valueCache.ExtractColor(cachePath, &value))){
-<<<<<<< HEAD
-                VtVec3fArray vec(1, GfVec3f(.5, .5, .5));
-=======
                 VtVec3fArray vec(1, GfVec3f(.5,.5,.5));
->>>>>>> v20.05-rc1
                 value = VtValue(vec);
             }
         } else if (key == HdTokens->displayOpacity) {

@@ -23,26 +23,6 @@
 # language governing permissions and limitations under the Apache License.
 #
 
-<<<<<<< HEAD:third_party/houdini/gusd/__init__.py
-# We need to import Usd here to ensure certain Python wrappings that the
-# Gusd module depends on are present. In particular, the c'tor for 
-# GusdStageOpts uses UsdStage::LoadAll as a default value, so we need to
-# ensure this is present before import.
-from pxr import Usd
-from . import _gusd
-del Usd
-
-from pxr import Tf
-Tf.PrepareModule(_gusd, locals())
-del Tf
-
-try:
-    from . import __DOC
-    __DOC.Execute(locals())
-    del __DOC
-except Exception:
-    pass
-=======
 from pxr import Sdf, Usd, Plug
 import os
 
@@ -71,4 +51,3 @@ p.SetMetadata("UsdExample_depth", 3)
 newFlattened = stage.Flatten(addSourceFileComment=False)
 newFlattened.Export("newFlattenedContents.usda")
 
->>>>>>> v20.05-rc1:extras/usd/examples/usdRecursivePayloadsExample/testenv/testUsdRecursivePayloadsExample.py

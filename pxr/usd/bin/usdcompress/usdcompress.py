@@ -206,11 +206,7 @@ def ParseOptions():
 
   # Perform additional option checks.
   if not os.path.isfile(options.input):
-<<<<<<< HEAD
-    print('Input file is missing.'
-=======
     print('Input file is missing.')
->>>>>>> v20.05-rc1
     parser.print_usage()
     exit(1)
 

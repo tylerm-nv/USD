@@ -351,7 +351,8 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
         }
     }
 
-<<<<<<< HEAD
+#if 0
+    // XXX:aluk Revisit this.
     // #nv begin #fast-updates
     const _FieldValuePair *fieldsData = spec.fields.data();
     spec.fields.push_back( _FieldValuePair(field,
@@ -368,12 +369,11 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
         }
     }
     // nv end
-=======
+#endif
     spec.fields.emplace_back(std::piecewise_construct,
                              std::forward_as_tuple(field),
                              std::forward_as_tuple());
 
->>>>>>> v20.05-rc1
     return &spec.fields.back().second;
 }
 

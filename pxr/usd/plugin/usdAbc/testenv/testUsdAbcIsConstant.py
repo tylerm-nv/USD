@@ -24,18 +24,11 @@
 from pxr import Usd, UsdGeom
 import unittest
 
-<<<<<<< HEAD:third_party/katana/usdKatana/__init__.py
-from . import _usdKatana
-from pxr import Tf
-Tf.PrepareModule(_usdKatana, locals())
-del Tf
-=======
 class TestUsdAbcIsConstant(unittest.TestCase):
     def test_Read(self):
       testFile = 'testUsdAbcIsConstant.abc'
       stage = Usd.Stage.Open(testFile)
       self.assertTrue(stage)
->>>>>>> v20.05-rc1:pxr/usd/plugin/usdAbc/testenv/testUsdAbcIsConstant.py
 
       animPoints = UsdGeom.Mesh.Get(stage, "/sphere_object1")
       self.assertTrue(animPoints)

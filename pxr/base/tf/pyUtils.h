@@ -32,10 +32,7 @@
 #include "pxr/base/tf/refPtr.h"
 #include "pxr/base/tf/weakPtr.h"
 #include "pxr/base/tf/diagnosticLite.h"
-<<<<<<< HEAD
-=======
 #include "pxr/base/tf/preprocessorUtilsLite.h"
->>>>>>> v20.05-rc1
 #include "pxr/base/tf/py3Compat.h"
 #include "pxr/base/tf/pyInterpreter.h"
 #include "pxr/base/tf/pyLock.h"

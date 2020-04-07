@@ -21,11 +21,6 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 #
-<<<<<<< HEAD
-from __future__ import absolute_import
-from __future__ import division
-=======
->>>>>>> v20.05-rc1
 from __future__ import print_function
 
 from distutils.spawn import find_executable
@@ -91,11 +86,7 @@ def PrintError(error):
     if verbosity >= 3 and sys.exc_info()[1] is not None:
         import traceback
         traceback.print_exc()
-<<<<<<< HEAD
-    print("ERROR:", error)
-=======
     print ("ERROR:", error)
->>>>>>> v20.05-rc1
 
 # Helpers for determining platform
 def Windows():
@@ -186,11 +177,8 @@ def GetPythonInfo():
     This function is used to extract build information from the Python 
     interpreter used to launch this script. This information is used
     in the Boost and USD builds. By taking this approach we can support
-<<<<<<< HEAD
     the use case where multiple Python versions of USD are built on the same
-=======
     having USD builds for different Python versions built on the same
->>>>>>> v20.05-rc1
     machine. This is very useful, especially when developers have multiple
     versions installed on their machine, which is quite common now with 
     Python2 and Python3 co-existing.
@@ -198,38 +186,12 @@ def GetPythonInfo():
     # First we extract the information that can be uniformly dealt with across
     # the platforms:
     pythonExecPath = sys.executable
-<<<<<<< HEAD
-    pythonVersion = sysconfig.get_config_var('py_version_short') 
-    pythonIncludeDir = sysconfig.get_config_var('INCLUDEPY')
-=======
     pythonVersion = sysconfig.get_config_var("py_version_short")  # "2.7"
     pythonVersionNoDot = sysconfig.get_config_var("py_version_nodot") # "27"
->>>>>>> v20.05-rc1
 
     # Lib path is unfortunately special for each platform and there is no
     # config_var for it. But we can deduce it for each platform, and this
     # logic works for any Python version.
-<<<<<<< HEAD
-    if Windows():
-        pythonBaseDir = sysconfig.get_config_var('base')
-        pythonVersionNoDot = sysconfig.get_config_var('py_version_nodot')
-        pythonLibPath = os.path.join(pythonBaseDir, 'libs', 'python' + pythonVersionNoDot + '.lib' )
-    elif Linux():
-        pythonLibDir = sysconfig.get_config_var('LIBDIR')
-        pythonLibName = sysconfig.get_config_var('LDLIBRARY')
-        pythonMultiarchSubdir = sysconfig.get_config_var('multiarchsubdir')
-        if pythonMultiarchSubdir:
-            pythonLibDir = pythonLibDir + pythonMultiarchSubdir
-        pythonLibPath = os.path.join(pythonLibDir, pythonLibName)
-    elif MacOS():
-        pythonBaseDir = sysconfig.get_config_var('base')
-        pythonLibPath = os.path.join(pythonBaseDir, 'lib', 'libpython' + pythonVersion + '.dylib')
-    else:
-        raise RuntimeError("Platform not supported")
-
-    return (pythonExecPath, pythonLibPath, pythonIncludeDir, pythonVersion)
-
-=======
     def _GetPythonLibraryFilename():
         if Windows():
             return "python" + pythonVersionNoDot + ".lib"
@@ -278,7 +240,6 @@ def GetPythonInfo():
             raise RuntimeError("Platform not supported")
 
     return (pythonExecPath, pythonLibPath, pythonIncludeDir, pythonVersion)
->>>>>>> v20.05-rc1
 
 def GetCPUCount():
     try:
@@ -301,13 +262,7 @@ def Run(cmd, logCommandOutput = True):
         if logCommandOutput:
             p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, 
                                  stderr=subprocess.STDOUT)
-<<<<<<< HEAD
-            encoding = sys.stdout.encoding
-            if not encoding:
-                encoding = 'UTF-8'
-=======
             encoding = sys.stdout.encoding or "UTF-8"
->>>>>>> v20.05-rc1
             while True:
                 l = p.stdout.readline().decode(encoding)
                 if l:
@@ -673,16 +628,6 @@ ZLIB = Dependency("zlib", InstallZlib, "include/zlib.h")
 ############################################################
 # boost
 
-<<<<<<< HEAD
-if Linux():
-    BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
-    BOOST_VERSION_FILE = "include/boost/version.hpp"
-elif MacOS():
-    BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
-    BOOST_VERSION_FILE = "include/boost/version.hpp"
-elif Windows():
-    BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.68.0/boost_1_68_0.tar.gz"
-=======
 if Linux() or MacOS():
     if Python3():
         BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.70.0/boost_1_70_0.tar.gz"
@@ -690,20 +635,15 @@ if Linux() or MacOS():
         BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.gz"
     BOOST_VERSION_FILE = "include/boost/version.hpp"
 elif Windows():
->>>>>>> v20.05-rc1
     # The default installation of boost on Windows puts headers in a versioned 
     # subdirectory, which we have to account for here. In theory, specifying 
     # "layout=system" would make the Windows install match Linux/MacOS, but that 
     # causes problems for other dependencies that look for boost.
-<<<<<<< HEAD
-    BOOST_VERSION_FILE = "include/boost-1_68_0/boost/version.hpp"
-=======
     #
     # boost 1.70 is required for Visual Studio 2019. For simplicity, we use
     # this version for all older Visual Studio versions as well.
     BOOST_URL = "https://downloads.sourceforge.net/project/boost/boost/1.70.0/boost_1_70_0.tar.gz"
     BOOST_VERSION_FILE = "include/boost-1_70/boost/version.hpp"
->>>>>>> v20.05-rc1
 
 def InstallBoost(context, force, buildArgs):
     # Documentation files in the boost archive can have exceptionally
@@ -754,15 +694,6 @@ def InstallBoost(context, force, buildArgs):
             # settings correctly and robustly for the Boost jam build system.
             # There are Python config arguments that can be passed to bootstrap 
             # but those are not available in boostrap.bat (Windows) so we must 
-<<<<<<< HEAD
-            # take the following
-            # approach:
-            projectPath = 'python-config.jam'
-            with open(projectPath, 'w') as projectFile:
-                # Note that we must escape any special characters, like backslashes for jam, hence
-                # the mods below for the path arguments
-                line = 'using python : %s : %s : %s ;\n' % (pythonInfo[3], 
-=======
             # take the following approach:
             projectPath = 'python-config.jam'
             with open(projectPath, 'w') as projectFile:
@@ -771,7 +702,6 @@ def InstallBoost(context, force, buildArgs):
                 # arguments. Also, if the path contains spaces jam will not
                 # handle them well. Surround the path parameters in quotes.
                 line = 'using python : %s : "%s" : "%s" ;\n' % (pythonInfo[3], 
->>>>>>> v20.05-rc1
                        pythonPath.replace('\\', '\\\\'), 
                        pythonInfo[2].replace('\\', '\\\\'))
                 projectFile.write(line)
@@ -1378,13 +1308,8 @@ def InstallUSD(context, force, buildArgs):
 
         if context.buildPython:
             extraArgs.append('-DPXR_ENABLE_PYTHON_SUPPORT=ON')
-<<<<<<< HEAD
-            if sys.version[0] == '3':
-                extraArgs.append('-DPXR_PYTHON_MAJOR_3=ON')
-=======
             if Python3():
                 extraArgs.append('-DPXR_USE_PYTHON_3=ON')
->>>>>>> v20.05-rc1
 
             # CMake has trouble finding the executable, library, and include
             # directories when there are multiple versions of Python installed.

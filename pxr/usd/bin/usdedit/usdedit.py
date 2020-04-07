@@ -223,11 +223,8 @@ def main():
                      ". Your edits can be found in %s. " \
                      %(usdFileName, usdaFileName))
 
-<<<<<<< HEAD
-=======
     if readOnly:
         os.chmod(usdaFileName, 0o644)
->>>>>>> v20.05-rc1
     os.remove(usdaFileName)
 
 if __name__ == "__main__":

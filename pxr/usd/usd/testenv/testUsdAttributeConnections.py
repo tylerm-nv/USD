@@ -75,11 +75,7 @@ class TestUsdAttributeConnections(unittest.TestCase):
 
         # Simple connect list with correct order
         r = stage.GetPrimAtPath("/Foo").GetAttribute("testAttr")
-<<<<<<< HEAD
-        sol = list(map(Sdf.Path, ['/Qux', '/Bar', '/Baz', '/Foo.someAttr']))
-=======
         sol = [Sdf.Path(path) for path in ['/Qux', '/Bar', '/Baz', '/Foo.someAttr']]
->>>>>>> v20.05-rc1
         self.assertEqual(r.GetConnections(), sol) 
 
         # Recursive finding

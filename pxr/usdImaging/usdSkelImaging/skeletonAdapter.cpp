@@ -56,6 +56,10 @@
 #include "pxr/base/tf/type.h"
 #include "pxr/base/work/loops.h"
 
+//+NV_CHANGE FRZHANG
+#include <boost/pointer_cast.hpp>
+//-NV_CHANGE FRZHANG
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 TF_DEFINE_PRIVATE_TOKENS(

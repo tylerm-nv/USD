@@ -33,10 +33,7 @@
 
 #include "pxr/base/gf/traits.h"
 
-<<<<<<< HEAD
-=======
 #include "pxr/base/tf/preprocessorUtilsLite.h"
->>>>>>> v20.05-rc1
 #include "pxr/base/tf/py3Compat.h"
 #include "pxr/base/tf/pyLock.h"
 #include "pxr/base/tf/pyUtils.h"

@@ -936,16 +936,6 @@ pxr_register_test(testUsdUsdzFileFormat
     EXPECTED_RETURN_CODE 0
 )
 
-<<<<<<< HEAD
-# NV aluk
-# Disabled while ArchFile* vs FILE* output resulting in differing usdz contents are investigated.
-#pxr_register_test(testUsdZipFile
-#    PYTHON
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdZipFile"
-#    EXPECTED_RETURN_CODE 0
-#)
-
-=======
 pxr_register_test(testUsdUsdzFileFormat_pread
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUsdzFileFormat"
@@ -959,7 +949,6 @@ pxr_register_test(testUsdZipFile
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdZipFile"
     EXPECTED_RETURN_CODE 0
 )
->>>>>>> v20.05-rc1
 pxr_register_test(testUsdUsdzResolver
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUsdzResolver"
     EXPECTED_RETURN_CODE 0

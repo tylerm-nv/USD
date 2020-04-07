@@ -23,13 +23,11 @@
 //
 #include "pxr/base/arch/fileSystem.h"
 #include "pxr/base/tf/debug.h"
-<<<<<<< HEAD
-=======
+
 
 // XXX: This include is a hack to avoid build errors due to
 // incompatible macro definitions in pyport.h on macOS.
 #include <locale>
->>>>>>> v20.05-rc1
 
 #include <boost/python/class.hpp>
 #include <boost/python/object.hpp>

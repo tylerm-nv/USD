@@ -262,20 +262,12 @@ class TestUsdInherits(unittest.TestCase):
 
             # Now check that the direct inherits are what we expect.
             self.assertEqual(parent.GetInherits().GetAllDirectInherits(),
-<<<<<<< HEAD
-                             list(map(Sdf.Path, ['/AI'])))
-
-            self.assertEqual(child.GetInherits().GetAllDirectInherits(),
-                             list(map(Sdf.Path, ['/DI', '/DRI', '/ARI',
-                                            '/Parent/Sibling'])))
-=======
                              [Sdf.Path(path) for path in ['/AI']])
 
             self.assertEqual(child.GetInherits().GetAllDirectInherits(),
                              [Sdf.Path(path) for path in ['/DI', '/DRI', '/ARI',
                                                           '/Parent/Sibling']])
->>>>>>> v20.05-rc1
-
+                                                    
     def test_ListPosition(self):
         for fmt in allFormats:
             stage = Usd.Stage.CreateInMemory("x."+fmt, sessionLayer=None)

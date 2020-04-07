@@ -3818,8 +3818,9 @@ SdfLayer::_PrimSetField(const SdfPath& path,
         oldValuePtr ? *oldValuePtr : GetField(path, fieldName);
     const VtValue& newValue = _GetVtValue(value);
 
-<<<<<<< HEAD
     // #nv begin #fast-updates
+    // Send notification when leaving the change block.
+    SdfChangeBlock block;
     if ((fastUpdates || SdfChangeBlock::IsFastUpdating()) && (fieldName == SdfFieldKeys->Default)) {
         Sdf_ChangeManager::Get()
             .DidFastUpdate(SdfLayerHandle(this),
@@ -3829,17 +3830,9 @@ SdfLayer::_PrimSetField(const SdfPath& path,
                 true /*hasCompositionDependents*/);
     } else {
         Sdf_ChangeManager::Get().DidChangeField(
-            SdfLayerHandle(this),
-            path, fieldName, oldValue, newValue);
+            _self, path, fieldName, oldValue, newValue);
     }
     // nv end
-=======
-    // Send notification when leaving the change block.
-    SdfChangeBlock block;
-
-    Sdf_ChangeManager::Get().DidChangeField(
-        _self, path, fieldName, oldValue, newValue);
->>>>>>> v20.05-rc1
 
     _data->Set(path, fieldName, value);
 }

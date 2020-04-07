@@ -960,11 +960,7 @@ class TestSdfPath(unittest.TestCase):
                 testFindLongestStrictPrefix(testp, paths)
         
             # Do a few simple cases directly.
-<<<<<<< HEAD
-            paths = list(map(Sdf.Path, ['/a', '/a/b/c/d', '/b/a', '/b/c/d/e']))
-=======
             paths = [Sdf.Path(path) for path in ['/a', '/a/b/c/d', '/b/a', '/b/c/d/e']]
->>>>>>> v20.05-rc1
             flp = Sdf.Path.FindLongestPrefix
             self.assertEqual(flp(paths, '/x'), None)
             self.assertEqual(flp(paths, '/a'), Sdf.Path('/a'))
@@ -984,10 +980,6 @@ class TestSdfPath(unittest.TestCase):
         Sdf._DumpPathStats()
         
         print('\tPassed')
-<<<<<<< HEAD
-        
-        print('Test SUCCEEDED')
-=======
         
         print('Test SUCCEEDED')
 
@@ -1053,7 +1045,5 @@ class TestSdfPath(unittest.TestCase):
 
         print('\tPassed')
         
->>>>>>> v20.05-rc1
-
 if __name__ == "__main__":
     unittest.main()

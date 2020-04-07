@@ -80,12 +80,8 @@ def _generateDocs(pxrSourceRoot, thirdSourceRoot, pxrBuildRoot, installLoc,
                     os.chmod(path, stat.S_IWRITE)
                     func(path)
                 except Exception as exc:
-<<<<<<< HEAD
-                    print("Failed to remove %s: %s" % (path, str(exc)), file=sys.stderr)
-=======
                     print("Failed to remove %s: %s" % (path, str(exc)),
                           file=sys.stderr)
->>>>>>> v20.05-rc1
             shutil.rmtree(target, onerror=_removeReadOnly)
         shutil.copytree(mod, target) 
 
