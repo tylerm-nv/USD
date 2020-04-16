@@ -134,6 +134,31 @@ UsdImagingLightAdapter::UpdateForTime(UsdPrim const& prim,
                                UsdImagingInstancerContext const* 
                                    instancerContext) const
 {
+// #nv begin #bind-material-to-domelight
+    UsdImagingValueCache* valueCache = _GetValueCache();
+    
+    SdfPath materialUsdPath;
+    if (requestedBits & HdChangeTracker::DirtyMaterialId) {
+        materialUsdPath = GetMaterialUsdPath(prim);
+
+        // If we're processing this gprim on behalf of an instancer,
+        // use the material binding specified by the instancer if we
+        // aren't able to find a material binding for this prim itself.
+        if (instancerContext && materialUsdPath.IsEmpty()) {
+            materialUsdPath = instancerContext->instancerMaterialUsdPath;
+        }
+    }
+
+    if (requestedBits & HdChangeTracker::DirtyMaterialId){
+        // Although the material binding cache generally holds
+        // cachePaths, not usdPaths, we can use the usdPath
+        // directly here since we do not instance sprims.
+        valueCache->GetMaterialId(cachePath) = materialUsdPath;
+
+        TF_DEBUG(USDIMAGING_SHADERS).Msg("Shader for <%s> is <%s>\n",
+                prim.GetPath().GetText(), materialUsdPath.GetText());
+    }
+// #nv end
 }
 
 HdDirtyBits
