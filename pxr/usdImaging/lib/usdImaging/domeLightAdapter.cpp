@@ -59,6 +59,37 @@ UsdImagingDomeLightAdapter::Populate(UsdPrim const& prim,
     index->InsertSprim(HdPrimTypeTokens->domeLight, prim.GetPath(), prim);
     HD_PERF_COUNTER_INCR(UsdImagingTokens->usdPopulatedPrimCount);
 
+// #nv begin #bind-material-to-domelight
+    // Copied from UsdImagingGprimAdapter
+    auto materialUsdPath = GetMaterialUsdPath(prim);
+
+    // Allow instancer context to override the material binding.
+    SdfPath resolvedUsdMaterialPath = instancerContext ?
+        instancerContext->instancerMaterialUsdPath : materialUsdPath;
+    UsdPrim materialPrim =
+        prim.GetStage()->GetPrimAtPath(resolvedUsdMaterialPath);
+
+    if (materialPrim) {
+        if (materialPrim.IsA<UsdShadeMaterial>()) {
+            UsdImagingPrimAdapterSharedPtr materialAdapter =
+                index->GetMaterialAdapter(materialPrim);
+            if (materialAdapter) {
+                materialAdapter->Populate(materialPrim, index, nullptr);
+                // We need to register a dependency on the material prim so
+                // that geometry is updated when the material is
+                // (specifically, DirtyMaterialId).
+                // XXX: Eventually, it would be great to push this into hydra.
+                index->AddDependency(prim.GetPath(), materialPrim);
+            }
+        } else {
+            TF_WARN("DomeLight <%s> has illegal material reference to "
+                    "prim <%s> of type (%s)", prim.GetPath().GetText(),
+                    materialPrim.GetPath().GetText(),
+                    materialPrim.GetTypeName().GetText());
+        }
+    }
+// #nv end
+
     return prim.GetPath();
 }
 
