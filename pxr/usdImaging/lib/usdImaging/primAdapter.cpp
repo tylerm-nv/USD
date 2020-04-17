@@ -239,13 +239,6 @@ UsdImagingPrimAdapter::InvokeComputation(SdfPath const& computationPath,
 }
 
 /*virtual*/
-SdfPath
-UsdImagingPrimAdapter::GetInstancer(SdfPath const &cachePath)
-{
-    return SdfPath();
-}
-
-/*virtual*/
 std::vector<VtArray<TfToken>>
 UsdImagingPrimAdapter::GetInstanceCategories(UsdPrim const& prim)
 {
@@ -484,7 +477,7 @@ UsdImagingPrimAdapter::GetDelegate() const
 bool
 UsdImagingPrimAdapter::IsChildPath(SdfPath const& path) const
 {
-    return _delegate->_IsChildPath(path);
+    return path.IsPropertyPath();
 }
 
 UsdImagingValueCache* 
@@ -1031,30 +1024,6 @@ TfToken
 UsdImagingPrimAdapter::GetModelDrawMode(UsdPrim const& prim)
 {
     return _delegate->_GetModelDrawMode(prim);
-}
-
-SdfPath
-UsdImagingPrimAdapter::GetInstancerCachePath(UsdPrim const& prim,
-                        UsdImagingInstancerContext const* instancerContext)
-{
-    return instancerContext ? instancerContext->instancerCachePath
-                            : SdfPath();
-    
-}
-
-SdfPathVector
-UsdImagingPrimAdapter::GetDependPaths(SdfPath const &path) const
-{
-    return SdfPathVector();
-}
-
-/*virtual*/
-VtIntArray
-UsdImagingPrimAdapter::GetInstanceIndices(SdfPath const &instancerPath,
-                                          SdfPath const &protoRprimPath,
-                                          UsdTimeCode time)
-{
-    return VtIntArray();
 }
 
 /*virtual*/

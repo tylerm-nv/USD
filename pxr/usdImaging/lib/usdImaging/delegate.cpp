@@ -2135,41 +2135,6 @@ UsdImagingDelegate::SetInvisedPrimPaths(SdfPathVector const &invisedPaths)
     ApplyPendingUpdates();
 }
 
-void
-UsdImagingDelegate::_MarkSubtreeVisibilityDirty(SdfPath const &usdSubtreeRoot)
-{
-    UsdImagingIndexProxy indexProxy(this, nullptr);
-
-    SdfPathVector affectedCachePaths, affectedUsdPaths;
-    _GatherDependencies(usdSubtreeRoot, &affectedCachePaths, &affectedUsdPaths);
-
-    // Propagate dirty bits to all descendents and outside dependent prims.
-    for (size_t i = 0; i < affectedCachePaths.size(); ++i) {
-        SdfPath const& cachePath = affectedCachePaths[i];
-        _HdPrimInfo *primInfo = _GetHdPrimInfo(cachePath);
-        if (primInfo == nullptr) {
-            TF_CODING_ERROR("Prim in id list is not in prim info: %s",
-                    cachePath.GetText());
-            continue;
-        }
-        if (!TF_VERIFY(primInfo->adapter, "%s", cachePath.GetText())) {
-            continue;
-        }
-
-        _AdapterSharedPtr const &adapter = primInfo->adapter;
-
-        // XXX: The instancer adapters precompute visibility and
-        // don't deal well with visibility changes. Until we fix that,
-        // resync the prim.
-        if (adapter->IsInstancerAdapter()) {
-            _usdPathsToResync.push_back(usdSubtreeRoot);
-        } else {
-            adapter->MarkVisibilityDirty(primInfo->usdPrim,
-                    cachePath, &indexProxy);
-        }
-    }
-}
-
 void 
 UsdImagingDelegate::SetRigidXformOverrides(
     RigidXformOverridesMap const &rigidXformOverrides)
@@ -2245,60 +2210,6 @@ UsdImagingDelegate::SetRigidXformOverrides(
     // this call is needed because we use _RefreshObject to repopulate
     // vis-ed/invis-ed instanced prims (accumulated in _usdPathsToUpdate)
     ApplyPendingUpdates();
-}
-
-void
-UsdImagingDelegate::_MarkSubtreeTransformDirty(SdfPath const &usdSubtreeRoot)
-{
-    UsdImagingIndexProxy indexProxy(this, nullptr);
-
-    SdfPathVector affectedCachePaths;
-    _GatherDependencies(usdSubtreeRoot, &affectedCachePaths);
-
-    // Propagate dirty bits to all descendents and outside dependent prims.
-    for (SdfPath const& cachePath: affectedCachePaths) {
-        _HdPrimInfo *primInfo = _GetHdPrimInfo(cachePath);
-        if (primInfo == nullptr) {
-            TF_CODING_ERROR("Prim in id list is not in prim info: %s",
-                            cachePath.GetText());
-            continue;
-        }
-        if (!TF_VERIFY(primInfo->adapter, "%s", cachePath.GetText())) {
-            continue;
-        }
-
-        _AdapterSharedPtr const &adapter = primInfo->adapter;
-
-        adapter->MarkTransformDirty(primInfo->usdPrim,
-                                    cachePath,
-                                    &indexProxy);
-
-        // XXX: Also make sure to mark dependencies (such as PI prototypes,
-        // parent instancers) dirty. This code is hopefully transitional;
-        // this should be handled in the PI adapter.
-        SdfPath instancerCachePath = adapter->GetInstancer(cachePath);
-        if (!instancerCachePath.IsEmpty()) {
-            _HdPrimInfo *instancerInfo = _GetHdPrimInfo(instancerCachePath);
-            if (!TF_VERIFY(instancerInfo, "%s", cachePath.GetText()) ||
-                !TF_VERIFY(instancerInfo->adapter, "%s", cachePath.GetText())) {
-                instancerInfo->adapter->MarkTransformDirty(
-                        instancerInfo->usdPrim,
-                        instancerCachePath,
-                        &indexProxy);
-            }
-        }
-
-        SdfPathVector const &paths = adapter->GetDependPaths(cachePath);
-        TF_FOR_ALL (instIt, paths) {
-            _HdPrimInfo *dependsInfo = _GetHdPrimInfo(*instIt);
-            if (!TF_VERIFY(dependsInfo, "%s", cachePath.GetText()) ||
-                !TF_VERIFY(dependsInfo->adapter, "%s", cachePath.GetText())) {
-                dependsInfo->adapter->MarkTransformDirty(dependsInfo->usdPrim,
-                        *instIt,
-                        &indexProxy);
-            }
-        }
-    }
 }
 
 void
@@ -2847,7 +2758,7 @@ UsdImagingDelegate::GetInstanceIndices(SdfPath const &instancerId,
 {
     HD_TRACE_FUNCTION();
 
-    // if prototypeId is also a point instancer (nested case),
+    // If prototypeId is also a point instancer (nested case),
     // this function may be called multiple times with the same arguments:
     //
     //  instancer1
@@ -2860,22 +2771,34 @@ UsdImagingDelegate::GetInstanceIndices(SdfPath const &instancerId,
     //  a) (instancer2, protoMesh1) then (instancer1, instancer2)
     //  b) (instancer2, protoMesh2) then (instancer1, instancer2)
     //
-    //  when multithreaded sync is enabled, (a) and (b) happen concurrently.
-    //  use FindInstanceIndices instead of ExtractInstanceIndices to avoid
-    //  clearing the cached value.
+    //  The scene delegate will also call this function separately for
+    //  a) (instancer2, protoMesh1)
+    //  b) (instancer2, protoMesh2)
+    //
+    //  ... so we can't use ExtractInstanceIndices here, only Find().
+    //
+    //  XXX: It would be nice to change the API to be extract-friendly;
+    //  that would require changes to the signature of this function.
 
-    SdfPath cachePath = ConvertIndexPathToCachePath(prototypeId);
+    // XXX: Since instancers can have many prototypes, but prototypes can
+    // only have one instancer, we treat indices as instancer data (meaning,
+    // the dirty bit is set on the instancer), but store it in the prototype's
+    // value cache.
+
+    SdfPath prototypeCachePath = ConvertIndexPathToCachePath(prototypeId);
     VtValue indices;
 
-    // TODO: it would be nice to only call Find on instancers and call Extract
-    // otherwise, however we have no way of making that distinction currently.
-    if (!_valueCache.FindInstanceIndices(cachePath, &indices)) {
+    if (!_valueCache.FindInstanceIndices(prototypeCachePath, &indices)) {
         // Slow path, we should not hit this.
         TF_DEBUG(HD_SAFE_MODE).Msg(
-                                "WARNING: Slow instance indices fetch for %s\n", 
-                                prototypeId.GetText());
-        _UpdateSingleValue(cachePath, HdChangeTracker::DirtyInstanceIndex);
-        TF_VERIFY(_valueCache.FindInstanceIndices(cachePath, &indices));
+            "WARNING: Slow instance indices fetch for (%s, %s)\n", 
+            instancerId.GetText(), prototypeId.GetText());
+
+        SdfPath instancerCachePath = ConvertIndexPathToCachePath(instancerId);
+        _UpdateSingleValue(instancerCachePath,
+                HdChangeTracker::DirtyInstanceIndex);
+        TF_VERIFY(
+            _valueCache.FindInstanceIndices(prototypeCachePath, &indices));
     }
 
     if (indices.IsEmpty()) {
