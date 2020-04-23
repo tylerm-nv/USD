@@ -55,6 +55,9 @@
 #include "pxr/base/gf/vec4i.h"
 #include "pxr/base/gf/vec4h.h"
 
+// #nv begin #instance-map-caching
+#include "pxr/base/tf/envSetting.h"
+// nv end
 #include "pxr/base/tf/type.h"
 
 #include <limits>
@@ -68,6 +71,14 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType t = TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
+
+// #nv begin #instance-map-caching
+extern TfEnvSetting<int> USDIMAGING_CACHE_INSTANCE_MAPS;
+static bool UsdImagingInstancerAdapter_CacheInstanceMaps() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_CACHE_INSTANCE_MAPS) == 1;
+    return _v;
+}
+// nv end
 
 // ------------------------------------------------------------
 
@@ -1119,6 +1130,12 @@ UsdImagingInstanceAdapter::UpdateForTime(UsdPrim const& prim,
         // instance indices, so DirtyInstanceIndex means we need to recompute
         // that map.
         if (requestedBits & HdChangeTracker::DirtyInstanceIndex) {
+            // #nv begin instance-map-caching
+            if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
+                tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+                _instanceMapCache.erase(prim.GetPath());
+            }
+            // nv end
             VtIntArray indices = _ComputeInstanceMap(prim, *instrData, time);
             // XXX: See UsdImagingDelegate::GetInstanceIndices;
             // the change-tracking is on the instancer prim, but for simplicity
@@ -1623,6 +1640,13 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
     // Remove local instancer data.
     _instancerData.erase(instIt);
 
+    // #nv begin instance-map-caching
+    if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
+        tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+        _instanceMapCache.erase(instIt->first);
+    }
+    // nv end
+
     // Repopulate the instancer's previous instances. Those that don't exist
     // anymore will be ignored, while those that still exist will be
     // pushed back into this adapter and refreshed.
@@ -1983,9 +2007,22 @@ UsdImagingInstanceAdapter::GetPathForInstanceIndex(
     // if we pick 3, this function takes protoIndex = 2.
     // we need to map 2 back to 3 by instanceIndices[protoIndex]
 
-    // XXX: The usage of _GetTimeWithOffset here feels weird...
-    VtIntArray instanceIndices = _ComputeInstanceMap(
-        _GetPrim(instancerPath), instIt->second, _GetTimeWithOffset(0.0));
+    // #nv begin instance-map-caching
+    VtIntArray instanceIndices;
+    if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
+        tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+        _InstanceMapCache::iterator itr = _instanceMapCache.find(instancerPath);
+        // XXX: The usage of _GetTimeWithOffset here feels a little weird.
+        instanceIndices = (itr != _instanceMapCache.end()) ? itr->second :
+            _ComputeInstanceMap(_GetPrim(instancerPath), instIt->second, _GetTimeWithOffset(0.0));
+        if (itr == _instanceMapCache.end()) {
+            _instanceMapCache[instancerPath] = instanceIndices;
+        }
+    } else {
+        // XXX: The usage of _GetTimeWithOffset here feels a little weird.
+        instanceIndices = _ComputeInstanceMap(_GetPrim(instancerPath), instIt->second, _GetTimeWithOffset(0.0));
+    }
+    // nv end
 
     int instanceIndex = protoIndex;
     if (!TF_VERIFY(static_cast<size_t>(instanceIndex) <
