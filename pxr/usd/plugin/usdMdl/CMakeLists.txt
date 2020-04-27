@@ -21,6 +21,8 @@ pxr_plugin(usdMdl
 
     PUBLIC_CLASSES
         usdToMdl
+		usdUtil
+		usdMdlUtil
 
     CPPFILES
         discovery.cpp
@@ -32,6 +34,7 @@ pxr_plugin(usdMdl
         neuray
         reader
         utils
+        mdlToUsd
         distiller
 
     PRIVATE_HEADERS
