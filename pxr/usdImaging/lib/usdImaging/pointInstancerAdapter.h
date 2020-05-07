@@ -227,6 +227,11 @@ private:
     _InstanceMap _ComputeInstanceMap(SdfPath const& instancerPath,
                                      _InstancerData const& instrData,
                                      UsdTimeCode time) const;
+    // #nv begin instance-map-caching
+    typedef std::unordered_map<SdfPath, _InstanceMap, SdfPath::Hash> _InstanceMapCache;
+    mutable _InstanceMapCache _instanceMapCache;
+    mutable tbb::spin_mutex _instanceMapCacheMutex;
+    // nv end
 
     // Updates per-frame instancer visibility.
     void _UpdateInstancerVisibility(SdfPath const& instancerPath,
