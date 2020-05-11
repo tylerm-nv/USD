@@ -139,7 +139,7 @@ private:
                     {
                         if (std::getline(input2_stringstream, enumValue, ':'))
                         {
-                            options.emplace_back(NdrOption(enumDisplayName, enumValue));
+			  options.emplace_back(NdrOption(std::make_pair(TfToken(enumDisplayName), TfToken(enumValue))));
                         }
                     }
                 }

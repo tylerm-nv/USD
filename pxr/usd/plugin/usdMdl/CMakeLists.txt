@@ -23,6 +23,8 @@ pxr_plugin(usdMdl
         usdToMdl
 		usdUtil
 		usdMdlUtil
+		mdlAPI
+		tokens
 
     CPPFILES
         discovery.cpp
@@ -47,12 +49,16 @@ pxr_plugin(usdMdl
     PYMODULE_CPPFILES
         module.cpp
         wrapBackdoor.cpp
+		wrapMdlAPI.cpp
+		wrapTokens.cpp
 
     PYMODULE_FILES
         __init__.py
 
     RESOURCE_FILES
+        generatedSchema.usda
         plugInfo.json
+        schema.usda:usdMdl/schema.usda
 )
 
 pxr_test_scripts(
