@@ -206,7 +206,7 @@ public:
         return Validate(prim);
     }
 
-    static std::vector<std::string> Validate(const pxr::UsdPrim& prim)
+    static std::vector<std::string> Validate(const UsdPrim& prim)
     {
         std::vector<std::string> errors;
 
