@@ -41,6 +41,9 @@
 #include "pxr/usd/usdGeom/tokens.h"
 #include "pxr/usd/usdGeom/xformable.h"
 
+// #nv begin #instance-map-caching
+#include "pxr/base/tf/envSetting.h"
+// nv end
 #include "pxr/base/tf/staticTokens.h"
 #include "pxr/base/tf/stringUtils.h"
 #include "pxr/base/tf/type.h"
@@ -68,6 +71,16 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType t = TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
+
+// #nv begin #instance-map-caching
+TF_DEFINE_ENV_SETTING(USDIMAGING_CACHE_INSTANCE_MAPS, 0,
+    "Cache computed instance maps for GetPathForInstanceIndex.");
+static bool UsdImagingPointInstancerAdapter_CacheInstanceMaps() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_CACHE_INSTANCE_MAPS) == 1;
+    return _v;
+}
+// nv end
+
 
 UsdImagingPointInstancerAdapter::~UsdImagingPointInstancerAdapter() 
 {
@@ -682,6 +695,13 @@ UsdImagingPointInstancerAdapter::UpdateForTime(UsdPrim const& prim,
 
         // On DirtyInstanceIndex, recompute the per-prototype index map.
         if (requestedBits & HdChangeTracker::DirtyInstanceIndex) {
+            // #nv begin instance-map-caching
+            if (UsdImagingPointInstancerAdapter_CacheInstanceMaps()) {
+                tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+                _instanceMapCache.erase(cachePath);
+            }
+            // nv end
+
             _InstanceMap instanceMap =
                 _ComputeInstanceMap(cachePath, *instrData, time);
 
@@ -1162,6 +1182,12 @@ UsdImagingPointInstancerAdapter::_UnloadInstancer(SdfPath const& instancerPath,
     // before traversing children, so that the parent PI is only removed once.
     const _ProtoPrimMap protoPrimMap = instIt->second.protoPrimMap;
     _instancerData.erase(instIt);
+    // #nv begin instance-map-caching
+    if (UsdImagingPointInstancerAdapter_CacheInstanceMaps()) {
+        tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+        _instanceMapCache.erase(instIt->first);
+    }
+    // nv end
 
     // First, we need to make sure all proto rprims are removed.
     TF_FOR_ALL(protoPrimIt, protoPrimMap) {
@@ -1568,9 +1594,22 @@ UsdImagingPointInstancerAdapter::GetPathForInstanceIndex(
     if (it != _instancerData.end()) {
         _InstancerData& instancerData = it->second;
 
-        // XXX: The usage of _GetTimeWithOffset here feels a little weird.
-        _InstanceMap instanceMap = _ComputeInstanceMap(instancerCachePath,
-            instancerData, _GetTimeWithOffset(0.0));
+        // #nv begin instance-map-caching
+        _InstanceMap instanceMap(0);
+        if (UsdImagingPointInstancerAdapter_CacheInstanceMaps()) {
+            tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+            _InstanceMapCache::iterator itr = _instanceMapCache.find(instancerCachePath);
+            // XXX: The usage of _GetTimeWithOffset here feels a little weird.
+             instanceMap = (itr != _instanceMapCache.end()) ? itr->second :
+                 _ComputeInstanceMap(instancerCachePath, instancerData, _GetTimeWithOffset(0.0));
+             if (itr == _instanceMapCache.end()) {
+                 _instanceMapCache[instancerCachePath] = instanceMap;
+             }
+        } else {
+            // XXX: The usage of _GetTimeWithOffset here feels a little weird.
+            instanceMap = _ComputeInstanceMap(instancerCachePath, instancerData, _GetTimeWithOffset(0.0));
+        }
+        // nv end
 
         // find protoCachePath
         TF_FOR_ALL (protoPrimIt, instancerData.protoPrimMap) {

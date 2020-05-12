@@ -242,6 +242,11 @@ private:
     VtIntArray _ComputeInstanceMap(UsdPrim const& instancerPrim,
             _InstancerData const& instrData,
             UsdTimeCode time) const;
+    // #nv begin instance-map-caching
+    typedef std::unordered_map<SdfPath, VtIntArray, SdfPath::Hash> _InstanceMapCache;
+    mutable _InstanceMapCache _instanceMapCache;
+    mutable tbb::spin_mutex _instanceMapCacheMutex;
+    // nv end
 
     // Precomputes the instancer visibility data (as visible, invis, varying
     // per-node), and returns whether the instance map is variable.
