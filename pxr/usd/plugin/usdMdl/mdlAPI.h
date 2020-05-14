@@ -31,6 +31,7 @@
 #include "pxr/usd/usd/apiSchemaBase.h"
 #include "pxr/usd/usd/prim.h"
 #include "pxr/usd/usd/stage.h"
+#include "pxr/usd/usdShade/material.h"
 #include "./tokens.h"
 
 #include "pxr/base/vt/value.h"
@@ -210,7 +211,56 @@ public:
     {
         std::vector<std::string> errors;
 
+        bool isShader = prim.IsA<UsdShadeShader>();
+        bool isMaterial = prim.IsA<UsdShadeMaterial>();
+
+        if (isMaterial)
+        {
+            // TODO
+        }
+        else if (isShader)
+        {
+            UsdShadeShader shader(prim);
+            if (shader.GetImplementationSource() != UsdShadeTokens->sourceAsset)
+            {
+                std::ostringstream ss;
+                ss << "[UsdMdl.MdlAPI] :" <<
+                    prim.GetPath().GetString() << ": info:implementationSource should be set to \"sourceAsset\"";
+                errors.push_back(ss.str());
+            }
+            
+            UsdMdlMdlAPI MdlAPI(prim);
+            UsdAttribute sourceAssetAttr(MdlAPI.GetInfoMdlSourceAssetAttr());
+            if (!sourceAssetAttr.IsValid())
+            {
+                std::ostringstream ss;
+                ss << "[UsdMdl.MdlAPI] :" <<
+                    prim.GetPath().GetString() << ": info:mdl:sourceAsset attribute not set";
+                errors.push_back(ss.str());
+            }
+            UsdAttribute sourceAssetSubIdAttr(MdlAPI.GetInfoMdlSourceAssetSubIdentifierAttr());
+            if (!sourceAssetSubIdAttr.IsValid())
+            {
+                std::ostringstream ss;
+                ss << "[UsdMdl.MdlAPI] :" <<
+                    prim.GetPath().GetString() << ": info:mdl:sourceAsset:subIdentifier attribute not set";
+                errors.push_back(ss.str());
+            }
+        }
+
+        for (auto childPrim : prim.GetAllChildren())
+        {
+            ValidateChild(prim, childPrim, errors);
+        }
+
         return errors;
+    }
+
+private:
+    static void ValidateChild(const UsdPrim& scenePrim, const UsdPrim& childPrim, std::vector<std::string>& errors)
+    {
+        std::vector<std::string> newErrors = UsdMdlMdlAPI::Validate(childPrim);
+        errors.insert(errors.end(), newErrors.begin(), newErrors.end());
     }
 };
 
