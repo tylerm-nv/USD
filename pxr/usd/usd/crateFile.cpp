@@ -2000,9 +2000,11 @@ CrateFile::_MmapAsset(char const *assetPath, ArAssetSharedPtr const &asset)
         new _FileMapping(ArchMapFileReadWrite(file, &errMsg),
                          offset, asset->GetSize()));
     if (!mapping->GetMapStart()) {
-        TF_RUNTIME_ERROR("Couldn't map asset '%s'%s%s", assetPath,
+        // #nv begin crate-in-memory
+        /*TF_RUNTIME_ERROR("Couldn't map asset '%s'%s%s", assetPath,
                          !errMsg.empty() ? ": " : "",
-                         errMsg.c_str());
+                         errMsg.c_str())*/;
+        // nv end
         mapping.reset();
     }
     return mapping;
@@ -2016,9 +2018,11 @@ CrateFile::_MmapFile(char const *fileName, ArchFile *file)
     auto mapping = _FileMappingIPtr(
         new _FileMapping(ArchMapFileReadWrite(file, &errMsg)));
     if (!mapping->GetMapStart()) {
-        TF_RUNTIME_ERROR("Couldn't map file '%s'%s%s", fileName,
+        // #nv begin crate-in-memory
+        /*TF_RUNTIME_ERROR("Couldn't map file '%s'%s%s", fileName,
                          !errMsg.empty() ? ": " : "",
-                         errMsg.c_str());
+                         errMsg.c_str());*/
+        // nv end
         mapping.reset();
     }
     return mapping;
