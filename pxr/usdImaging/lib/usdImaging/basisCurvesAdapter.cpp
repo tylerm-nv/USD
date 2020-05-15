@@ -71,10 +71,16 @@ UsdImagingBasisCurvesAdapter::TrackVariability(UsdPrim const& prim,
                                                SdfPath const& cachePath,
                                                HdDirtyBits* timeVaryingBits,
                                                UsdImagingInstancerContext const*
-                                                   instancerContext) const
+                                                   instancerContext,
+                                              // #nv begin fast-updates
+                                              bool checkVariability) const
+                                              // nv end
 {
     BaseAdapter::TrackVariability(
-        prim, cachePath, timeVaryingBits, instancerContext);
+        prim, cachePath, timeVaryingBits, instancerContext,
+        // #nv begin fast-updates
+        checkVariability);
+        // nv end
 
     // Discover time-varying points.
     _IsVarying(prim,
