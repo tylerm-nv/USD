@@ -195,7 +195,10 @@ UsdImagingGprimAdapter::TrackVariability(UsdPrim const& prim,
                                          SdfPath const& cachePath,
                                          HdDirtyBits* timeVaryingBits,
                                          UsdImagingInstancerContext const* 
-                                             instancerContext) const
+                                             instancerContext,
+                                         // #nv begin fast-updates
+                                         bool checkVariability) const
+                                         // nv end
 {
     // WARNING: This method is executed from multiple threads, the value cache
     // has been carefully pre-populated to avoid mutating the underlying
@@ -203,48 +206,52 @@ UsdImagingGprimAdapter::TrackVariability(UsdPrim const& prim,
     
     UsdImagingValueCache* valueCache = _GetValueCache();
 
-    // See if any of the inherited primvars are time-dependent.
-    UsdImaging_InheritedPrimvarStrategy::value_type inheritedPrimvarRecord =
-        _GetInheritedPrimvars(prim.GetParent());
-    if (inheritedPrimvarRecord && inheritedPrimvarRecord->variable) {
-        *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
-        HD_PERF_COUNTER_INCR(UsdImagingTokens->usdVaryingPrimvar);
-    }
-    if (!(*timeVaryingBits & HdChangeTracker::DirtyPrimvar)) {
-        // See if any local primvars are time-dependent.
-        UsdGeomPrimvarsAPI primvarsAPI(prim);
-        std::vector<UsdGeomPrimvar> primvars =
-            primvarsAPI.GetPrimvarsWithValues();
-        for (UsdGeomPrimvar const& pv : primvars) {
-            if (pv.ValueMightBeTimeVarying()) {
-                *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
-                HD_PERF_COUNTER_INCR(UsdImagingTokens->usdVaryingPrimvar);
-                break;
+    // #nv begin fast-updates
+    if (checkVariability) {
+    // nv end
+        // See if any of the inherited primvars are time-dependent.
+        UsdImaging_InheritedPrimvarStrategy::value_type inheritedPrimvarRecord =
+            _GetInheritedPrimvars(prim.GetParent());
+        if (inheritedPrimvarRecord && inheritedPrimvarRecord->variable) {
+            *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
+            HD_PERF_COUNTER_INCR(UsdImagingTokens->usdVaryingPrimvar);
+        }
+        if (!(*timeVaryingBits & HdChangeTracker::DirtyPrimvar)) {
+            // See if any local primvars are time-dependent.
+            UsdGeomPrimvarsAPI primvarsAPI(prim);
+            std::vector<UsdGeomPrimvar> primvars =
+                primvarsAPI.GetPrimvarsWithValues();
+            for (UsdGeomPrimvar const& pv : primvars) {
+                if (pv.ValueMightBeTimeVarying()) {
+                    *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
+                    HD_PERF_COUNTER_INCR(UsdImagingTokens->usdVaryingPrimvar);
+                    break;
+                }
             }
         }
+
+        // Discover time-varying extent.
+        _IsVarying(prim,
+                   UsdGeomTokens->extent,
+                   HdChangeTracker::DirtyExtent,
+                   UsdImagingTokens->usdVaryingExtent,
+                   timeVaryingBits,
+                   false);
+
+        // Discover time-varying transforms.
+        _IsTransformVarying(prim,
+                   HdChangeTracker::DirtyTransform,
+                   UsdImagingTokens->usdVaryingXform,
+                   timeVaryingBits);
+
+        // Discover time-varying visibility.
+        _IsVarying(prim,
+                   UsdGeomTokens->visibility,
+                   HdChangeTracker::DirtyVisibility,
+                   UsdImagingTokens->usdVaryingVisibility,
+                   timeVaryingBits,
+                   true);
     }
-
-    // Discover time-varying extent.
-    _IsVarying(prim,
-               UsdGeomTokens->extent,
-               HdChangeTracker::DirtyExtent,
-               UsdImagingTokens->usdVaryingExtent,
-               timeVaryingBits,
-               false);
-
-    // Discover time-varying transforms.
-    _IsTransformVarying(prim,
-               HdChangeTracker::DirtyTransform,
-               UsdImagingTokens->usdVaryingXform,
-               timeVaryingBits);
-
-    // Discover time-varying visibility.
-    _IsVarying(prim,
-               UsdGeomTokens->visibility,
-               HdChangeTracker::DirtyVisibility,
-               UsdImagingTokens->usdVaryingVisibility,
-               timeVaryingBits,
-               true);
 
     TfToken purpose = GetPurpose(prim);
     // Empty purpose means there is no opinion, fall back to geom.

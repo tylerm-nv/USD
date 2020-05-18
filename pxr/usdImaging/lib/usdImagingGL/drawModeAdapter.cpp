@@ -332,20 +332,31 @@ UsdImagingGLDrawModeAdapter::TrackVariability(UsdPrim const& prim,
                                             SdfPath const& cachePath,
                                             HdDirtyBits* timeVaryingBits,
                                             UsdImagingInstancerContext const*
-                                               instancerContext) const
+                                               instancerContext,
+                                            // #nv begin fast-updates
+                                            bool checkVariability) const
+                                            // nv end
 {
     // If the textures are time-varying, we need to mark DirtyTexture on the
     // texture, and DirtyParams on the shader (so that the shader picks up
     // the new texture handle).
     // XXX: the DirtyParams part of this can go away when we do the dependency
     // tracking in hydra.
-    if (_IsTexturePath(cachePath)) {
+    // #nv begin fast-updates
+    if (checkVariability &&
+    // nv end
+        _IsTexturePath(cachePath)) {
+
         _CheckForTextureVariability(prim, HdTexture::DirtyTexture,
                                     timeVaryingBits);
         return;
     }
 
-    if (_IsMaterialPath(cachePath)) {
+    // #nv begin fast-updates
+    if (checkVariability
+    // nv end
+        && _IsMaterialPath(cachePath)) {
+
         _CheckForTextureVariability(prim, HdMaterial::DirtyParams,
                                     timeVaryingBits);
         return;
@@ -357,19 +368,23 @@ UsdImagingGLDrawModeAdapter::TrackVariability(UsdPrim const& prim,
 
     UsdImagingValueCache* valueCache = _GetValueCache();
 
-    // Discover time-varying transforms.
-    _IsTransformVarying(prim,
-            HdChangeTracker::DirtyTransform,
-            UsdImagingTokens->usdVaryingXform,
-            timeVaryingBits);
+    // #nv begin fast-updates
+    if (checkVariability) {
+    // nv end
+        // Discover time-varying transforms.
+        _IsTransformVarying(prim,
+                HdChangeTracker::DirtyTransform,
+                UsdImagingTokens->usdVaryingXform,
+                timeVaryingBits);
 
-    // Discover time-varying visibility.
-    _IsVarying(prim,
-            UsdGeomTokens->visibility,
-            HdChangeTracker::DirtyVisibility,
-            UsdImagingTokens->usdVaryingVisibility,
-            timeVaryingBits,
-            true);
+        // Discover time-varying visibility.
+        _IsVarying(prim,
+                UsdGeomTokens->visibility,
+                HdChangeTracker::DirtyVisibility,
+                UsdImagingTokens->usdVaryingVisibility,
+                timeVaryingBits,
+                true);
+    }
 
     TfToken purpose = GetPurpose(prim);
     // Empty purpose means there is no opinion, fall back to geom.

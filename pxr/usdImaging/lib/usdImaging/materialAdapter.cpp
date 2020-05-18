@@ -142,7 +142,10 @@ UsdImagingMaterialAdapter::TrackVariability(UsdPrim const& prim,
                                           SdfPath const& cachePath,
                                           HdDirtyBits* timeVaryingBits,
                                           UsdImagingInstancerContext const*
-                                              instancerContext) const
+                                              instancerContext,
+                                          // #nv begin fast-updates
+                                          bool checkVariability) const
+                                          // nv end
 {
     // XXX: Time-varying parameters are not yet implemented
 }

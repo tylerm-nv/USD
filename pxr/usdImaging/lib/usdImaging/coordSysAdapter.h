@@ -69,7 +69,12 @@ public:
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext = NULL) const;
+                                      instancerContext = NULL,
+                                  // #nv begin fast-updates
+                                  // If checkVariabilty is false, this method
+                                  // only populates the value cache with initial values.
+                                  bool checkVariability = true) const;
+                                  // nv end;
 
     USDIMAGING_API
     virtual void ProcessPrimResync(SdfPath const& primPath,

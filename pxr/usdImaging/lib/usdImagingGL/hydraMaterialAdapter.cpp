@@ -302,8 +302,17 @@ UsdImagingGLHydraMaterialAdapter::TrackVariability(UsdPrim const& prim,
                                           SdfPath const& cachePath,
                                           HdDirtyBits* timeVaryingBits,
                                           UsdImagingInstancerContext const*
-                                              instancerContext) const
+                                              instancerContext,
+                                          // #nv begin fast-updates
+                                          bool checkVariability) const
+                                          // nv end
 {
+    // #nv begin fast-updates
+    // Early out, as there are no intial values to populate into the value cache.
+    if (!checkVariability)
+        return;
+    // nv end
+
     // If it is a child path, this adapter is dealing with a texture.
     // Otherwise, we are tracking variability of the material.
     if (IsChildPath(cachePath)) {
