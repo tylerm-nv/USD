@@ -72,14 +72,27 @@ UsdImagingConeAdapter::TrackVariability(UsdPrim const& prim,
                                         SdfPath const& cachePath,
                                         HdDirtyBits* timeVaryingBits,
                                         UsdImagingInstancerContext const* 
-                                            instancerContext) const
+                                            instancerContext,
+                                        // #nv begin fast-updates
+                                        bool checkVariability) const
+                                        // nv end
 {
     BaseAdapter::TrackVariability(
-        prim, cachePath, timeVaryingBits, instancerContext);
+        prim, cachePath, timeVaryingBits, instancerContext,
+        // #nv begin fast-updates
+        checkVariability);
+        // nv end
+
+    // #nv begin fast-updates
+    // Early out, as base adapter will have populated the value cache.
+    if (!checkVariability)
+        return;
+    // nv end
+
     // WARNING: This method is executed from multiple threads, the value cache
     // has been carefully pre-populated to avoid mutating the underlying
     // container during update.
-    
+
     // IMPORTANT: Calling _IsVarying will clear the specified bit if the given
     // attribute is _not_ varying.  Since we have multiple attributes (and the
     // base adapter invocation) that might result in the bit being set, we need
