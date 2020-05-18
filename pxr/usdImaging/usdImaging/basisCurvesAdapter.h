@@ -67,8 +67,12 @@ public:
         UsdPrim const& prim,
         SdfPath const& cachePath,
         HdDirtyBits* timeVaryingBits,
-        UsdImagingInstancerContext const* instancerContext = nullptr) 
-            const override;
+        UsdImagingInstancerContext const* instancerContext = nullptr,
+        // #nv begin fast-updates
+        // If checkVariabilty is false, this method
+        // only populates the value cache with initial values.
+        bool checkVariability = true) const override;
+        // nv end
 
     /// Thread Safe.
     USDIMAGING_API

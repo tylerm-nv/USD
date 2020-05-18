@@ -491,7 +491,10 @@ UsdImagingInstanceAdapter::TrackVariability(UsdPrim const& prim,
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext) const
+                                      instancerContext,
+                                  // #nv begin fast-updates
+                                  bool checkVariability) const
+                                  // nv end
 {
     UsdImagingValueCache* valueCache = _GetValueCache();
 
@@ -506,7 +509,10 @@ UsdImagingInstanceAdapter::TrackVariability(UsdPrim const& prim,
 
         UsdPrim protoPrim = _GetPrim(proto.path);
         proto.adapter->TrackVariability(protoPrim, cachePath,
-            timeVaryingBits, &instancerContext);
+            timeVaryingBits, &instancerContext,
+            // #nv begin fast-updates
+            checkVariability);
+            // nv end
     } else if (_InstancerData const* instrData =
                TfMapLookupPtr(_instancerData, prim.GetPath())) {
         // In this case, prim is an instance master. Master prims provide
@@ -514,20 +520,24 @@ UsdImagingInstanceAdapter::TrackVariability(UsdPrim const& prim,
         // XXX: This seems incorrect?
         valueCache->GetPurpose(cachePath) = UsdGeomTokens->default_;
 
-        // Count how many instances there are in total (used for the loop
-        // counter of _RunForAllInstancesToDraw).
-        instrData->numInstancesToDraw = _CountAllInstancesToDraw(prim);
+        // #nv begin fast-updates
+        if (checkVariability) {
+        // nv end
+            // Count how many instances there are in total (used for the loop
+            // counter of _RunForAllInstancesToDraw).
+            instrData->numInstancesToDraw = _CountAllInstancesToDraw(prim);
 
-        if (_IsInstanceTransformVarying(prim)) {
-            // Instance transforms are stored as instance-rate primvars.
-            *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
-        }
-        if (!instrData->inheritedPrimvars.empty() &&
-                _IsInstanceInheritedPrimvarVarying(prim)) {
-            *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
-        }
-        if (_ComputeInstanceMapVariability(prim, *instrData)) {
-            *timeVaryingBits |= HdChangeTracker::DirtyInstanceIndex;
+            if (_IsInstanceTransformVarying(prim)) {
+                // Instance transforms are stored as instance-rate primvars.
+                *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
+            }
+            if (!instrData->inheritedPrimvars.empty() &&
+                    _IsInstanceInheritedPrimvarVarying(prim)) {
+                *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
+            }
+            if (_ComputeInstanceMapVariability(prim, *instrData)) {
+                *timeVaryingBits |= HdChangeTracker::DirtyInstanceIndex;
+            }
         }
     }
 }

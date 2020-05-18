@@ -447,7 +447,10 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext) const
+                                      instancerContext,
+                                  // #nv begin fast-updates
+                                  bool checkVariability) const
+                                  // nv end
 {
     UsdImagingValueCache* valueCache = _GetValueCache();
 
@@ -474,7 +477,11 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
 
         UsdPrim protoPrim = _GetProtoUsdPrim(proto);
         proto.adapter->TrackVariability(protoPrim, cachePath,
-                                        &proto.variabilityBits);
+                                        &proto.variabilityBits,
+                                        nullptr,
+                                        // #nv begin fast-updates
+                                        checkVariability);
+                                        // nv end
         *timeVaryingBits |= proto.variabilityBits;
 
         // Compute the purpose. We need to compute purpose relative to the
@@ -508,14 +515,18 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
                                     time, &proto.visible);
         }
 
-        // XXX: We handle PI visibility by pushing it onto the prototype;
-        // we should fix this.
-        _IsVarying(prim,
-            UsdGeomTokens->visibility,
-            HdChangeTracker::DirtyVisibility,
-            UsdImagingTokens->usdVaryingVisibility,
-            timeVaryingBits,
-            true);
+        // #nv begin fast-updates
+        if (checkVariability) {
+        // nv end
+            // XXX: We handle PI visibility by pushing it onto the prototype;
+            // we should fix this.
+            _IsVarying(prim,
+                UsdGeomTokens->visibility,
+                HdChangeTracker::DirtyVisibility,
+                UsdImagingTokens->usdVaryingVisibility,
+                timeVaryingBits,
+                true);
+        }
 
         return;
     } else  if (_InstancerData const* instrData =
@@ -525,6 +536,12 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
         if (purpose.IsEmpty())
             purpose = UsdGeomTokens->default_;
         valueCache->GetPurpose(cachePath) = purpose;
+
+        // #nv begin fast-updates
+        // Early out when there are no further entries to add to the value cache.
+        if (!checkVariability)
+            return;
+        // nv end
 
         // Mark instance indices as time varying if any of the following is 
         // time varying : protoIndices, invisibleIds
