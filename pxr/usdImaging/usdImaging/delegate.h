@@ -544,7 +544,10 @@ private:
         return true;
     }
 
-    void _AddTask(UsdImagingDelegate::_Worker *worker, SdfPath const& usdPath);
+    void _AddTask(UsdImagingDelegate::_Worker *worker, SdfPath const& usdPath,
+        // #nv begin fast-updates
+        bool checkVariability = true);
+        // nv end
 
     // ---------------------------------------------------------------------- //
     // Draw mode support

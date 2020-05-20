@@ -55,6 +55,9 @@
 #include "pxr/base/gf/vec4i.h"
 #include "pxr/base/gf/vec4h.h"
 
+// #nv begin #instance-map-caching
+#include "pxr/base/tf/envSetting.h"
+// nv end
 #include "pxr/base/tf/type.h"
 
 #include <limits>
@@ -68,6 +71,14 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType t = TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
+
+// #nv begin #instance-map-caching
+extern TfEnvSetting<int> USDIMAGING_CACHE_INSTANCE_MAPS;
+static bool UsdImagingInstancerAdapter_CacheInstanceMaps() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_CACHE_INSTANCE_MAPS) == 1;
+    return _v;
+}
+// nv end
 
 // ------------------------------------------------------------
 
@@ -500,7 +511,10 @@ UsdImagingInstanceAdapter::TrackVariability(UsdPrim const& prim,
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext) const
+                                      instancerContext,
+                                  // #nv begin fast-updates
+                                  bool checkVariability) const
+                                  // nv end
 {
     if (_IsChildPrim(prim, cachePath)) {
         UsdImagingInstancerContext instancerContext;
@@ -513,23 +527,35 @@ UsdImagingInstanceAdapter::TrackVariability(UsdPrim const& prim,
 
         UsdPrim protoPrim = _GetPrim(proto.path);
         proto.adapter->TrackVariability(protoPrim, cachePath,
-            timeVaryingBits, &instancerContext);
+            timeVaryingBits, &instancerContext,
+            // #nv begin fast-updates
+            checkVariability);
+            // nv end
     } else if (_InstancerData const* instrData =
                TfMapLookupPtr(_instancerData, prim.GetPath())) {
-        // Count how many instances there are in total (used for the loop
-        // counter of _RunForAllInstancesToDraw).
-        instrData->numInstancesToDraw = _CountAllInstancesToDraw(prim);
+        // In this case, prim is an instance master. Master prims provide
+        // no data of their own, so we fall back to the default purpose.
+        // XXX: This seems incorrect?
+        valueCache->GetPurpose(cachePath) = UsdGeomTokens->default_;
 
-        if (_IsInstanceTransformVarying(prim)) {
-            // Instance transforms are stored as instance-rate primvars.
-            *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
-        }
-        if (!instrData->inheritedPrimvars.empty() &&
-                _IsInstanceInheritedPrimvarVarying(prim)) {
-            *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
-        }
-        if (_ComputeInstanceMapVariability(prim, *instrData)) {
-            *timeVaryingBits |= HdChangeTracker::DirtyInstanceIndex;
+        // #nv begin fast-updates
+        if (checkVariability) {
+        // nv end
+            // Count how many instances there are in total (used for the loop
+            // counter of _RunForAllInstancesToDraw).
+            instrData->numInstancesToDraw = _CountAllInstancesToDraw(prim);
+
+            if (_IsInstanceTransformVarying(prim)) {
+                // Instance transforms are stored as instance-rate primvars.
+                *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
+            }
+            if (!instrData->inheritedPrimvars.empty() &&
+                    _IsInstanceInheritedPrimvarVarying(prim)) {
+                *timeVaryingBits |= HdChangeTracker::DirtyPrimvar;
+            }
+            if (_ComputeInstanceMapVariability(prim, *instrData)) {
+                *timeVaryingBits |= HdChangeTracker::DirtyInstanceIndex;
+            }
         }
 
         instrData->refreshVariability = false;
@@ -1206,6 +1232,12 @@ UsdImagingInstanceAdapter::UpdateForTime(UsdPrim const& prim,
         // instance indices, so DirtyInstanceIndex means we need to recompute
         // that map.
         if (requestedBits & HdChangeTracker::DirtyInstanceIndex) {
+            // #nv begin instance-map-caching
+            if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
+                tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+                _instanceMapCache.erase(prim.GetPath());
+            }
+            // nv end
             VtIntArray indices = _ComputeInstanceMap(prim, *instrData, time);
             // XXX: See UsdImagingDelegate::GetInstanceIndices;
             // the change-tracking is on the instancer prim, but for simplicity
@@ -1733,6 +1765,14 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
 
     TF_FOR_ALL(pathIt, instancePaths) {
         auto it = _instanceToInstancerMap.find(*pathIt);
+
+        // #nv begin instance-map-caching
+        // if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
+            // tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+            // _instanceMapCache.erase(instIt->first);
+        // }
+        // nv end
+
         _instanceToInstancerMap.erase(it);
     }
 
@@ -2047,7 +2087,6 @@ UsdImagingInstanceAdapter::GetScenePrimPath(
     int instanceIndex) const
 {
     HD_TRACE_FUNCTION();
-
     // For child prims (prototypes) and instances, the process is the same:
     // find the associated hydra instancer, and use the instance index to
     // look up the composed instance path.  They differ based on whether you

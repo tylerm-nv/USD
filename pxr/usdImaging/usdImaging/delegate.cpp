@@ -411,8 +411,12 @@ public:
     // Used as a parallel callback method for use with WorkParallelForN.
     void UpdateVariability(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
-            UsdImagingIndexProxy indexProxy(_delegate, nullptr);
-            SdfPath const& cachePath = _tasks[i];
+            UsdImagingDelegate* delegate = _tasks[i].delegate;
+            // #nv begin fast-updates
+            const bool &checkVariability = _tasks[i].checkVariability;
+            // nv end
+            UsdImagingIndexProxy indexProxy(delegate, nullptr);
+            SdfPath const& cachePath = _tasks[i].path;
 
             _HdPrimInfo *primInfo = _delegate->_GetHdPrimInfo(cachePath);
             if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
@@ -420,7 +424,11 @@ public:
                 if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
                     adapter->TrackVariability(primInfo->usdPrim,
                                               cachePath,
-                                              &primInfo->timeVaryingBits);
+                                              &primInfo->timeVaryingBits,
+                                              // #nv begin fast-updates
+                                              nullptr,
+                                              checkVariability);
+                                              // nv end
                     if (primInfo->timeVaryingBits != HdChangeTracker::Clean) {
                         adapter->MarkDirty(primInfo->usdPrim,
                                            cachePath,
@@ -501,11 +509,12 @@ public:
                 if (dirtyBits == HdChangeTracker::Clean) {
                     // Do nothing
                 } else if (dirtyBits != HdChangeTracker::AllDirty) {
-                    if (checkVariability) {
-                        // Update Variability
-                        adapter->TrackVariability(primInfo->usdPrim, affectedCachePath,
-                            &primInfo->timeVaryingBits);
-                    }
+                    // Update Variability
+                    adapter->TrackVariability(primInfo->usdPrim, affectedCachePath,
+                        &primInfo->timeVaryingBits,
+                        // #nv begin fast-updates
+                        nullptr /* instancerContext */, checkVariability);
+                        // nv end
 
                     // Propagate the dirty bits back out to the change tracker.
                     HdDirtyBits combinedBits =
@@ -529,9 +538,15 @@ public:
 
 void 
 UsdImagingDelegate::_AddTask(
-    UsdImagingDelegate::_Worker *worker, SdfPath const& cachePath)
+    UsdImagingDelegate::_Worker *worker, SdfPath const& cachePath,
+    // #nv begin fast-updates
+    bool checkVariability)
+    // nv end
 {
-    worker->AddTask(cachePath);
+    worker->AddTask(this, cachePath,
+        // #nv begin fast-updates
+        nullptr, nullptr, nullptr, checkVariability);
+        // nv end
 }
 
 // -------------------------------------------------------------------------- //
@@ -1008,7 +1023,7 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     TfTokenVector dummyInfoFields;
 
     UsdImagingDelegate::_Worker worker;
-    UsdImagingIndexProxy indexProxy(this, &worker);
+    UsdImagingIndexProxy indexProxy(this, &worker, refreshVariability);
 
     for (const auto &itr : fastUpdates) {
         _RefreshUsdObject(itr.path, dummyInfoFields, &indexProxy, refreshVariability);
@@ -1024,9 +1039,7 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     // no-op.
     _Populate(&indexProxy);
 
-    if (refreshVariability) {
-        _ExecuteWorkForVariabilityUpdate(&worker);
-    }
+    _ExecuteWorkForVariabilityUpdate(&worker);
 #endif
 }
 // nv end

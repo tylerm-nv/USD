@@ -53,22 +53,27 @@ UsdImagingLightFilterAdapter::TrackVariability(UsdPrim const& prim,
                                         SdfPath const& cachePath,
                                         HdDirtyBits* timeVaryingBits,
                                         UsdImagingInstancerContext const* 
-                                            instancerContext) const
+                                            instancerContext,
+                                        // #nv begin fast-updates
+                                        bool checkVariability) const
+                                        // nv end
 {
-    // Discover time-varying transforms.
-    _IsTransformVarying(prim,
-        HdLight::DirtyBits::DirtyTransform,
-        UsdImagingTokens->usdVaryingXform,
-        timeVaryingBits);
+    if (checkVariability) {
+        // Discover time-varying transforms.
+        _IsTransformVarying(prim,
+            HdLight::DirtyBits::DirtyTransform,
+            UsdImagingTokens->usdVaryingXform,
+            timeVaryingBits);
 
-    // If any of the light attributes is time varying 
-    // we will assume all light params are time-varying.
-    const std::vector<UsdAttribute> &attrs = prim.GetAttributes();
-    TF_FOR_ALL(attrIter, attrs) {
-        const UsdAttribute& attr = *attrIter;
-        if (attr.GetNumTimeSamples()>1){
-            *timeVaryingBits |= HdLight::DirtyBits::DirtyParams;
-            break;
+        // If any of the light attributes is time varying 
+        // we will assume all light params are time-varying.
+        const std::vector<UsdAttribute> &attrs = prim.GetAttributes();
+        TF_FOR_ALL(attrIter, attrs) {
+            const UsdAttribute& attr = *attrIter;
+            if (attr.GetNumTimeSamples()>1){
+                *timeVaryingBits |= HdLight::DirtyBits::DirtyParams;
+                break;
+            }
         }
     }
 

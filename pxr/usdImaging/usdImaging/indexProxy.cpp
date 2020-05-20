@@ -95,7 +95,10 @@ UsdImagingIndexProxy::_AddHdPrimInfo(SdfPath const &cachePath,
 void
 UsdImagingIndexProxy::_AddTask(SdfPath const& usdPath) 
 {
-    _delegate->_AddTask(_worker, usdPath);
+    _delegate->_AddTask(_worker, usdPath,
+        // #nv begin fast-updates
+        _checkVariability);
+        // nv end
 }
 
 void

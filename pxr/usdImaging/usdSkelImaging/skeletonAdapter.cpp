@@ -290,8 +290,17 @@ UsdSkelImagingSkeletonAdapter::TrackVariability(
     const UsdPrim& prim,
     const SdfPath& cachePath,
     HdDirtyBits* timeVaryingBits,
-    const UsdImagingInstancerContext* instancerContext) const
+    const UsdImagingInstancerContext* instancerContext,
+    // #nv begin fast-updates
+    bool checkVariability) const
+    // nv end
 {
+    // #nv begin fast-updates
+    // Early out, as there are no intial values to populate into the value cache.
+    if (!checkVariability)
+        return;
+    // nv end
+
     // WARNING: This method is executed from multiple threads, the value cache
     // has been carefully pre-populated to avoid mutating the underlying
     // container during update.

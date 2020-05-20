@@ -64,7 +64,12 @@ public:
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext = NULL) const override;
+                                      instancerContext = NULL,
+                                  // #nv begin fast-updates
+                                  // If checkVariabilty is false, this method
+                                  // only populates the value cache with initial values.
+                                  bool checkVariability = true) const override;
+                                  // nv end
 
     virtual void UpdateForTime(UsdPrim const& prim,
                                SdfPath const& cachePath, 
@@ -217,6 +222,11 @@ private:
     _InstanceMap _ComputeInstanceMap(SdfPath const& instancerPath,
                                      _InstancerData const& instrData,
                                      UsdTimeCode time) const;
+    // #nv begin instance-map-caching
+    typedef std::unordered_map<SdfPath, _InstanceMap, SdfPath::Hash> _InstanceMapCache;
+    mutable _InstanceMapCache _instanceMapCache;
+    mutable tbb::spin_mutex _instanceMapCacheMutex;
+    // nv end
 
     // Updates per-frame instancer visibility.
     void _UpdateInstancerVisibility(SdfPath const& instancerPath,

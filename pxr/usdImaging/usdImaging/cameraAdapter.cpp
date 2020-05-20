@@ -1,4 +1,5 @@
 //
+//
 // Copyright 2019 Pixar
 //
 // Licensed under the Apache License, Version 2.0 (the "Apache License")
@@ -84,114 +85,126 @@ UsdImagingCameraAdapter::TrackVariability(UsdPrim const& prim,
                                           SdfPath const& cachePath,
                                           HdDirtyBits* timeVaryingBits,
                                           UsdImagingInstancerContext const* 
-                                              instancerContext) const
+                                              instancerContext,
+                                          // #nv begin fast-updates
+                                          bool checkVariability) const
+                                          // nv end
 {
-    // Discover time-varying transforms.
-    _IsTransformVarying(prim,
-        HdCamera::DirtyViewMatrix,
-        UsdImagingTokens->usdVaryingXform,
-        timeVaryingBits);
+    // #nv begin fast-updates
+    if (checkVariability) {
+    // nv end
+        // Discover time-varying transforms.
+        _IsTransformVarying(prim,
+            HdCamera::DirtyViewMatrix,
+            UsdImagingTokens->usdVaryingXform,
+            timeVaryingBits);
+    }
 
     UsdGeomCamera cam(prim);
     if (!TF_VERIFY(prim)) {
         return;
     }
 
-    // Properties that affect the projection matrix.
-    // IMPORTANT: Calling _IsVarying will clear the specified bit if the given
-    // attribute is _not_ varying.  Since we have multiple attributes that might
-    // result in the bit being set, we need to be careful not to reset it.
-    // Translation: only check _IsVarying for a given cause IFF the bit wasn't 
-    // already set by a previous invocation.
-    _IsVarying(prim,
-        cam.GetHorizontalApertureAttr().GetBaseName(),
-        HdCamera::DirtyProjMatrix,
-        HdCameraTokens->projectionMatrix,
-        timeVaryingBits,
-        false);
-    if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
+    // #nv begin fast-updates
+    if (checkVariability) {
+    // nv end
+        // Properties that affect the projection matrix.
+        // IMPORTANT: Calling _IsVarying will clear the specified bit if the given
+        // attribute is _not_ varying.  Since we have multiple attributes that might
+        // result in the bit being set, we need to be careful not to reset it.
+        // Translation: only check _IsVarying for a given cause IFF the bit wasn't
+        // already set by a previous invocation.
         _IsVarying(prim,
-            cam.GetVerticalApertureAttr().GetBaseName(),
+            cam.GetHorizontalApertureAttr().GetBaseName(),
             HdCamera::DirtyProjMatrix,
             HdCameraTokens->projectionMatrix,
             timeVaryingBits,
             false);
-    }
-    if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
-        _IsVarying(prim,
-            cam.GetHorizontalApertureOffsetAttr().GetBaseName(),
-            HdCamera::DirtyProjMatrix,
-            HdCameraTokens->projectionMatrix,
-            timeVaryingBits,
-            false);
-    }
-    if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
-        _IsVarying(prim,
-            cam.GetVerticalApertureOffsetAttr().GetBaseName(),
-            HdCamera::DirtyProjMatrix,
-            HdCameraTokens->projectionMatrix,
-            timeVaryingBits,
-            false);
-    }
-    if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
-        _IsVarying(prim,
-            cam.GetClippingRangeAttr().GetBaseName(),
-            HdCamera::DirtyProjMatrix,
-            HdCameraTokens->projectionMatrix,
-            timeVaryingBits,
-            false);
-    }
-    if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
-        _IsVarying(prim,
-            cam.GetFocalLengthAttr().GetBaseName(),
-            HdCamera::DirtyProjMatrix,
-            HdCameraTokens->projectionMatrix,
-            timeVaryingBits,
-            false);
-    }
-
-    _IsVarying(prim,
-        cam.GetClippingPlanesAttr().GetBaseName(),
-        HdCamera::DirtyClipPlanes,
-        HdCameraTokens->clipPlanes,
-        timeVaryingBits,
-        false);
-
-    // If any of the physical params that affect the projection matrix are time
-    // varying, we can flag the DirtyParams bit as varying and avoid querying
-    // variability of the remaining params.
-    if (*timeVaryingBits & HdCamera::DirtyProjMatrix) {
-        *timeVaryingBits |= HdCamera::DirtyParams;
-    } else {
-        _IsVarying(prim,
-            cam.GetFStopAttr().GetBaseName(),
-            HdCamera::DirtyParams,
-            HdCameraTokens->fStop,
-            timeVaryingBits,
-            false);
-        if ((*timeVaryingBits & HdCamera::DirtyParams) == 0) {
+        if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
             _IsVarying(prim,
-                cam.GetFocusDistanceAttr().GetBaseName(),
-                HdCamera::DirtyParams,
-                HdCameraTokens->focusDistance,
+                cam.GetVerticalApertureAttr().GetBaseName(),
+                HdCamera::DirtyProjMatrix,
+                HdCameraTokens->projectionMatrix,
                 timeVaryingBits,
                 false);
         }
-        if ((*timeVaryingBits & HdCamera::DirtyParams) == 0) {
+        if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
             _IsVarying(prim,
-                cam.GetShutterOpenAttr().GetBaseName(),
-                HdCamera::DirtyParams,
-                HdCameraTokens->shutterOpen,
+                cam.GetHorizontalApertureOffsetAttr().GetBaseName(),
+                HdCamera::DirtyProjMatrix,
+                HdCameraTokens->projectionMatrix,
                 timeVaryingBits,
                 false);
         }
-        if ((*timeVaryingBits & HdCamera::DirtyParams) == 0) {
+        if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
             _IsVarying(prim,
-                cam.GetShutterCloseAttr().GetBaseName(),
-                HdCamera::DirtyParams,
-                HdCameraTokens->shutterClose,
+                cam.GetVerticalApertureOffsetAttr().GetBaseName(),
+                HdCamera::DirtyProjMatrix,
+                HdCameraTokens->projectionMatrix,
                 timeVaryingBits,
                 false);
+        }
+        if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
+            _IsVarying(prim,
+                cam.GetClippingRangeAttr().GetBaseName(),
+                HdCamera::DirtyProjMatrix,
+                HdCameraTokens->projectionMatrix,
+                timeVaryingBits,
+                false);
+        }
+        if ((*timeVaryingBits & HdCamera::DirtyProjMatrix) == 0) {
+            _IsVarying(prim,
+                cam.GetFocalLengthAttr().GetBaseName(),
+                HdCamera::DirtyProjMatrix,
+                HdCameraTokens->projectionMatrix,
+                timeVaryingBits,
+                false);
+        }
+
+        _IsVarying(prim,
+            cam.GetClippingPlanesAttr().GetBaseName(),
+            HdCamera::DirtyClipPlanes,
+            HdCameraTokens->clipPlanes,
+            timeVaryingBits,
+            false);
+
+        // If any of the physical params that affect the projection matrix are time
+        // varying, we can flag the DirtyParams bit as varying and avoid querying
+        // variability of the remaining params.
+        if (*timeVaryingBits & HdCamera::DirtyProjMatrix) {
+            *timeVaryingBits |= HdCamera::DirtyParams;
+        }
+        else {
+            _IsVarying(prim,
+                cam.GetFStopAttr().GetBaseName(),
+                HdCamera::DirtyParams,
+                HdCameraTokens->fStop,
+                timeVaryingBits,
+                false);
+            if ((*timeVaryingBits & HdCamera::DirtyParams) == 0) {
+                _IsVarying(prim,
+                    cam.GetFocusDistanceAttr().GetBaseName(),
+                    HdCamera::DirtyParams,
+                    HdCameraTokens->focusDistance,
+                    timeVaryingBits,
+                    false);
+            }
+            if ((*timeVaryingBits & HdCamera::DirtyParams) == 0) {
+                _IsVarying(prim,
+                    cam.GetShutterOpenAttr().GetBaseName(),
+                    HdCamera::DirtyParams,
+                    HdCameraTokens->shutterOpen,
+                    timeVaryingBits,
+                    false);
+            }
+            if ((*timeVaryingBits & HdCamera::DirtyParams) == 0) {
+                _IsVarying(prim,
+                    cam.GetShutterCloseAttr().GetBaseName(),
+                    HdCamera::DirtyParams,
+                    HdCameraTokens->shutterClose,
+                    timeVaryingBits,
+                    false);
+            }
         }
     }
 

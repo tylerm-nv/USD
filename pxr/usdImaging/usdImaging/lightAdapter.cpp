@@ -65,22 +65,29 @@ UsdImagingLightAdapter::TrackVariability(UsdPrim const& prim,
                                         SdfPath const& cachePath,
                                         HdDirtyBits* timeVaryingBits,
                                         UsdImagingInstancerContext const* 
-                                            instancerContext) const
+                                            instancerContext,
+                                        // #nv begin fast-updates
+                                        bool checkVariability) const
+                                        // nv end
 {
-    // Discover time-varying transforms.
-    _IsTransformVarying(prim,
-        HdLight::DirtyBits::DirtyTransform,
-        UsdImagingTokens->usdVaryingXform,
-        timeVaryingBits);
+    // #nv begin fast-updates
+    if (checkVariability) {
+    // nv end
+        // Discover time-varying transforms.
+        _IsTransformVarying(prim,
+            HdLight::DirtyBits::DirtyTransform,
+            UsdImagingTokens->usdVaryingXform,
+            timeVaryingBits);
 
-    // If any of the light attributes is time varying 
-    // we will assume all light params are time-varying.
-    const std::vector<UsdAttribute> &attrs = prim.GetAttributes();
-    TF_FOR_ALL(attrIter, attrs) {
-        const UsdAttribute& attr = *attrIter;
-        if (attr.GetNumTimeSamples()>1){
-            *timeVaryingBits |= HdLight::DirtyBits::DirtyParams;
-            break;
+        // If any of the light attributes is time varying
+        // we will assume all light params are time-varying.
+        const std::vector<UsdAttribute> &attrs = prim.GetAttributes();
+        TF_FOR_ALL(attrIter, attrs) {
+            const UsdAttribute& attr = *attrIter;
+            if (attr.GetNumTimeSamples()>1){
+                *timeVaryingBits |= HdLight::DirtyBits::DirtyParams;
+                break;
+            }
         }
     }
 
@@ -134,6 +141,31 @@ UsdImagingLightAdapter::UpdateForTime(UsdPrim const& prim,
                                UsdImagingInstancerContext const* 
                                    instancerContext) const
 {
+// #nv begin #bind-material-to-domelight
+    UsdImagingValueCache* valueCache = _GetValueCache();
+    
+    SdfPath materialUsdPath;
+    if (requestedBits & HdChangeTracker::DirtyMaterialId) {
+        materialUsdPath = GetMaterialUsdPath(prim);
+
+        // If we're processing this gprim on behalf of an instancer,
+        // use the material binding specified by the instancer if we
+        // aren't able to find a material binding for this prim itself.
+        if (instancerContext && materialUsdPath.IsEmpty()) {
+            materialUsdPath = instancerContext->instancerMaterialUsdPath;
+        }
+    }
+
+    if (requestedBits & HdChangeTracker::DirtyMaterialId){
+        // Although the material binding cache generally holds
+        // cachePaths, not usdPaths, we can use the usdPath
+        // directly here since we do not instance sprims.
+        valueCache->GetMaterialId(cachePath) = materialUsdPath;
+
+        TF_DEBUG(USDIMAGING_SHADERS).Msg("Shader for <%s> is <%s>\n",
+                prim.GetPath().GetText(), materialUsdPath.GetText());
+    }
+// #nv end
 }
 
 HdDirtyBits

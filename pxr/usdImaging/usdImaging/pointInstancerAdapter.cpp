@@ -41,6 +41,9 @@
 #include "pxr/usd/usdGeom/tokens.h"
 #include "pxr/usd/usdGeom/xformable.h"
 
+// #nv begin #instance-map-caching
+#include "pxr/base/tf/envSetting.h"
+// nv end
 #include "pxr/base/tf/staticTokens.h"
 #include "pxr/base/tf/stringUtils.h"
 #include "pxr/base/tf/type.h"
@@ -68,6 +71,16 @@ TF_REGISTRY_FUNCTION(TfType)
     TfType t = TfType::Define<Adapter, TfType::Bases<Adapter::BaseAdapter> >();
     t.SetFactory< UsdImagingPrimAdapterFactory<Adapter> >();
 }
+
+// #nv begin #instance-map-caching
+TF_DEFINE_ENV_SETTING(USDIMAGING_CACHE_INSTANCE_MAPS, 0,
+    "Cache computed instance maps for GetPathForInstanceIndex.");
+static bool UsdImagingPointInstancerAdapter_CacheInstanceMaps() {
+    static bool _v = TfGetEnvSetting(USDIMAGING_CACHE_INSTANCE_MAPS) == 1;
+    return _v;
+}
+// nv end
+
 
 UsdImagingPointInstancerAdapter::~UsdImagingPointInstancerAdapter() 
 {
@@ -439,7 +452,10 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
                                   SdfPath const& cachePath,
                                   HdDirtyBits* timeVaryingBits,
                                   UsdImagingInstancerContext const* 
-                                      instancerContext) const
+                                      instancerContext,
+                                  // #nv begin fast-updates
+                                  bool checkVariability) const
+                                  // nv end
 {
     // XXX: This is no good: if an attribute has exactly one time sample, the
     // default value will get cached and never updated. However, if we use an
@@ -464,7 +480,11 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
 
         UsdPrim protoPrim = _GetProtoUsdPrim(proto);
         proto.adapter->TrackVariability(protoPrim, cachePath,
-                                        &proto.variabilityBits);
+                                        &proto.variabilityBits,
+                                        nullptr,
+                                        // #nv begin fast-updates
+                                        checkVariability);
+                                        // nv end
         *timeVaryingBits |= proto.variabilityBits;
 
         if (!(proto.variabilityBits & HdChangeTracker::DirtyVisibility)) {
@@ -483,18 +503,28 @@ UsdImagingPointInstancerAdapter::TrackVariability(UsdPrim const& prim,
                                     time, &proto.visible);
         }
 
-        // XXX: We handle PI visibility by pushing it onto the prototype;
-        // we should fix this.
-        _IsVarying(prim,
-            UsdGeomTokens->visibility,
-            HdChangeTracker::DirtyVisibility,
-            UsdImagingTokens->usdVaryingVisibility,
-            timeVaryingBits,
-            true);
+        // #nv begin fast-updates
+        if (checkVariability) {
+        // nv end
+            // XXX: We handle PI visibility by pushing it onto the prototype;
+            // we should fix this.
+            _IsVarying(prim,
+                UsdGeomTokens->visibility,
+                HdChangeTracker::DirtyVisibility,
+                UsdImagingTokens->usdVaryingVisibility,
+                timeVaryingBits,
+                true);
+        }
 
         return;
     } else  if (_InstancerData const* instrData =
                 TfMapLookupPtr(_instancerData, cachePath)) {
+
+        // #nv begin fast-updates
+        // Early out when there are no further entries to add to the value cache.
+        if (!checkVariability)
+            return;
+        // nv end
 
         // Mark instance indices as time varying if any of the following is 
         // time varying : protoIndices, invisibleIds
@@ -665,6 +695,13 @@ UsdImagingPointInstancerAdapter::UpdateForTime(UsdPrim const& prim,
 
         // On DirtyInstanceIndex, recompute the per-prototype index map.
         if (requestedBits & HdChangeTracker::DirtyInstanceIndex) {
+            // #nv begin instance-map-caching
+            if (UsdImagingPointInstancerAdapter_CacheInstanceMaps()) {
+                tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+                _instanceMapCache.erase(cachePath);
+            }
+            // nv end
+
             _InstanceMap instanceMap =
                 _ComputeInstanceMap(cachePath, *instrData, time);
 
@@ -1145,6 +1182,12 @@ UsdImagingPointInstancerAdapter::_UnloadInstancer(SdfPath const& instancerPath,
     // before traversing children, so that the parent PI is only removed once.
     const _ProtoPrimMap protoPrimMap = instIt->second.protoPrimMap;
     _instancerData.erase(instIt);
+    // #nv begin instance-map-caching
+    if (UsdImagingPointInstancerAdapter_CacheInstanceMaps()) {
+        tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+        _instanceMapCache.erase(instIt->first);
+    }
+    // nv end
 
     // First, we need to make sure all proto rprims are removed.
     TF_FOR_ALL(protoPrimIt, protoPrimMap) {

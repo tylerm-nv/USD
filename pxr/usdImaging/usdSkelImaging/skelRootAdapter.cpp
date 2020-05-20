@@ -140,7 +140,10 @@ UsdSkelImagingSkelRootAdapter::TrackVariability(
     const UsdPrim& prim,
     const SdfPath& cachePath,
     HdDirtyBits* timeVaryingBits,
-    const UsdImagingInstancerContext* instancerContext) const
+    const UsdImagingInstancerContext* instancerContext,
+    // #nv begin fast-updates
+    bool checkVariability) const
+    // nv end
 {
     // The SkeletonAdapter is registered for skeletons and skinned prims, so
     // there's no work to be done here.
