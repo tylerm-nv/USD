@@ -1778,6 +1778,9 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
         _instanceToInstancerMap.erase(it);
     }
 
+    // Remove local instancer data.
+    _instancerData.erase(instIt);
+
     // Repopulate the instancer's previous instances. Those that don't exist
     // anymore will be ignored, while those that still exist will be
     // pushed back into this adapter and refreshed.
