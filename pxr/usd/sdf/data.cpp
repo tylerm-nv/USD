@@ -351,12 +351,11 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
         }
     }
 
-#if 0
-    // XXX:aluk Revisit this.
     // #nv begin #fast-updates
     const _FieldValuePair *fieldsData = spec.fields.data();
-    spec.fields.push_back( _FieldValuePair(field,
-        field == SdfFieldKeys->TimeSamples ? VtValue(SdfTimeSampleMap()) : VtValue()) );
+    spec.fields.emplace_back(std::piecewise_construct,
+                             std::forward_as_tuple(field),
+                             std::forward_as_tuple());
 
     if (fieldsData != spec.fields.data()) {
         // The spec's vector of fields has moved, so we need to refresh affected live field handles.
@@ -369,10 +368,6 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
         }
     }
     // nv end
-#endif
-    spec.fields.emplace_back(std::piecewise_construct,
-                             std::forward_as_tuple(field),
-                             std::forward_as_tuple());
 
     return &spec.fields.back().second;
 }

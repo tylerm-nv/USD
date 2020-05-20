@@ -74,3 +74,36 @@ pxr_library(usdImaging
         plugInfo.json
 )
 
+# #nv begin #fast-updates
+pxr_build_test(testUsdImagingFastUpdates
+    LIBRARIES
+        trace
+        sdf
+        hd
+        usd
+        usdImaging
+        ${GLEW_LIBRARY}
+    CPPFILES
+        testenv/testUsdImagingFastUpdates.cpp
+)
+
+pxr_build_test(testUsdImagingPopulate_Perf
+    LIBRARIES
+        trace
+        hd
+        usd
+        usdImaging
+        usdUtils
+        ${GLEW_LIBRARY}
+    CPPFILES
+        testenv/testUsdImagingPopulate_Perf.cpp
+)
+
+pxr_register_test(testUsdImagingFastUpdates
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdImagingFastUpdates"
+)
+
+pxr_register_test(testUsdImagingPopulate_Perf
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdImagingPopulate_Perf"
+)
+# nv end

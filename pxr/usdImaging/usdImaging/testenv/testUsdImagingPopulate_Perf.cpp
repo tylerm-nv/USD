@@ -73,7 +73,7 @@ main(int argc, char** argv)
             TRACE_SCOPE("Populate delegate");
             populateDelegateStopwatch.Start();
             Hd_UnitTestNullRenderDelegate renderDelegate;
-            UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate), SdfPath::AbsoluteRootPath());
+            UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate, HdDriverVector()), SdfPath::AbsoluteRootPath());
             imagingDelegate.Populate(stage->GetPseudoRoot());
             populateDelegateStopwatch.Stop();
         }
