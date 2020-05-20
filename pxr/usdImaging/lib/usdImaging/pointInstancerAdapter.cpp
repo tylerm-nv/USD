@@ -1171,13 +1171,13 @@ UsdImagingPointInstancerAdapter::_UnloadInstancer(SdfPath const& instancerPath,
     // To guard against that, we remove instancerPath from _instancerData
     // before traversing children, so that the parent PI is only removed once.
     const _ProtoPrimMap protoPrimMap = instIt->second.protoPrimMap;
-    _instancerData.erase(instIt);
     // #nv begin instance-map-caching
     if (UsdImagingPointInstancerAdapter_CacheInstanceMaps()) {
         tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
         _instanceMapCache.erase(instIt->first);
     }
     // nv end
+    _instancerData.erase(instIt);
 
     // First, we need to make sure all proto rprims are removed.
     TF_FOR_ALL(protoPrimIt, protoPrimMap) {
