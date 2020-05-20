@@ -411,23 +411,22 @@ public:
     // Used as a parallel callback method for use with WorkParallelForN.
     void UpdateVariability(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
-            UsdImagingDelegate* delegate = _tasks[i].delegate;
             // #nv begin fast-updates
-            const bool &checkVariability = _tasks[i].checkVariability;
+            // const bool &checkVariability = _tasks[i].checkVariability;
             // nv end
-            UsdImagingIndexProxy indexProxy(delegate, nullptr);
-            SdfPath const& cachePath = _tasks[i].path;
+            UsdImagingIndexProxy indexProxy(_delegate, nullptr);
+            SdfPath const& cachePath = _tasks[i];
 
             _HdPrimInfo *primInfo = _delegate->_GetHdPrimInfo(cachePath);
             if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
                 UsdImagingPrimAdapterSharedPtr const& adapter=primInfo->adapter;
                 if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
                     adapter->TrackVariability(primInfo->usdPrim,
-                                              cachePath,
-                                              &primInfo->timeVaryingBits,
+                        cachePath,
+                        &primInfo->timeVaryingBits);// ,
                                               // #nv begin fast-updates
-                                              nullptr,
-                                              checkVariability);
+                                              /*nullptr,
+                                              checkVariability);*/
                                               // nv end
                     if (primInfo->timeVaryingBits != HdChangeTracker::Clean) {
                         adapter->MarkDirty(primInfo->usdPrim,
@@ -543,10 +542,11 @@ UsdImagingDelegate::_AddTask(
     bool checkVariability)
     // nv end
 {
-    worker->AddTask(this, cachePath,
-        // #nv begin fast-updates
-        nullptr, nullptr, nullptr, checkVariability);
-        // nv end
+    worker->AddTask(cachePath);
+    //worker->AddTask(this, cachePath,
+    //    // #nv begin fast-updates
+    //    nullptr, nullptr, nullptr, checkVariability);
+    //    // nv end
 }
 
 // -------------------------------------------------------------------------- //

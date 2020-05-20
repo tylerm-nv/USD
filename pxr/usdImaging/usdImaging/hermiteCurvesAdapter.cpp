@@ -71,10 +71,14 @@ UsdImagingHermiteCurvesAdapter::TrackVariability(UsdPrim const& prim,
                                                SdfPath const& cachePath,
                                                HdDirtyBits* timeVaryingBits,
                                                UsdImagingInstancerContext const*
-                                                   instancerContext) const
+                                                   instancerContext,
+                                              bool checkVariability) const
 {
     BaseAdapter::TrackVariability(
-        prim, cachePath, timeVaryingBits, instancerContext);
+        prim, cachePath, timeVaryingBits, instancerContext, checkVariability);
+
+    if (!checkVariability)
+        return;
 
     // Discover time-varying points.
     _IsVarying(prim,

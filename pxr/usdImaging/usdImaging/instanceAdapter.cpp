@@ -533,10 +533,12 @@ UsdImagingInstanceAdapter::TrackVariability(UsdPrim const& prim,
             // nv end
     } else if (_InstancerData const* instrData =
                TfMapLookupPtr(_instancerData, prim.GetPath())) {
+#if 0
         // In this case, prim is an instance master. Master prims provide
         // no data of their own, so we fall back to the default purpose.
         // XXX: This seems incorrect?
         valueCache->GetPurpose(cachePath) = UsdGeomTokens->default_;
+#endif
 
         // #nv begin fast-updates
         if (checkVariability) {
