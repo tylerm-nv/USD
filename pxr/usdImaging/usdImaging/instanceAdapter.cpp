@@ -1748,15 +1748,15 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
     // Keep a copy of the instancer's instances so we can repopulate them below.
     const SdfPathVector instancePaths = instIt->second.instancePaths;
 
-    // Remove local instancer data.
-    _instancerData.erase(instIt);
-
     // #nv begin instance-map-caching
     if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
         tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
         _instanceMapCache.erase(instIt->first);
     }
     // nv end
+
+    // Remove local instancer data.
+    _instancerData.erase(instIt);
 
     // Repopulate the instancer's previous instances. Those that don't exist
     // anymore will be ignored, while those that still exist will be
