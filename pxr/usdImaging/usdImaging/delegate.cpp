@@ -1018,11 +1018,9 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     const std::vector<SdfFastUpdateList::FastUpdate> &fastUpdates,
     bool refreshVariability)
 {
-    // XXX:aluk Revisit this.
-#if 0
     TfTokenVector dummyInfoFields;
 
-    UsdImagingDelegate::_Worker worker;
+    UsdImagingDelegate::_Worker worker(this);
     UsdImagingIndexProxy indexProxy(this, &worker, refreshVariability);
 
     for (const auto &itr : fastUpdates) {
@@ -1040,7 +1038,6 @@ UsdImagingDelegate::_RefreshObjectsForFastUpdates(
     _Populate(&indexProxy);
 
     _ExecuteWorkForVariabilityUpdate(&worker);
-#endif
 }
 // nv end
 
