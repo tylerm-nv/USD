@@ -470,6 +470,11 @@ UsdSkelImagingSkeletonAdapter::ProcessPropertyChange(
         {
             return HdChangeTracker::NV_DirtySkelAnimXform;
         }
+
+        if (UsdGeomXformable::IsTransformationAffectedByAttrNamed(propertyName))
+        {
+            return HdChangeTracker::Clean;
+        }
     }
     //-NV_CHANGE FRZHANG
 
