@@ -528,7 +528,9 @@ protected:
     std::vector<SdfFastUpdateList::FastUpdate> _fastUpdates;
 // nv end
 
-private:
+// #nv begin kit-delegate
+// private:
+// nv end
     // Internal friend class.
     class _Worker;
     friend class UsdImagingIndexProxy;
@@ -696,6 +698,7 @@ private:
                                                 TfToken const& adapterKey);
 
     // Obtain the prim tracking data for the given cache path.
+    USDIMAGING_API
     _HdPrimInfo *_GetHdPrimInfo(const SdfPath &cachePath);
 
     Usd_PrimFlagsConjunction _GetDisplayPredicate() const;
