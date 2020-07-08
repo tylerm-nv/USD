@@ -170,8 +170,7 @@ UsdImagingMaterialAdapter::TrackVariability(
     UsdPrim const& prim,
     SdfPath const& cachePath,
     HdDirtyBits* timeVaryingBits,
-    UsdImagingInstancerContext const*
-    instancerContext,
+    UsdImagingInstancerContext const* instancerContext,
     // #nv begin fast-updates
     bool checkVariability) const
     // nv end
@@ -209,7 +208,6 @@ UsdImagingMaterialAdapter::UpdateForTime(
         HdMaterialNetworkMap map;
         TfToken const& networkSelector = _GetMaterialNetworkSelector();
         _GetMaterialNetworkMap(prim, networkSelector, &map, time, &timeVarying);
-
         UsdImagingValueCache* valueCache = _GetValueCache();
         valueCache->GetMaterialResource(cachePath) = map;
     }
