@@ -397,16 +397,11 @@ HdStSurfaceShader::SetBufferSources(
             _isValidComputedHash = false;
         }
 
-<<<<<<< HEAD
         if (_paramArray && _paramArray->IsValid()) {
-            resourceRegistry->AddSources(_paramArray, bufferSources);
-=======
-        if (_paramArray->IsValid()) {
             if (!bufferSources.empty()) {
                 resourceRegistry->AddSources(_paramArray,
                                              std::move(bufferSources));
             }
->>>>>>> v20.08-rc1
         }
     }
 }

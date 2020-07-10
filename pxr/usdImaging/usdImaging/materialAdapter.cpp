@@ -38,15 +38,13 @@
 #include "pxr/usd/sdr/shaderNode.h"
 #include "pxr/usd/sdr/shaderProperty.h"
 
-<<<<<<< HEAD
-// #nv begin #new-MDL-schema
-#include "pxr/base/tf/envSetting.h"
-// nv end
-
-=======
 #include "pxr/usd/ar/resolverScopedCache.h"
 #include "pxr/usd/ar/resolverContextBinder.h"
->>>>>>> v20.08-rc1
+
+// #nv begin #new-MDL-schema
+#include "pxr/usd/ar/resolver.h"
+#include "pxr/base/tf/envSetting.h"
+// nv end
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -76,7 +74,7 @@ _GetShaderNodeForSourceTypeFallbackNV(
                     shaderReg.GetShaderNodeByIdentifierAndType(shaderId, 
                         networkSelector)) {
                 if (identifier) {
-                    *identifier = TfToken(sdrNode->GetSourceURI());
+                    *identifier = TfToken(sdrNode->GetResolvedImplementationURI());
                 }
             }
         }

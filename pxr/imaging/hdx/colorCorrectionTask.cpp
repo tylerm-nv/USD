@@ -76,31 +76,11 @@ HdxColorCorrectionTask::HdxColorCorrectionTask(
 
 HdxColorCorrectionTask::~HdxColorCorrectionTask()
 {
-<<<<<<< HEAD
     // #nv begin gl-errors
-    bool performedGLOperation = false;
+    // Is this still needed?
+    // bool performedGLOperation = false;
     // nv end
 
-    if (_texture != 0) {
-        glDeleteTextures(1, &_texture);
-        // #nv begin gl-errors
-        performedGLOperation = true;
-        // nv end
-    }
-
-    if (_texture3dLUT != 0) {
-        glDeleteTextures(1, &_texture3dLUT);
-        // #nv begin gl-errors
-        performedGLOperation = true;
-        // nv end
-    }
-
-    if (_vertexBuffer != 0) {
-        glDeleteBuffers(1, &_vertexBuffer);
-        // #nv begin gl-errors
-        performedGLOperation = true;
-        // nv end
-=======
     if (_texture3dLUT) {
         _GetHgi()->DestroyTexture(&_texture3dLUT);
     }
@@ -111,34 +91,18 @@ HdxColorCorrectionTask::~HdxColorCorrectionTask()
 
     if (_indexBuffer) {
         _GetHgi()->DestroyBuffer(&_indexBuffer);
->>>>>>> v20.08-rc1
     }
 
     if (_shaderProgram) {
         _DestroyShaderProgram();
     }
 
-<<<<<<< HEAD
-    if (_copyFramebuffer != 0) {
-        glDeleteFramebuffers(1, &_copyFramebuffer);
-        // #nv begin gl-errors
-        performedGLOperation = true;
-        // nv end
-    }
-
-    if (_aovFramebuffer != 0) {
-        glDeleteFramebuffers(1, &_aovFramebuffer);
-        // #nv begin gl-errors
-        performedGLOperation = true;
-        // nv end
-=======
     if (_resourceBindings) {
         _GetHgi()->DestroyResourceBindings(&_resourceBindings);
     }
 
     if (_pipeline) {
         _GetHgi()->DestroyGraphicsPipeline(&_pipeline);
->>>>>>> v20.08-rc1
     }
 }
 
@@ -154,19 +118,10 @@ HdxColorCorrectionTask::_GetUseOcio() const
             return false;
         }
 
-<<<<<<< HEAD
-    // #nv begin gl-errors
-    if (performedGLOperation) {
-        GLF_POST_PENDING_GL_ERRORS();
-    }
-    // nv end
-
-=======
         return _colorCorrectionMode == HdxColorCorrectionTokens->openColorIO;
     #else
         return false;
     #endif
->>>>>>> v20.08-rc1
 }
 
 std::string

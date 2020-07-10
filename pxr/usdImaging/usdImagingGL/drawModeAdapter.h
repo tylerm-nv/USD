@@ -72,24 +72,16 @@ public:
     // ---------------------------------------------------------------------- //
     
     USDIMAGINGGL_API
-<<<<<<< HEAD
-    virtual void TrackVariability(UsdPrim const& prim,
-                                  SdfPath const& cachePath,
-                                  HdDirtyBits* timeVaryingBits,
-                                  UsdImagingInstancerContext const* 
-                                      instancerContext = NULL,
-                                  // #nv begin fast-updates
-                                  // If checkVariabilty is false, this method
-                                  // only populates the value cache with initial values.
-                                  bool checkVariability = true) const override;
-                                  // nv end
-=======
     void TrackVariability(UsdPrim const& prim,
                           SdfPath const& cachePath,
                           HdDirtyBits* timeVaryingBits,
                           UsdImagingInstancerContext const* 
-                                      instancerContext = NULL) const override;
->>>>>>> v20.08-rc1
+                              instancerContext = NULL,
+                          // #nv begin fast-updates
+                          // If checkVariabilty is false, this method
+                          // only populates the value cache with initial values.
+                          bool checkVariability = true) const override;
+                         // nv end
 
     USDIMAGINGGL_API
     void UpdateForTime(UsdPrim const& prim,

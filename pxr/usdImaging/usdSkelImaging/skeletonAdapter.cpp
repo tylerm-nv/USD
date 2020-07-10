@@ -2237,7 +2237,7 @@ UsdSkelImagingSkeletonAdapter::_UpdateSkinnedPrimForTime(
                 GfMatrix4d primWorldToLocal = xformCache.GetLocalToWorldTransform(skinnedPrim).GetInverse();
                 GfMatrix4d skelLocalToWorld = xformCache.GetLocalToWorldTransform(skelQuery.GetPrim());
                 VtMatrix4fArray skelAnimTransform;
-                if (_ComputeSkinningTransforms(skelQuery, skinnedPrimData->jointMapper, time, &skelAnimTransform))
+                if (_ComputeSkinningTransforms(skelQuery, skinningQuery, time, &skelAnimTransform))
                 {
                     meshAdapter->UpdateSkelAnim(skinnedPrim, skinnedPrimPath, time,
                         skelAnimTransform, primWorldToLocal, skelLocalToWorld);
@@ -2417,26 +2417,14 @@ UsdSkelImagingSkeletonAdapter::_SkinnedPrimData::_SkinnedPrimData(
       hasJointInfluences(skinningQuery.HasJointInfluences())
 {
     if (skinningQuery.HasBlendShapes() && skelQuery.GetAnimQuery()) {
-<<<<<<< HEAD
-
-        blendShapeQuery =
-            std::make_shared<UsdSkelBlendShapeQuery>(
-                UsdSkelBindingAPI(skinningQuery.GetPrim()));
-        if (blendShapeQuery->IsValid()) {
-            blendShapeMapper = *skinningQuery.GetBlendShapeMapper();
-        } else {
-            blendShapeQuery.reset();
-        }
-   }
-
-    //+NV_CHANGE FRZHANG
-    NVGPUSKIN_InitSkinInfo(skelQuery,skinningQuery);
-    //-NV_CHANGE FRZHANG
-=======
         blendShapeQuery = std::make_shared<UsdSkelBlendShapeQuery>(
             UsdSkelBindingAPI(skinningQuery.GetPrim()));
     }
->>>>>>> v20.08-rc1
+
+    //+NV_CHANGE FRZHANG
+    NVGPUSKIN_InitSkinInfo(skelQuery, skinningQuery);
+    //-NV_CHANGE FRZHANG
+
 }
 
 //+NV_CHANGE FRZHANG

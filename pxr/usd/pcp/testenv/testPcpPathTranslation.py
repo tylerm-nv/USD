@@ -83,13 +83,8 @@ class TestPcpPathTranslation(unittest.TestCase):
                    "/World/Ref3/RefChild.localSelfAbs" : "/World/Ref3/RefChild",
                    "/World/Ref3/RefChild.localParentAbs" : "/World/Ref3"}
 
-<<<<<<< HEAD
-        for (path, expectedTargetPath) in list(pathMap.items()):
-            (curTargetPaths, curErrors) = \
-=======
         for (path, expectedTargetPath) in pathMap.items():
             (curTargetPaths, _, curErrors) = \
->>>>>>> v20.08-rc1
                 pcpCache.ComputeRelationshipTargetPaths(path)
 
             for err in curErrors:
@@ -159,13 +154,8 @@ class TestPcpPathTranslation(unittest.TestCase):
                    "/World/Ref3/RefChild.refSelfAbs" : "/World/Ref3/RefChild",
                    "/World/Ref3/RefChild.refParentAbs" : "/World/Ref3"}
 
-<<<<<<< HEAD
-        for (path, expectedTargetPath) in list(pathMap.items()):
-            (curTargetPaths, curErrors) = \
-=======
         for (path, expectedTargetPath) in pathMap.items():
             (curTargetPaths, _, curErrors) = \
->>>>>>> v20.08-rc1
                 pcpCache.ComputeRelationshipTargetPaths(path)
 
             for err in curErrors:
