@@ -4376,22 +4376,12 @@ SdfLayer::_WriteToFile(const string & newFileName,
         return false;
     }
 
-<<<<<<< HEAD
-	/*
-	NVIDIA-BrianH: The fileFormat may be a special non-disk format, so it
-	doesn't make sense to try to create the directory here. It should be done
-	in the fileFormat itself.
-    string layerDir = TfGetPathName(newFileName);
-    if (!(layerDir.empty() || TfIsDir(layerDir) || TfMakeDirs(layerDir))) {
-=======
     if (!ArGetResolver().CreatePathForLayer(newFileName)) {
->>>>>>> v20.08-rc1
         TF_RUNTIME_ERROR(
             "Cannot create path to write '%s'",
             newFileName.c_str());
         return false;
     }
-	*/
     
     bool ok = fileFormat->WriteToFile(*this, newFileName, comment, args);
 

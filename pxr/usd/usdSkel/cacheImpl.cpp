@@ -300,8 +300,8 @@ UsdSkel_CacheImpl::ReadScope::Populate(const UsdSkelRoot& root)
             }
         }
 
-<<<<<<< HEAD
         //+NV_CHANGE FRZHANG
+        // aluk v20.08 - Should these be moved under the isSkinnable block?
         if (const UsdAttribute attr = binding.GetSkinningMethodAttr())
             key.skinningMethodAttr = attr;
 
@@ -309,9 +309,6 @@ UsdSkel_CacheImpl::ReadScope::Populate(const UsdSkelRoot& root)
             key.skinningBlendWeightsAttr = attr;
         //-NV_CHANGE FRZHANG
 
-        if (const UsdAttribute attr = binding.GetBlendShapesAttr())
-            key.blendShapesAttr = attr;
-=======
         const bool isSkinnable = UsdSkelIsSkinnablePrim(*it);
 
         // Unlike other binding properties above, skel:blendShapes and
@@ -324,7 +321,6 @@ UsdSkel_CacheImpl::ReadScope::Populate(const UsdSkelRoot& root)
                     key.blendShapesAttr = std::move(attr);
                 }
             }
->>>>>>> v20.08-rc1
 
             if (UsdRelationship rel =
                 binding.GetBlendShapeTargetsRel()) {
