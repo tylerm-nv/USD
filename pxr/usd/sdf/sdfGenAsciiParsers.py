@@ -28,13 +28,12 @@
 
 from __future__ import print_function
 
-from distutils.spawn import find_executable
 from tempfile import mkdtemp
 from argparse import ArgumentParser
 from sys import exit, stdout 
 from os import listdir, mkdir, getcwd, chdir, rename, access, W_OK
-from os.path import abspath, basename, join, splitext, isfile, dirname, exists
-from subprocess import call, Popen, PIPE
+from os.path import abspath, basename, join, splitext, isfile
+from subprocess import call
 from shutil import rmtree, copyfile
 from difflib import unified_diff
 
@@ -242,9 +241,9 @@ def _parseArguments():
     parser = ArgumentParser(description='Generate Ascii File Parsers for Sdf')
     parser.add_argument('--srcDir', required=False, default=getcwd(),
                         help='The source directory for sdf.')
-    parser.add_argument('--bison', required=False, 
+    parser.add_argument('--bison', required=True, 
                         help='The location of the bison executable to be used.')
-    parser.add_argument('--flex', required=False,                         
+    parser.add_argument('--flex', required=True,
                         help='The location of the flex executable to be used.')
     parser.add_argument('--validate', action='store_true',
                         help='Verify that the source files are unchanged.')
@@ -272,12 +271,6 @@ def _getConfiguration():
                BASES     : arguments.bases }
                
     # Ensure all optional arguments get properly populated
-    if not arguments.flex:
-        config[FLEX_EXE] = _getFlex(config) 
-
-    if not arguments.bison:
-        config[BISON_EXE] = _getBison(config)
-
     if not arguments.bases:
         allFiles = listdir(arguments.srcDir)
         validExts = ['.yy', '.ll']
@@ -310,6 +303,7 @@ def _validateSourceDirectory(configuration):
              'contain all necessary flex/bison sources.')
 
 # -----------------------------------------------------------------------------
+<<<<<<< HEAD
 # Build system info. 
 # This is needed for discerning which flex/bison to use when 
 # running sdfGenAsciiParsers. This works in the context of either a 
@@ -384,6 +378,8 @@ def _getBison(configuration):
         return _getCMakeBuildEnvSetting('BISON_EXECUTABLE', configuration) 
 
 # -----------------------------------------------------------------------------
+=======
+>>>>>>> v20.08-rc1
 
 def _printSection(sectionInfo):
     print('+-------------------------------------------------+')

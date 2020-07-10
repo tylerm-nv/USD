@@ -222,7 +222,7 @@ UsdImagingNurbsPatchAdapter::GetMeshTopology(UsdPrim const& prim,
 
     // Create the mesh topology
     HdMeshTopology topo = HdMeshTopology(
-        PxOsdOpenSubdivTokens->catmark, 
+        PxOsdOpenSubdivTokens->catmullClark, 
         orientation,
         vertsPerFace,
         indices);

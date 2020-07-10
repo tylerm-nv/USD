@@ -163,6 +163,7 @@ void wrapUsdSkelSkinningQuery()
         .def("GetJointWeightsPrimvar", &This::GetJointWeightsPrimvar,
              return_value_policy<return_by_value>())
 
+<<<<<<< HEAD
         //+NV_CHANGE FRZHANG
         .def("GetSkinningMethodAttr", &This::GetSkinningMethodAttr,
             return_value_policy<return_by_value>())
@@ -170,6 +171,13 @@ void wrapUsdSkelSkinningQuery()
         .def("GetSkinningBlendWeightsPrimvar", &This::GetSkinningBlendWeightsPrimvar,
             return_value_policy<return_by_value>())
         //-NV_CHANGE FRZHANG
+=======
+        .def("GetBlendShapesAttr", &This::GetBlendShapesAttr,
+             return_value_policy<return_by_value>())
+
+        .def("GetBlendShapeTargetsRel", &This::GetBlendShapeTargetsRel,
+             return_value_policy<return_by_value>())
+>>>>>>> v20.08-rc1
 
         // deprecated
         .def("GetMapper", &This::GetMapper,
