@@ -1778,18 +1778,17 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
     // Remove local instancer data.
     _instancerData.erase(instIt);
 
-    for (SdfPath const& path : instancePaths) {
-        auto it = _instanceToInstancerMap.find(path);
-
-        // #nv begin instance-map-caching
-        // if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
-            // tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
-            // _instanceMapCache.erase(instIt->first);
-        // }
-        // nv end
-
+    TF_FOR_ALL(pathIt, instancePaths) {
+        auto it = _instanceToInstancerMap.find(*pathIt);
         _instanceToInstancerMap.erase(it);
     }
+
+    // #nv begin instance-map-caching
+    if (UsdImagingInstancerAdapter_CacheInstanceMaps()) {
+        tbb::spin_mutex::scoped_lock lock(_instanceMapCacheMutex);
+        _instanceMapCache.erase(instIt->first);
+    }
+    // nv end
 
     // Remove local instancer data.
     _instancerData.erase(instIt);
