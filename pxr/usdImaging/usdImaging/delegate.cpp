@@ -318,8 +318,8 @@ UsdImagingDelegate::_GetDisplayPredicate() const
 
 class UsdImagingDelegate::_Worker {
 private:
-// XXX:aluk Revisit this
-#if 0
+    // #nv begin #parallel-xform-children
+#if 1
     struct _Task {
         _Task() : delegate(nullptr) { }
         _Task(UsdImagingDelegate* delegate_,
@@ -332,27 +332,26 @@ private:
             // nv end
             : delegate(delegate_)
             , path(path_)
-            // #nv begin #parallel-xform-children
             , changedInfoFields(changedInfoFields_)
             , proxy(proxy_)
             , sourcePath(sourcePath_)
             , checkVariability(checkVariability_)
-            // nv end
         {
         }
 
         UsdImagingDelegate* delegate;
         SdfPath path;
-        // #nv begin #parallel-xform-children
         TfTokenVector const *changedInfoFields;
         UsdImagingIndexProxy* proxy;
         const SdfPath *sourcePath;
         bool checkVariability;
-        // nv end
     };
     std::vector<_Task> _tasks;
-#endif
+#else
     SdfPathVector _tasks;
+#endif
+    // nv end
+
     UsdImagingDelegate *_delegate;
 
 public:
@@ -361,18 +360,19 @@ public:
     {
     }
 
-// XXX:aluk Revisit this
-#if 0
     // #nv begin #parallel-xform-children
-    void AddTask(UsdImagingDelegate* delegate, SdfPath const& cachePath,
-        TfTokenVector const *changedInfoFields=nullptr, UsdImagingIndexProxy *proxy=nullptr,
-        const SdfPath *sourcePath=nullptr,
-        bool checkVariability=true) {
-        _tasks.push_back(_Task(delegate, cachePath, changedInfoFields, proxy, sourcePath, checkVariability));
-#endif
+#if 1
+    void AddTask(SdfPath const& cachePath,
+        TfTokenVector const *changedInfoFields = nullptr, UsdImagingIndexProxy *proxy = nullptr,
+        const SdfPath *sourcePath = nullptr,
+        bool checkVariability = true) {
+        _tasks.push_back(_Task(_delegate, cachePath, changedInfoFields, proxy, sourcePath, checkVariability));
+    }
+#else
     void AddTask(SdfPath const& cachePath) {
         _tasks.push_back(cachePath);
     }
+#endif
     // nv end
 
     size_t GetTaskCount() {
@@ -401,10 +401,12 @@ public:
     void UpdateVariability(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
             // #nv begin fast-updates
-            // const bool &checkVariability = _tasks[i].checkVariability;
+            const bool &checkVariability = _tasks[i].checkVariability;
             // nv end
             UsdImagingIndexProxy indexProxy(_delegate, nullptr);
-            SdfPath const& cachePath = _tasks[i];
+            // #nv begin #parallel-xform-children
+            SdfPath const& cachePath = _tasks[i].path;
+            // nv end
 
             _HdPrimInfo *primInfo = _delegate->_GetHdPrimInfo(cachePath);
             if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
@@ -412,11 +414,11 @@ public:
                 if (TF_VERIFY(adapter, "%s\n", cachePath.GetText())) {
                     adapter->TrackVariability(primInfo->usdPrim,
                         cachePath,
-                        &primInfo->timeVaryingBits);// ,
-                                              // #nv begin fast-updates
-                                              /*nullptr,
-                                              checkVariability);*/
-                                              // nv end
+                        &primInfo->timeVaryingBits,
+                        // #nv begin fast-updates
+                        nullptr,
+                        checkVariability);
+                        // nv end
                     if (primInfo->timeVaryingBits != HdChangeTracker::Clean) {
                         adapter->MarkDirty(primInfo->usdPrim,
                                            cachePath,
@@ -433,7 +435,9 @@ public:
     void UpdateForTime(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
             UsdTimeCode const& time = _delegate->_time;
-            SdfPath const& cachePath = _tasks[i];
+            // #nv begin #parallel-xform-children
+            SdfPath const& cachePath = _tasks[i].path;
+            // nv end
 
             _HdPrimInfo *primInfo = _delegate->_GetHdPrimInfo(cachePath);
             if (TF_VERIFY(primInfo, "%s\n", cachePath.GetText())) {
@@ -451,8 +455,6 @@ public:
         }
     }
 
-    // XXX:aluk Revisit this.
-#if 0
     // #nv begin #parallel-xform-children
     void UpdateAffectedCachePath(size_t start, size_t end) {
         for (size_t i = start; i < end; i++) {
@@ -479,7 +481,7 @@ public:
             if (primInfo != nullptr &&
                 primInfo->usdPrim.IsValid() &&
                 TF_VERIFY(primInfo->adapter, "%s", affectedCachePath.GetText())) {
-                _AdapterSharedPtr &adapter = primInfo->adapter;
+                UsdImagingPrimAdapterSharedPtr &adapter = primInfo->adapter;
 
                 // For the dirty bits that we've been told changed, go re-discover
                 // variability and stage the associated data.
@@ -521,7 +523,6 @@ public:
         }
     }
     // nv end
-#endif
 };
 
 void 
@@ -531,11 +532,10 @@ UsdImagingDelegate::_AddTask(
     bool checkVariability)
     // nv end
 {
-    worker->AddTask(cachePath);
-    //worker->AddTask(this, cachePath,
-    //    // #nv begin fast-updates
-    //    nullptr, nullptr, nullptr, checkVariability);
-    //    // nv end
+    // #nv begin fast-updates
+    worker->AddTask(cachePath,
+        nullptr, nullptr, nullptr, checkVariability);
+    // nv end
 }
 
 // -------------------------------------------------------------------------- //
@@ -898,13 +898,11 @@ UsdImagingDelegate::_ExecuteWorkForAffectedCachePaths(_Worker* worker)
         // Release the GIL to ensure that threaded work won't deadlock if
         // they also need the GIL.
         TF_PY_ALLOW_THREADS_IN_SCOPE();
-        // XXX:aluk Revisit this.
-#if 0
+
         WorkParallelForN(
             worker->GetTaskCount(),
             std::bind(&UsdImagingDelegate::_Worker::UpdateAffectedCachePath,
                 worker, std::placeholders::_1, std::placeholders::_2));
-#endif
     }
     worker->EnableValueCacheMutations();
 }
@@ -1574,13 +1572,13 @@ UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath,
         }
     }
 
-// XXX:aluk Revisit this.
-#if 0
     // #nv begin #parallel-xform-children
-    UsdImagingDelegate::_Worker worker;
+#if 1
+    UsdImagingDelegate::_Worker worker(this);
     for (SdfPath const& affectedCachePath : affectedCachePaths) {
-        worker.AddTask(this, affectedCachePath, &changedInfoFields, proxy, &usdPath, checkVariability);
-#endif
+        worker.AddTask(affectedCachePath, &changedInfoFields, proxy, &usdPath, checkVariability);
+    }
+#else
     // PERFORMANCE: We could execute this in parallel, for large numbers of
     // prims.
     for (SdfPath const& affectedCachePath: affectedCachePaths) {
@@ -1641,11 +1639,11 @@ UsdImagingDelegate::_RefreshUsdObject(SdfPath const& usdPath,
             }
         }
     }
-    // XXX:aluk Revisit this.
-#if 0
+
+#endif
+
     _ExecuteWorkForAffectedCachePaths(&worker);
     // nv end
-#endif
 }
 
 // -------------------------------------------------------------------------- //
