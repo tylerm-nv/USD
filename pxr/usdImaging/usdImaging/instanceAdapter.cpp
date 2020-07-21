@@ -1765,8 +1765,8 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
     // Remove local instancer data.
     _instancerData.erase(instIt);
 
-    TF_FOR_ALL(pathIt, instancePaths) {
-        auto it = _instanceToInstancerMap.find(*pathIt);
+    for (SdfPath const& path : instancePaths) {
+        auto it = _instanceToInstancerMap.find(path);
         _instanceToInstancerMap.erase(it);
     }
 
@@ -1776,9 +1776,6 @@ UsdImagingInstanceAdapter::_ResyncInstancer(SdfPath const& instancerPath,
         _instanceMapCache.erase(instIt->first);
     }
     // nv end
-
-    // Remove local instancer data.
-    _instancerData.erase(instIt);
 
     // Repopulate the instancer's previous instances. Those that don't exist
     // anymore will be ignored, while those that still exist will be
