@@ -2184,6 +2184,20 @@ public:
                                             bool* handleIsValid = nullptr);
 // nv end
 
+// #nv begin #omni-hydra
+public:
+
+    typedef bool (*_GetValueCallbackFn)(UsdTimeCode time, const SdfPath& path, void* uncheckedValuePtr, VtValue* result, void* userData);
+    // Override mechanism for fast hydra layer to replace GetValue call from UsdStage
+    // This allows clients to use fast data auhoring pipeline while other clients to still use standard USD api to retrieve authored value
+    // that only resides in the fast layer. 
+    // if userData is provided, this will be passed as the last argument of the callback function call
+    USD_API
+    void SetGetValueCallback(_GetValueCallbackFn fn, void* userData);
+
+    USD_API
+    void SetGetValueCallbackEnabled(bool enabled);
+    // nv end
 private:
 
     // The 'pseudo root' prim.
@@ -2244,6 +2258,12 @@ private:
         SdfAbstractDataFieldAccessHandle timeSamplesHandle;
     };
     std::map<SdfLayerHandle, std::unordered_map<SdfPath, struct FieldHandleEntry, SdfPath::Hash> > _fieldHandles;
+    // nv end
+
+    // #nv begin #omni-hydra
+    _GetValueCallbackFn _getValueFn;
+    void* _getValueFnUserData;
+    bool _getValueFnEnabled;
     // nv end
 
     friend class UsdAPISchemaBase;
