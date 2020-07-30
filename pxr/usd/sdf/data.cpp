@@ -345,16 +345,17 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
     }
 
     _SpecData &spec = i->second;
-    for (size_t j=0, jEnd = spec.fields.size(); j != jEnd; ++j) {
-        if (spec.fields[j].first == field) {
-            return &spec.fields[j].second;
+    for (auto &f: spec.fields) {
+        if (f.first == field) {
+            return &f.second;
         }
     }
 
     // #nv begin #fast-updates
     const _FieldValuePair *fieldsData = spec.fields.data();
-    spec.fields.push_back( _FieldValuePair(field,
-        field == SdfFieldKeys->TimeSamples ? VtValue(SdfTimeSampleMap()) : VtValue()) );
+    spec.fields.emplace_back(std::piecewise_construct,
+                             std::forward_as_tuple(field),
+                             std::forward_as_tuple());
 
     if (fieldsData != spec.fields.data()) {
         // The spec's vector of fields has moved, so we need to refresh affected live field handles.
@@ -367,6 +368,7 @@ SdfData::_GetOrCreateFieldValue(const SdfPath &path,
         }
     }
     // nv end
+
     return &spec.fields.back().second;
 }
 

@@ -22,6 +22,8 @@
 # language governing permissions and limitations under the Apache License.
 #
 
+from __future__ import print_function
+
 from pxr import Ar
 
 def _IsPackageOrPackagedLayer(layer):
@@ -187,7 +189,7 @@ class TextureChecker(BaseRuleChecker):
 
     def _CheckTexture(self, texAssetPath):
         self._Msg("Checking texture <%s>." % texAssetPath)
-        texFileExt = Ar.GetResolver().GetExtension(texAssetPath)
+        texFileExt = Ar.GetResolver().GetExtension(texAssetPath).lower()
         if texFileExt in \
             TextureChecker._unsupportedImageFormats:
             self._AddFailedCheck("Found texture file '%s' with unsupported "

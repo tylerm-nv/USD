@@ -22,6 +22,8 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 
+from __future__ import print_function
+
 import sys, unittest
 from pxr import Sdf,Usd,Tf
 
@@ -38,8 +40,12 @@ class TestUsdPrim(unittest.TestCase):
             assert hash(p) == hash(q)
 
             # Check that unicode objects convert to sdfpaths.
-            p = s.GetPrimAtPath('/')
-            q = s.GetPrimAtPath('/')
+            #
+            # In python 3 all strings are unicode, but we want to keep these
+            # explicit unicode strings so we don't lose coverage in python 2
+            # tests.
+            p = s.GetPrimAtPath(u'/')
+            q = s.GetPrimAtPath(u'/')
             assert p is not q
             assert p == q
             assert hash(p) == hash(q)
@@ -64,28 +70,28 @@ class TestUsdPrim(unittest.TestCase):
             assert hash(a) == hash(b)
 
             # check for prims/props that exist
-            p = s.GetObjectAtPath('/foo')
+            p = s.GetObjectAtPath(u'/foo')
             assert p
             assert type(p) is Usd.Prim
 
-            a = s.GetObjectAtPath('/foo.attr')
+            a = s.GetObjectAtPath(u'/foo.attr')
             assert a
             assert type(a) is Usd.Attribute
 
-            r = s.GetObjectAtPath('/foo.relationship')
+            r = s.GetObjectAtPath(u'/foo.relationship')
             assert r 
             assert type(r) is Usd.Relationship
 
             # check for prims/props that dont exist
-            p = s.GetObjectAtPath('/nonexistent')
+            p = s.GetObjectAtPath(u'/nonexistent')
             assert not p
             assert type(p) is Usd.Prim
 
-            a = s.GetObjectAtPath('/foo.nonexistentattr')
+            a = s.GetObjectAtPath(u'/foo.nonexistentattr')
             assert not a
             assert type(a) is Usd.Property
 
-            r = s.GetObjectAtPath('/foo.nonexistentrelationship')
+            r = s.GetObjectAtPath(u'/foo.nonexistentrelationship')
             assert not r 
             assert type(r) is Usd.Property
 
@@ -907,6 +913,96 @@ class TestUsdPrim(unittest.TestCase):
 
             p = s.OverridePrim('/Foo/Bar')
             self.assertTrue(p)
+
+    def test_GetAtPath(self):
+        """Tests accessing UsdObjects of various types on the same stage
+        as a prim."""
+        for fmt in allFormats:
+            stage = Usd.Stage.CreateInMemory('GetAtPath.%s' % fmt)
+            child = stage.DefinePrim("/Parent/Child")
+            grandchild = stage.DefinePrim("/Parent/Child/Grandchild")
+            sibling = stage.DefinePrim("/Parent/Sibling")
+
+            x = sibling.CreateAttribute("x", Sdf.ValueTypeNames.Int)
+            y = grandchild.CreateRelationship("y")
+
+            # Double check axioms about prim validity
+            self.assertFalse(Usd.Prim())
+            self.assertTrue(child)
+            self.assertTrue(grandchild)
+            self.assertTrue(sibling)
+            self.assertTrue(y)
+            self.assertTrue(x)
+            self.assertFalse(stage.GetPrimAtPath(Sdf.Path.emptyPath))
+
+            # Test relative prim paths
+            self.assertEqual(child.GetPrimAtPath("../Sibling"), sibling)
+            self.assertEqual(child.GetPrimAtPath("Grandchild"), grandchild)
+            self.assertEqual(child.GetPrimAtPath(".."), child.GetParent())
+
+            # Test absolute prim paths
+            self.assertEqual(child.GetPrimAtPath("/Parent/Sibling"), sibling)
+            self.assertEqual(child.GetPrimAtPath("../Sibling"),
+                             child.GetObjectAtPath("../Sibling"))
+
+            # Test invalid paths
+            self.assertFalse(child.GetPrimAtPath("../InvalidPath"))
+
+            # Test relative propeties
+            self.assertEqual(child.GetRelationshipAtPath("Grandchild.y"), y)
+            self.assertEqual(child.GetAttributeAtPath("../Sibling.x"), x)
+            self.assertEqual(child.GetPropertyAtPath("Grandchild.y"), y)
+            self.assertEqual(child.GetPropertyAtPath("../Sibling.x"), x)
+
+            # Test Absolute propeties
+            self.assertEqual(
+                child.GetRelationshipAtPath("/Parent/Child/Grandchild.y"), y)
+            self.assertEqual(child.GetAttributeAtPath("/Parent/Sibling.x"), x)
+            self.assertEqual(
+                child.GetPropertyAtPath("/Parent/Child/Grandchild.y"), y)
+            self.assertEqual(child.GetPropertyAtPath("/Parent/Sibling.x"), x)
+            
+            # Test invalid paths
+            self.assertFalse(child.GetPropertyAtPath(".z"))
+            self.assertFalse(child.GetRelationshipAtPath(".z"))
+            self.assertFalse(child.GetAttributeAtPath(".z"))
+
+            # Test valid paths but invalid types
+            self.assertFalse(child.GetPrimAtPath("/Parent/Child/Grandchild.y"))
+            self.assertFalse(child.GetPrimAtPath("/Parent/Sibling.x"))
+            self.assertFalse(
+                child.GetAttributeAtPath("/Parent/Child/Grandchild.y"))
+            self.assertFalse(child.GetRelationshipAtPath(
+                "/Parent/Sibling.x"))
+            self.assertFalse(child.GetAttributeAtPath(
+                "/Parent/Child/Grandchild"))
+            self.assertFalse(child.GetRelationshipAtPath(
+                "/Parent/Sibling"))
+
+            # Test that empty paths don't raise exceptions
+            # NOTE-- this is intentionally different than SdfPrimSpec
+            # for symmetry with UsdStage's API
+            self.assertFalse(child.GetPrimAtPath(Sdf.Path.emptyPath))
+            self.assertFalse(child.GetObjectAtPath(Sdf.Path.emptyPath))
+            self.assertFalse(child.GetPropertyAtPath(Sdf.Path.emptyPath))
+            self.assertFalse(child.GetAttributeAtPath(Sdf.Path.emptyPath))
+            self.assertFalse(child.GetRelationshipAtPath(Sdf.Path.emptyPath))
+            
+            # Verify type deduction
+            self.assertTrue(
+                isinstance(child.GetObjectAtPath("../Sibling"), Usd.Prim))
+            self.assertTrue(
+                isinstance(child.GetObjectAtPath("../Sibling.x"),
+                Usd.Attribute))
+            self.assertTrue(
+                isinstance(child.GetObjectAtPath("Grandchild.y"),
+                Usd.Relationship))
+            self.assertTrue(
+                isinstance(child.GetPropertyAtPath("../Sibling.x"),
+                Usd.Attribute))
+            self.assertTrue(
+                isinstance(child.GetPropertyAtPath("Grandchild.y"),
+                Usd.Relationship))
 
 if __name__ == "__main__":
     unittest.main()

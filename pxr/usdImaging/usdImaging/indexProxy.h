@@ -115,6 +115,13 @@ public:
                          UsdImagingPrimAdapterSharedPtr adapter =
                             UsdImagingPrimAdapterSharedPtr());
 
+    // Mark a prim as needing follow-up work by the delegate
+    // (e.g. TrackVariability); this is automatically called on Insert*, but
+    // needs to manually be called in some special cases like native
+    // instancer population.
+    USDIMAGING_API
+    void Refresh(SdfPath const& cachePath);
+
     //
     // All removals are deferred to avoid surprises during change processing.
     //
@@ -201,6 +208,10 @@ private:
         , _checkVariability(checkVariability)
         // nv end
     {}
+
+    // Sort and de-duplicate "repopulate" paths to prevent double-inserts.
+    // Called by UsdImagingDelegate::ApplyPendingUpdates.
+    void _UniqueifyPathsToRepopulate();
 
     // #nv begin #nv-gpu-skel
     USDIMAGING_API

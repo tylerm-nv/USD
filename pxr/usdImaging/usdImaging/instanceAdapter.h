@@ -130,14 +130,6 @@ public:
     /// \name Instancing
     // ---------------------------------------------------------------------- //
 
-    virtual SdfPath GetPathForInstanceIndex(SdfPath const &protoCachePath,
-                                            int protoIndex,
-                                            int *instanceCountForThisLevel,
-                                            int *instancerIndex,
-                                            SdfPath *masterCachePath = NULL,
-                                            SdfPathVector *
-                                                instanceContext = NULL) override;
-
     virtual std::vector<VtArray<TfToken>>
     GetInstanceCategories(UsdPrim const& prim) override;
 
@@ -180,14 +172,20 @@ public:
         UsdTimeCode time) const override;
 
     // ---------------------------------------------------------------------- //
-    /// \name Selection
+    /// \name Picking & selection
     // ---------------------------------------------------------------------- //
+
+    virtual SdfPath GetScenePrimPath(
+        SdfPath const& cachePath,
+        int instanceIndex) const override;
+
     virtual bool PopulateSelection( 
-                                HdSelection::HighlightMode const& highlightMode,
-                                SdfPath const &cachePath,
-                                UsdPrim const &usdPrim,
-                                VtIntArray const &instanceIndices,
-                                HdSelectionSharedPtr const &result) override;
+        HdSelection::HighlightMode const& highlightMode,
+        SdfPath const &cachePath,
+        UsdPrim const &usdPrim,
+        int const hydraInstanceIndex,
+        VtIntArray const &parentInstanceIndices,
+        HdSelectionSharedPtr const &result) const override;
 
     // ---------------------------------------------------------------------- //
     /// \name Volume field information
@@ -226,6 +224,7 @@ private:
                      const TfToken& protoName,
                      SdfPath materialId,
                      TfToken drawMode,
+                     TfToken inheritablePurpose,
                      SdfPath instancerPath,
                      UsdImagingPrimAdapterSharedPtr const& primAdapter,
                      UsdImagingPrimAdapterSharedPtr const& instancerAdapter,
@@ -316,8 +315,8 @@ private:
     struct _IsInstanceInheritedPrimvarVaryingFn;
     bool _IsInstanceInheritedPrimvarVarying(UsdPrim const& instancer) const;
 
-    struct _GetPathForInstanceIndexFn;
     struct _PopulateInstanceSelectionFn;
+    struct _GetScenePrimPathFn;
 
     // Helper functions for dealing with "actual" instances to be drawn.
     //
@@ -377,7 +376,7 @@ private:
     // technically be split out to avoid two lookups, however it seems cleaner
     // to keep everything bundled up under the instancer path.
     struct _InstancerData {
-        _InstancerData() : numInstancesToDraw(0) { }
+        _InstancerData() : numInstancesToDraw(0), refreshVariability(false) { }
 
         // The master prim path associated with this instancer.
         SdfPath masterPath;
@@ -387,6 +386,10 @@ private:
 
         // The drawmode associated with this instancer.
         TfToken drawMode;
+
+        // The purpose value associated with this instance that can be inherited
+        // by proto prims that need to inherit ancestor purpose.
+        TfToken inheritablePurpose;
 
         // Inherited primvar
         struct PrimvarInfo {
@@ -431,6 +434,10 @@ private:
 
         // Nested native instances.
         SdfPathVector nestedInstances;
+
+        // Flag indicating we've queued up the delegate to call TrackVariability
+        // on this instancer.  We record this so we don't do it multiple times.
+        mutable bool refreshVariability;
     };
 
     // Map from instancer cache path to instancer data.

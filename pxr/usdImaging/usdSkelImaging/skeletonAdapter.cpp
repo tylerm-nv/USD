@@ -56,6 +56,10 @@
 #include "pxr/base/tf/type.h"
 #include "pxr/base/work/loops.h"
 
+//+NV_CHANGE FRZHANG
+#include <boost/pointer_cast.hpp>
+//-NV_CHANGE FRZHANG
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 TF_DEFINE_PRIVATE_TOKENS(
@@ -1435,7 +1439,7 @@ UsdSkelImagingSkeletonAdapter::_GetSkinnedPrimPoints(
     // we expect the skinned prim adapter to derive from GprimAdapter.
     UsdImagingPrimAdapterSharedPtr adapter = _GetPrimAdapter(skinnedPrim);
     auto gprimAdapter =
-        boost::dynamic_pointer_cast<UsdImagingGprimAdapter> (adapter);
+        std::dynamic_pointer_cast<UsdImagingGprimAdapter> (adapter);
     if (!TF_VERIFY(gprimAdapter)) {
         return VtVec3fArray();
     }

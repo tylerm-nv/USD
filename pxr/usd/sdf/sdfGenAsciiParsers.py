@@ -282,7 +282,7 @@ def _getConfiguration():
         allFiles = listdir(arguments.srcDir)
         validExts = ['.yy', '.ll']
         relevantFiles = [f for f in allFiles if splitext(f)[1] in validExts]
-        bases = list(set([splitext(f)[0] for f in relevantFiles]))
+        bases = set([splitext(f)[0] for f in relevantFiles])
 
         if not bases:
             exit('*** Unable to find source files for parser. Ensure that they '

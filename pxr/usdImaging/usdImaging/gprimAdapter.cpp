@@ -266,11 +266,7 @@ UsdImagingGprimAdapter::TrackVariability(UsdPrim const& prim,
                    true);
     }
 
-    TfToken purpose = GetPurpose(prim);
-    // Empty purpose means there is no opinion, fall back to geom.
-    if (purpose.IsEmpty())
-        purpose = UsdGeomTokens->default_;
-    valueCache->GetPurpose(cachePath) = purpose;
+    valueCache->GetPurpose(cachePath) = GetPurpose(prim, instancerContext);
 }
 
 void
@@ -296,7 +292,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
                                    instancerContext) const
 {
     UsdImagingValueCache* valueCache = _GetValueCache();
-    HdPrimvarDescriptorVector& primvars = valueCache->GetPrimvars(cachePath);
+    HdPrimvarDescriptorVector& vPrimvars = valueCache->GetPrimvars(cachePath);
 
     if (requestedBits & HdChangeTracker::DirtyPoints) {
 
@@ -304,7 +300,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
 
         // Expose points as a primvar.
         _MergePrimvar(
-            &primvars,
+            &vPrimvars,
             HdTokens->points,
             HdInterpolationVertex,
             HdPrimvarRoleTokens->point);
@@ -318,7 +314,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
             pointBased.GetVelocitiesAttr().Get(&velocities, time)) {
             // Expose velocities as a primvar.
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->velocities,
                 HdInterpolationVertex,
                 HdPrimvarRoleTokens->vector);
@@ -334,7 +330,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
             pointBased.GetAccelerationsAttr().Get(&accelerations, time)) {
             // Expose accelerations as a primvar.
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->accelerations,
                 HdInterpolationVertex,
                 HdPrimvarRoleTokens->vector);
@@ -368,7 +364,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
         if (GetColor(prim, time, &colorInterp, &color)) {
             valueCache->GetColor(cachePath) = color;
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->displayColor,
                 _UsdToHdInterpolation(colorInterp),
                 HdPrimvarRoleTokens->color);
@@ -385,7 +381,7 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
         if (GetOpacity(prim, time, &opacityInterp, &opacity)) {
             valueCache->GetOpacity(cachePath) = opacity;
             _MergePrimvar(
-                &primvars,
+                &vPrimvars,
                 HdTokens->displayOpacity,
                 _UsdToHdInterpolation(opacityInterp));
         } else {
@@ -460,51 +456,43 @@ UsdImagingGprimAdapter::UpdateForTime(UsdPrim const& prim,
 
 HdDirtyBits
 UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
-                                      SdfPath const& cachePath, 
-                                      TfToken const& propertyName)
+    SdfPath const& cachePath,
+    TfToken const& propertyName)
 {
-    if(propertyName == UsdGeomTokens->visibility 
-          || propertyName == UsdGeomTokens->purpose)
+    if (propertyName == UsdGeomTokens->visibility
+        || propertyName == UsdGeomTokens->purpose)
         return HdChangeTracker::DirtyVisibility;
 
     else if (UsdGeomXformable::IsTransformationAffectedByAttrNamed(propertyName))
         return HdChangeTracker::DirtyTransform;
 
-    else if (propertyName == UsdGeomTokens->extent) 
+    else if (propertyName == UsdGeomTokens->extent)
         return HdChangeTracker::DirtyExtent;
 
-    else if (propertyName == UsdGeomTokens->doubleSided) 
+    else if (propertyName == UsdGeomTokens->doubleSided)
         return HdChangeTracker::DirtyDoubleSided;
 
     else if (TfStringStartsWith(propertyName.GetString(),
-                               UsdShadeTokens->materialBinding.GetString()) ||
-             TfStringStartsWith(propertyName.GetString(),
-                                UsdTokens->collection.GetString())) {
+        UsdShadeTokens->materialBinding.GetString()) ||
+        TfStringStartsWith(propertyName.GetString(),
+            UsdTokens->collection.GetString())) {
         return HdChangeTracker::DirtyMaterialId;
     }
 
     // #nv begin #primvar-invalidation
     if (UsdImagingGprimAdapter_ProcessesPrimvarInvalidation()) {
-    // nv end
+        // nv end
 
-        // Is the property a primvar?
-        static std::string primvarsNS = "primvars:";
-        if (TfStringStartsWith(propertyName.GetString(), primvarsNS)) {
-            TfToken primvarName = TfToken(
-                propertyName.GetString().substr(primvarsNS.size()));
+            // Note: This doesn't handle "built-in" attributes that are treated as
+            // primvars. That responsibility falls on the child adapter.
+        if (UsdImagingPrimAdapter::_HasPrimvarsPrefix(propertyName)) {
+            return UsdImagingPrimAdapter::_ProcessPrefixedPrimvarPropertyChange(
+                prim, cachePath, propertyName);
+            // #nv begin #primvar-invalidation
 
-            if (!_IsBuiltinPrimvar(primvarName)) {
-                if (_PrimvarChangeRequiresResync(
-                    prim, cachePath, propertyName, primvarName)) {
-                    return HdChangeTracker::AllDirty;
-                } else {
-                    return HdChangeTracker::DirtyPrimvar;
-                }
-            }
         }
-    // #nv begin #primvar-invalidation
+        // nv end
     }
-    // nv end
 
     // #nv begin #clean-property-invalidation
     return GetDelegate()->ProcessNonAdapterBasedPropertyChange(prim, cachePath, propertyName);

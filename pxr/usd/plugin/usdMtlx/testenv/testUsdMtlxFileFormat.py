@@ -140,7 +140,7 @@ class TestFileFormat(unittest.TestCase):
             'weight_3':
             '/MaterialX/Materials/layered/NodeGraphs/layered_layer3_gradient'
         }
-        for inputName, source in inputToSource.iteritems():
+        for inputName, source in inputToSource.items():
             input = nodeGraph.GetInput(inputName)
             self.assertEqual(input.HasConnectedSource(), True)
             self.assertEqual(input.GetConnectedSource()[0].GetPath(), source)

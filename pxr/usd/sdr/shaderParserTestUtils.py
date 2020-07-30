@@ -29,6 +29,8 @@ This is mostly focused on dealing with OSL and Args files. This may need to be
 expanded/generalized to accommodate other types in the future.
 """
 
+from __future__ import print_function
+
 from pxr import Ndr
 from pxr import Sdr
 from pxr.Sdf import ValueTypeNames as SdfTypes
@@ -604,5 +606,10 @@ def TestShaderPropertiesNode(node):
     property = nodeOutputs["outputSurface"]
     assert property.GetType() == Sdr.PropertyTypes.Terminal
     assert GetType(property) == Tf.Type.FindByName("TfToken")
+    assert Ndr._ValidateProperty(node, property)
+
+    # Specific test of implementationName feature, we can skip type-tests
+    property = nodeInputs["normal"]
+    assert property.GetImplementationName() == "aliasedNormalInput"
     assert Ndr._ValidateProperty(node, property)
 

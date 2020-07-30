@@ -43,8 +43,10 @@ pxr_library(usd
         primCompositionQuery
         primData
         primDataHandle
+        primDefinition
         primFlags
         primRange
+        primTypeInfo
         property
         references
         relationship
@@ -117,6 +119,7 @@ pxr_library(usd
         wrapPayloads.cpp
         wrapPrim.cpp
         wrapPrimCompositionQuery.cpp
+        wrapPrimDefinition.cpp
         wrapPrimFlags.cpp
         wrapPrimRange.cpp
         wrapProperty.cpp
@@ -170,6 +173,7 @@ else()
 endif()
 
 pxr_test_scripts(
+    testenv/testUsdAppliedAPISchemas.py
     testenv/testUsdAttributeBlocking.py
     testenv/testUsdAttributeConnections.py
     testenv/testUsdBugs.py
@@ -192,6 +196,7 @@ pxr_test_scripts(
     testenv/testUsdInherits.py
     testenv/testUsdInstanceProxy.py
     testenv/testUsdInstancing.py
+    testenv/testUsdLoadUnloadDeepNestedInstancing.py
     testenv/testUsdMetadata.py
     testenv/testUsdModel.py
     testenv/testUsdNotices.py
@@ -262,6 +267,15 @@ pxr_build_test(testUsdMetadataCpp
         usd
     CPPFILES
         testenv/testUsdMetadata.cpp
+)
+
+pxr_build_test(testUsdInstancingCpp
+    LIBRARIES
+        tf
+        usd
+        sdf
+    CPPFILES
+        testenv/testUsdInstancingCpp.cpp
 )
 
 pxr_build_test(testUsdPrimGetDescendants
@@ -350,6 +364,11 @@ pxr_build_test(testUsdUsdzResolver
         usd
     CPPFILES
         testenv/testUsdUsdzResolver.cpp
+)
+
+pxr_install_test_dir(
+    SRC testenv/testUsdAppliedAPISchemas
+    DEST testUsdAppliedAPISchemas
 )
 
 pxr_install_test_dir(
@@ -443,6 +462,11 @@ pxr_install_test_dir(
 )
 
 pxr_install_test_dir(
+    SRC testenv/testUsdInstancingCpp.testenv
+    DEST testUsdInstancingCpp
+)
+
+pxr_install_test_dir(
     SRC testenv/testUsdVariantEditing.testenv
     DEST testUsdVariantEditing
 )
@@ -483,6 +507,11 @@ pxr_install_test_dir(
 )
 
 pxr_install_test_dir(
+    SRC testenv/testUsdLoadUnloadDeepNestedInstancing.testenv
+    DEST testUsdLoadUnloadDeepNestedInstancing
+)
+
+pxr_install_test_dir(
     SRC testenv/testUsdStageNoPython.testenv
     DEST testUsdStageNoPython
 )
@@ -518,6 +547,11 @@ pxr_install_test_dir(
 )
 
 pxr_install_test_dir(
+    SRC testenv/testUsdUsdzFileFormat
+    DEST testUsdUsdzFileFormat_pread
+)
+
+pxr_install_test_dir(
     SRC testenv/testUsdUsdzResolver
     DEST testUsdUsdzResolver
 )
@@ -525,6 +559,12 @@ pxr_install_test_dir(
 pxr_install_test_dir(
     SRC testenv/testUsdZipFile.testenv
     DEST testUsdZipFile
+)
+
+pxr_register_test(testUsdAppliedAPISchemas
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdAppliedAPISchemas"
+    EXPECTED_RETURN_CODE 0
 )
 
 pxr_register_test(testUsdAttributeBlocking
@@ -654,6 +694,12 @@ pxr_register_test(testUsdDataFormats
     EXPECTED_RETURN_CODE 0
 )
 
+pxr_register_test(testUsdLoadUnloadDeepNestedInstancing
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdLoadUnloadDeepNestedInstancing"
+    EXPECTED_RETURN_CODE 0
+)
+
 pxr_register_test(testUsdTimeSamples
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdTimeSamples"
@@ -679,6 +725,11 @@ pxr_register_test(testUsdPrimCompositionQuery
 
 pxr_register_test(testUsdPrimGetDescendants
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdPrimGetDescendants"
+    EXPECTED_RETURN_CODE 0
+)
+
+pxr_register_test(testUsdInstancingCpp
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdInstancingCpp"
     EXPECTED_RETURN_CODE 0
 )
 
@@ -885,14 +936,19 @@ pxr_register_test(testUsdUsdzFileFormat
     EXPECTED_RETURN_CODE 0
 )
 
-# NV aluk
-# Disabled while ArchFile* vs FILE* output resulting in differing usdz contents are investigated.
-#pxr_register_test(testUsdZipFile
-#    PYTHON
-#    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdZipFile"
-#    EXPECTED_RETURN_CODE 0
-#)
+pxr_register_test(testUsdUsdzFileFormat_pread
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUsdzFileFormat"
+    ENV
+        USDC_USE_PREAD=1
+    EXPECTED_RETURN_CODE 0
+)
 
+pxr_register_test(testUsdZipFile
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdZipFile"
+    EXPECTED_RETURN_CODE 0
+)
 pxr_register_test(testUsdUsdzResolver
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdUsdzResolver"
     EXPECTED_RETURN_CODE 0

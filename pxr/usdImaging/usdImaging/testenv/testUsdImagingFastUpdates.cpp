@@ -201,7 +201,7 @@ void BenchmarkFieldUpdate(const std::string &fileExtension, bool writeDefaults, 
     layer = SdfLayer::OpenAsAnonymous(assetPath);
     auto stage = UsdStage::Open(layer);
     Hd_UnitTestNullRenderDelegate renderDelegate;
-    UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate), SdfPath::AbsoluteRootPath());
+    UsdImagingDelegate imagingDelegate(HdRenderIndex::New(&renderDelegate, HdDriverVector()), SdfPath::AbsoluteRootPath());
 
     if (enableImaging)
         imagingDelegate.Populate(stage->GetPseudoRoot());

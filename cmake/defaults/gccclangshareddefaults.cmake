@@ -27,6 +27,7 @@
 # to remain minimal, marking the points where divergence is required.
 include(Options)
 
+# XXX:aluk Try removing this with v20.05 builds.
 # Turn on C++14; pxr won't build without it. 
 set(_PXR_GCC_CLANG_SHARED_CXX_FLAGS "${_PXR_GCC_CLANG_SHARED_CXX_FLAGS} -std=c++14")
 

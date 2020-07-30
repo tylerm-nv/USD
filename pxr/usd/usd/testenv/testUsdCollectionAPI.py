@@ -22,6 +22,8 @@
 # KIND, either express or implied. See the Apache License for the specific
 # language governing permissions and limitations under the Apache License.
 
+from __future__ import print_function
+
 from pxr import Usd, Vt, Sdf, Tf
 import unittest
 
@@ -148,7 +150,7 @@ class TestUsdCollectionAPI(unittest.TestCase):
         expandPnPCollObjects = Usd.CollectionAPI.ComputeIncludedObjects(
                 expandPnPCollMquery, stage)
 
-        self.assertEqual(len(expandPnPCollObjects), 18)
+        self.assertEqual(len(expandPnPCollObjects), 19)
         for obj in expandPnPCollObjects:
             self.assertTrue(expandPnPCollMquery.IsPathIncluded(obj.GetPath()))
 
@@ -172,7 +174,7 @@ class TestUsdCollectionAPI(unittest.TestCase):
         for obj in combinedCollIncObjects:
             self.assertTrue(combinedMquery.IsPathIncluded(obj.GetPath()))
 
-        self.assertEqual(len(combinedCollIncObjects), 15)
+        self.assertEqual(len(combinedCollIncObjects), 16)
 
         # now add the collection "expandPrimsColl", which includes "Geom" and 
         # exludes "Shapes", but is weaker than the "expandPrimsAndProperties" 
@@ -309,7 +311,7 @@ class TestUsdCollectionAPI(unittest.TestCase):
         (valid, reason) = allGeomProperties.Validate()
         allGeomPropertiesMquery = allGeomProperties.ComputeMembershipQuery()
         self.assertEqual(len(Usd.CollectionAPI.ComputeIncludedObjects(
-                allGeomPropertiesMquery, stage)), 24)
+                allGeomPropertiesMquery, stage)), 25)
 
         hasRels = Usd.CollectionAPI(testPrim, "hasRelationships")
         (valid, reason) = hasRels.Validate()
