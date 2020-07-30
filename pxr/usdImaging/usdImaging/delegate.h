@@ -31,7 +31,7 @@
 #include "pxr/usdImaging/usdImaging/version.h"
 #include "pxr/usdImaging/usdImaging/collectionCache.h"
 #include "pxr/usdImaging/usdImaging/valueCache.h"
-#include "pxr/usdImaging/usdImaging/inheritedCache.h"
+#include "pxr/usdImaging/usdImaging/resolvedAttributeCache.h"
 #include "pxr/usdImaging/usdImaging/instancerContext.h"
 
 #include "pxr/imaging/cameraUtil/conformWindow.h"
@@ -59,6 +59,7 @@
 #include "pxr/base/tf/declarePtrs.h"
 #include "pxr/base/tf/hashmap.h"
 #include "pxr/base/tf/hashset.h"
+#include "pxr/base/tf/denseHashSet.h"
 
 #include <boost/container/flat_map.hpp>
 #include <tbb/spin_rw_mutex.h>
@@ -240,9 +241,19 @@ public:
     USDIMAGING_API
     void ClearPickabilityMap();
 
-    /// Sets display guides rendering
+    /// Sets display of prims with purpose "render"
     USDIMAGING_API
-    void SetDisplayGuides(bool displayGuides);
+    void SetDisplayRender(const bool displayRender);
+    bool GetDisplayRender() const { return _displayRender; }
+
+    /// Sets display of prims with purpose "proxy"
+    USDIMAGING_API
+    void SetDisplayProxy(const bool displayProxy);
+    bool GetDisplayProxy() const { return _displayProxy; }
+
+    /// Sets display of prims with purpose "guide"
+    USDIMAGING_API
+    void SetDisplayGuides(const bool displayGuides);
     bool GetDisplayGuides() const { return _displayGuides; }
 
     /// Returns whether draw modes are enabled.
@@ -413,11 +424,19 @@ public:
 
     // Picking path resolution
     // Resolves a \p rprimId and \p instanceIndex back to the original USD
-    // gprim and instance index.
+    // gprim and instance index.  For point-instanced prims, \p instanceContext
+    // returns extra information about which instance this is of which level of
+    // point-instancer.  For example:
+    //   /World/PI instances /World/PI/proto/PI
+    //   /World/PI/proto/PI instances /World/PI/proto/PI/proto/Gprim
+    //   instancerContext = [/World/PI, 0], [/World/PI/proto/PI, 1] means that
+    //   this instance represents "protoIndex = 0" of /World/PI, etc.
+
     USDIMAGING_API
     virtual SdfPath
     GetScenePrimPath(SdfPath const& rprimId,
-                     int instanceIndex) override;
+                     int instanceIndex,
+                     HdInstancerContext *instancerContext = nullptr) override;
 
     // ExtComputation support
     USDIMAGING_API
@@ -493,6 +512,17 @@ public:
     /// Populate HdxSelection for given \p path (root) and \p instanceIndex.
     /// If indexPath is an instancer and instanceIndex is ALL_INSTANCES (-1),
     /// all instances will be selected.
+    ///
+    /// Note: if usdPath points to a gprim, "instanceIndex" (if provided)
+    /// is assumed to be the hydra-computed instance index returned from
+    /// picking code.
+    ///
+    /// If usdPath points to a point instancer, "instanceIndex" is assumed to
+    /// be the instance of the point instancer to selection highlight (e.g.
+    /// instance N of the protoIndices array).  This would correspond to
+    /// returning one of the tuples from GetScenePrimPath's "instancerContext".
+    ///
+    /// In any other case, the interpretation of instanceIndex is undefined.
     static constexpr int ALL_INSTANCES = -1;
     USDIMAGING_API
     bool PopulateSelection(HdSelection::HighlightMode const& highlightMode,
@@ -665,7 +695,8 @@ protected:
         HdDirtyBits       timeVaryingBits;  // Dirty Bits to set when
                                             // time changes
         HdDirtyBits       dirtyBits;        // Current dirty state of the prim.
-        SdfPathVector     extraDependencies;// Dependencies that aren't usdPrim.
+        TfDenseHashSet<SdfPath, SdfPath::Hash>
+                          extraDependencies;// Dependencies that aren't usdPrim.
     };
 
     typedef TfHashMap<SdfPath, _HdPrimInfo, SdfPath::Hash> _HdPrimInfoMap;
@@ -679,8 +710,7 @@ protected:
     _DependencyMap _dependencyInfo;
 
     void _GatherDependencies(SdfPath const& subtree,
-                             SdfPathVector *affectedCachePaths,
-                             SdfPathVector *affectedUsdPaths = nullptr);
+                             SdfPathVector *affectedCachePaths);
 
     // SdfPath::ReplacePrefix() is used frequently to convert between
     // cache path and Hydra render index path and is a performance bottleneck.
@@ -702,6 +732,10 @@ protected:
     _HdPrimInfo *_GetHdPrimInfo(const SdfPath &cachePath);
 
     Usd_PrimFlagsConjunction _GetDisplayPredicate() const;
+
+    // Mark render tags dirty for all prims.
+    // This is done in response to toggling the purpose-based display settings.
+    void _MarkRenderTagsDirty();
 
 
     typedef TfHashSet<SdfPath, SdfPath::Hash> _InstancerSet;
@@ -741,6 +775,10 @@ protected:
     HdReprSelector _reprFallback;
     HdCullStyle _cullStyleFallback;
 
+    // Cache of which prims are time-varying.
+    SdfPathVector _timeVaryingPrimCache;
+    bool _timeVaryingPrimCacheValid;
+
     // Change processing
     TfNotice::Key _objectsChangedNoticeKey;
     SdfPathVector _usdPathsToResync;
@@ -761,11 +799,14 @@ protected:
     UsdImaging_DrawModeCache _drawModeCache;
     UsdImaging_CollectionCache _collectionCache;
     UsdImaging_InheritedPrimvarCache _inheritedPrimvarCache;
+    UsdImaging_PointInstancerIndicesCache _pointInstancerIndicesCache;
 
     // Pickability
     PickabilityMap _pickablesMap;
 
-    // Display guides rendering
+    // Purpose-based rendering toggles
+    bool _displayRender;
+    bool _displayProxy;
     bool _displayGuides;
     bool _enableUsdDrawModes;
 

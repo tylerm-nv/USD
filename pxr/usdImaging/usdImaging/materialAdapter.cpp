@@ -25,6 +25,7 @@
 #include "pxr/usdImaging/usdImaging/delegate.h"
 #include "pxr/usdImaging/usdImaging/indexProxy.h"
 #include "pxr/usdImaging/usdImaging/tokens.h"
+#include "pxr/usdImaging/usdImaging/materialParamUtils.h"
 
 #include "pxr/imaging/hd/material.h"
 #include "pxr/imaging/hd/perfLog.h"
@@ -33,15 +34,17 @@
 #include "pxr/usd/usdShade/material.h"
 #include "pxr/usd/usdShade/shader.h"
 
-#include "pxr/usd/ar/resolver.h"
 #include "pxr/usd/sdr/registry.h"
 #include "pxr/usd/sdr/shaderNode.h"
 #include "pxr/usd/sdr/shaderProperty.h"
 
+#include "pxr/usd/ar/resolverScopedCache.h"
+#include "pxr/usd/ar/resolverContextBinder.h"
+
 // #nv begin #new-MDL-schema
+#include "pxr/usd/ar/resolver.h"
 #include "pxr/base/tf/envSetting.h"
 // nv end
-
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -71,7 +74,7 @@ _GetShaderNodeForSourceTypeFallbackNV(
                     shaderReg.GetShaderNodeByIdentifierAndType(shaderId, 
                         networkSelector)) {
                 if (identifier) {
-                    *identifier = TfToken(sdrNode->GetSourceURI());
+                    *identifier = TfToken(sdrNode->GetResolvedImplementationURI());
                 }
             }
         }
@@ -401,9 +404,15 @@ void _WalkGraph(
             relationship.inputName = UsdShadeOutput(attr).GetBaseName();
             materialNetwork->relationships.push_back(relationship);
         } else if (attrType == UsdShadeAttributeType::Input) {
-            // If it is an input attribute we get the authored value
-            VtValue value;
-            if (attr.Get(&value, time)) {
+            // If it is an input attribute we get the authored value.
+            //
+            // If its type is asset and contains <UDIM>,
+            // we resolve the asset path with the udim pattern to a file
+            // path with a udim pattern, e.g.,
+            // //SHOW/myImage.<UDIM>.exr to /filePath/myImage.<UDIM>.exr.
+            const VtValue value =
+                UsdImaging_ResolveMaterialParamValue(attr, time);
+            if (!value.IsEmpty()) {
                 node.parameters[inputName] = value;
             }
 
@@ -520,6 +529,10 @@ UsdImagingMaterialAdapter::_GetMaterialNetworkMap(
                          usdPrim.GetTypeName().GetText());
         return;
     }
+
+    // Bind the usd stage's resolver context for correct asset resolution.
+    ArResolverContextBinder binder(usdPrim.GetStage()->GetPathResolverContext());
+    ArResolverScopedCache resolverCache;
 
     const TfToken context = _GetMaterialNetworkSelector();
     TfTokenVector shaderSourceTypes = _GetShaderSourceTypes();

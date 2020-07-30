@@ -487,7 +487,7 @@ _ForEachField(
 #if 0 // throws "vector iterators incompatible" error on MSVC debug build
     auto finalIt = (srcIt == srcEndIt) ? dstIt : srcIt;
     auto finalEndIt = (srcIt == srcEndIt) ? dstEndIt : srcEndIt;
-    const bool inSrc = (finalIt == srcIt);
+    const bool inSrc = (srcIt != srcEndIt);
 
     for (; finalIt != finalEndIt; ++finalIt) {
         fn(*finalIt, /* inSrc = */ inSrc, /* inDst = */ !inSrc);

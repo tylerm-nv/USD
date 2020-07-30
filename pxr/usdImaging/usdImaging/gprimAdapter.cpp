@@ -459,9 +459,10 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
     SdfPath const& cachePath,
     TfToken const& propertyName)
 {
-    if (propertyName == UsdGeomTokens->visibility
-        || propertyName == UsdGeomTokens->purpose)
+    if (propertyName == UsdGeomTokens->visibility)
         return HdChangeTracker::DirtyVisibility;
+    else if (propertyName == UsdGeomTokens->purpose)
+        return HdChangeTracker::DirtyRenderTag;
 
     else if (UsdGeomXformable::IsTransformationAffectedByAttrNamed(propertyName))
         return HdChangeTracker::DirtyTransform;
@@ -483,9 +484,9 @@ UsdImagingGprimAdapter::ProcessPropertyChange(UsdPrim const& prim,
     if (UsdImagingGprimAdapter_ProcessesPrimvarInvalidation()) {
         // nv end
 
-            // Note: This doesn't handle "built-in" attributes that are treated as
-            // primvars. That responsibility falls on the child adapter.
-        if (UsdImagingPrimAdapter::_HasPrimvarsPrefix(propertyName)) {
+         // Note: This doesn't handle "built-in" attributes that are treated as
+         // primvars. That responsibility falls on the child adapter.
+        if (UsdGeomPrimvar::IsPrimvarRelatedPropertyName(propertyName)) {
             return UsdImagingPrimAdapter::_ProcessPrefixedPrimvarPropertyChange(
                 prim, cachePath, propertyName);
             // #nv begin #primvar-invalidation
