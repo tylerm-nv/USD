@@ -1213,6 +1213,20 @@ UsdImagingDelegate::ApplyPendingUpdates()
     _ExecuteWorkForVariabilityUpdate(&worker);
 }
 
+// #nv begin ignore API changes
+// HashSet may be better approach?
+static inline bool _isPhysXProperty(const TfToken& token)
+{
+    if (TfStringStartsWith(token, ".physics"))
+        return true;
+
+    if (TfStringStartsWith(token, ".physx"))
+        return true;
+
+    return false;
+}
+// #nv end
+
 void 
 UsdImagingDelegate::_OnUsdObjectsChanged(
     UsdNotice::ObjectsChanged const& notice,
@@ -1237,8 +1251,32 @@ UsdImagingDelegate::_OnUsdObjectsChanged(
     // changed. In this case, we must dump all cached data below these points
     // and repopulate those trees.
     const PathRange pathsToResync = notice.GetResyncedPaths();
-    _usdPathsToResync.insert(_usdPathsToResync.end(), 
-                          pathsToResync.begin(), pathsToResync.end());
+    for (const auto& path : pathsToResync)
+    {
+        // #nv begin ignore API changes
+        // avoid resyncing prim due to api change
+        const auto& changedFields = notice.GetChangedFields(path);
+        if (std::find(changedFields.begin(), changedFields.end(), PXR_NS::UsdTokens->apiSchemas) != changedFields.end())
+        {
+            // OM-24223 When duplicating a mesh with apiSchemas, the new mesh needs a full resync.
+            if (std::find(changedFields.begin(), changedFields.end(), PXR_NS::SdfFieldKeys->TypeName) ==
+                changedFields.end())
+            {
+                continue;
+            }
+        }
+        // #nv end
+
+        // #nv begin ignore physics attr
+        // avoid resyncing prim due to physics attribute resync
+        const TfToken attributeToken = path.GetElementToken();
+        if (_isPhysXProperty(attributeToken))
+            continue;
+        // #nv end
+
+        _usdPathsToResync.push_back(path);
+    }
+
     
     // These paths represent objects which have been modified in a 
     // non-structural way, for example setting a value. These paths may be paths
@@ -1259,6 +1297,14 @@ UsdImagingDelegate::_OnUsdObjectsChanged(
                     changedFields.begin(), changedFields.end());
             }
         } else if (it->IsPropertyPath()) {
+
+            // #nv begin ignore physics attr
+            // avoid resyncing prim due to physx property changes
+            const TfToken attributeToken = it->GetElementToken();
+            if (_isPhysXProperty(attributeToken))
+                continue;
+            // #nv end 
+
             _usdPathsToUpdate.emplace(*it, TfTokenVector());
         }
     }
