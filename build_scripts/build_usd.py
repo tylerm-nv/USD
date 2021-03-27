@@ -364,7 +364,12 @@ def RunCMake(context, force, extraArgs = None):
     # (Ninja, make), and --config for multi-configuration generators 
     # (Visual Studio); technically we don't need BOTH at the same
     # time, but specifying both is simpler than branching
-    config=("Debug" if context.buildDebug else "Release")
+    if context.buildDebug:
+        config = "Debug"
+    elif context.buildRelWithDebInfo:
+        config = "RelWithDebInfo"
+    else:
+        config = "Release"
 
     with CurrentWorkingDirectory(buildDir):
         Run('cmake '
@@ -1612,6 +1617,8 @@ subgroup.add_argument("--build-monolithic", dest="build_type",
 
 group.add_argument("--debug", dest="build_debug", action="store_true",
                     help="Build with debugging information")
+group.add_argument("--relwithdebinfo", dest="build_relwithdebinfo", action="store_true",
+                    help="Build release with debugging information")
 
 subgroup = group.add_mutually_exclusive_group()
 subgroup.add_argument("--tests", dest="build_tests", action="store_true",
@@ -1811,6 +1818,8 @@ class InstallContext:
 
         # Build type
         self.buildDebug = args.build_debug;
+        # Consider --debug stronger than --relwithdebinfo
+        self.buildRelWithDebInfo = not args.build_debug and args.build_relwithdebinfo
         self.buildShared = (args.build_type == SHARED_LIBS)
         self.buildMonolithic = (args.build_type == MONOLITHIC_LIB)
 
@@ -2111,6 +2120,13 @@ def FormatBuildArguments(buildArgs):
             args=" ".join(args))
     return s.lstrip()
 
+if context.buildDebug:
+    summaryBuildConfig = "Debug"
+elif context.buildRelWithDebInfo:
+    summaryBuildConfig = "RelWithDebInfo"
+else:
+    summaryBuildConfig = "Release"
+    
 summaryMsg = summaryMsg.format(
     usdSrcDir=context.usdSrcDir,
     usdInstDir=context.usdInstDir,
@@ -2128,7 +2144,7 @@ summaryMsg = summaryMsg.format(
     buildType=("Shared libraries" if context.buildShared
                else "Monolithic shared library" if context.buildMonolithic
                else ""),
-    buildConfig=("Debug" if context.buildDebug else "Release"),
+    buildConfig=summaryBuildConfig,
     buildImaging=("On" if context.buildImaging else "Off"),
     enablePtex=("On" if context.enablePtex else "Off"),
     enableOpenVDB=("On" if context.enableOpenVDB else "Off"),
