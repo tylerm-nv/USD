@@ -223,6 +223,7 @@ pxr_test_scripts(
     testenv/testUsdInstanceProxy.py
     testenv/testUsdInstancing.py
     testenv/testUsdLoadUnloadDeepNestedInstancing.py
+    testenv/testUsdLoadUtf8Content.py
     testenv/testUsdMetadata.py
     testenv/testUsdModel.py
     testenv/testUsdNotices.py
@@ -510,6 +511,11 @@ pxr_install_test_dir(
 pxr_install_test_dir(
     SRC testenv/testUsdFileFormats
     DEST testUsdFileFormats_pread
+)
+
+pxr_install_test_dir(
+    SRC testenv/testUsdLoadUtf8Content
+    DEST testUsdLoadUtf8Content
 )
 
 pxr_install_test_dir(
@@ -894,6 +900,12 @@ pxr_register_test(testUsdFileFormats_pread
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdFileFormats"
     ENV
         USDC_USE_PREAD=1
+    EXPECTED_RETURN_CODE 0
+)
+
+pxr_register_test(testUsdLoadUtf8Content
+    PYTHON
+    COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testUsdLoadUtf8Content"
     EXPECTED_RETURN_CODE 0
 )
 

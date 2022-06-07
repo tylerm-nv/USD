@@ -34,6 +34,8 @@
 #include "pxr/base/arch/inttypes.h"
 #include "pxr/base/tf/api.h"
 #include "pxr/base/tf/enum.h"
+#include "pxr/base/tf/envSetting.h"
+#include "pxr/base/tf/unicodeUtils.h"
 
 #include <cstdarg>
 #include <cstring>
@@ -45,6 +47,10 @@
 #include <vector>
 
 PXR_NAMESPACE_OPEN_SCOPE
+
+// environment setting for defaulting back to standard ASCII rules for identifiers and prim names
+// by default this value is true indicating that UTF8 rules will be used to validate
+TF_API extern TfEnvSetting<bool> ARCH_UTF8_IDENTIFIERS;
 
 class TfToken;
 
@@ -675,26 +681,126 @@ TF_API
 std::string TfStringCatPaths( const std::string &prefix, 
                               const std::string &suffix );
 
+/// Test whether the subsequence of \a identifier given by begin and end is a valid identifier name.
+///
+/// An identifier name is valid if it consists of any valid UTF-8 sequence that is at least one character long and
+/// fulfills the standard C/Python identifier convention for Unicode (XID_Start followed by 0 or more XID_Continue class
+/// characters).
+/// If the ARCH_UTF8_IDENTIFIERS environment setting is overridden to false, identifier validity is checked
+/// against legacy rules and follows the C/Python identifier convention for ASCII characters (i.e. at least one
+/// character long, must start with a letter or underscore, and must contain only letters, underscores, and numerals).
+/// WARNING: This method is for internal use only and performs no validation on begin / end.
+/// 
+inline bool
+_TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator begin, std::string::const_iterator end)
+{
+    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    {
+        // use unicode utils to validate the identifier
+        return TfUnicodeUtils::GetInstance().IsValidUTF8Identifier(identifier, begin, end);
+    }
+    else
+    {
+        auto letter = [](unsigned c) { return ((c - 'A') < 26) || ((c - 'a') < 26); };
+        auto number = [](unsigned c) { return (c - '0') < 10; };
+        auto under = [](unsigned c) { return c == '_'; };
+
+        // at least one character
+        if (begin == end)
+        {
+            return false;
+        }
+
+        unsigned char x = static_cast<unsigned char>(*begin);
+
+        // first character letter or underscore
+        if (!x || number(x))
+        {
+            return false;
+        }
+
+        do {
+            begin++;
+            if (begin != end)
+            {
+                x = static_cast<unsigned char>(*begin);
+            }
+        } while ((begin != end) && (letter(x) || number(x) || under(x)));
+
+        return begin == end;
+    }
+}
+
+/// Test whether the subsequence of \a primName given by begin and end is a valid prim name.
+///
+/// A prim name is valid if it consists of any valid UTF-8 sequence that is at least one character long.
+/// If the ARCH_UTF8_IDENTIFIERS environment setting is overridden to false, prim name
+/// validity is checked against legacy rules and follows the C/Python identifier convention for ASCII
+/// characters (i.e. at least one character long, must start with a letter or underscore, and must
+/// contain only letters, underscores, and numerals).  
+/// WARNING: This method is for internal use only and performs no validation on begin / end.
+/// 
+inline bool
+_TfIsValidPrimName(const std::string& primName, std::string::const_iterator begin, std::string::const_iterator end)
+{
+    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    {
+        // use unicode utils to validate the identifier
+        return TfUnicodeUtils::GetInstance().IsValidUTF8PrimName(primName, begin, end);
+    }
+    else
+    {
+        auto letter = [](unsigned c) { return ((c - 'A') < 26) || ((c - 'a') < 26); };
+        auto number = [](unsigned c) { return (c - '0') < 10; };
+        auto under = [](unsigned c) { return c == '_'; };
+
+        // at least one character
+        if (begin == end)
+        {
+            return false;
+        }
+
+        unsigned char x = static_cast<unsigned char>(*begin);
+        
+        // first character letter or underscore
+        if (!x || number(x))
+        {
+            return false;
+        }
+
+        do {
+            begin++;
+            if (begin != end)
+            {
+                x = static_cast<unsigned char>(*begin);
+            }
+        } while ((begin != end) && (letter(x) || number(x) || under(x)));
+
+        return begin == end;
+    }
+}
+
+/// Tests whether \a primName is valid.
+///
+/// A prim name is valid if it's at least one character long and all characters
+/// are valid UTF-8 sequences.
+/// 
+inline bool
+TfIsValidPrimName(const std::string& primName)
+{
+    return _TfIsValidPrimName(primName, primName.begin(), primName.end());
+}
+
 /// Test whether \a identifier is valid.
 ///
 /// An identifier is valid if it follows the C/Python identifier convention;
 /// that is, it must be at least one character long, must start with a letter
 /// or underscore, and must contain only letters, underscores, and numerals.
+/// 
 inline bool
 TfIsValidIdentifier(std::string const &identifier)
 {
-    char const *p = identifier.c_str();
-    auto letter = [](unsigned c) { return ((c-'A') < 26) || ((c-'a') < 26); };
-    auto number = [](unsigned c) { return (c-'0') < 10; };
-    auto under = [](unsigned c) { return c == '_'; };
-    unsigned x = *p;
-    if (!x || number(x)) {
-        return false;
-    }
-    while (letter(x) || number(x) || under(x)) {
-        x = *p++;
-    };
-    return x == 0;
+    return _TfIsValidIdentifier(identifier, identifier.begin(), identifier.end());
 }
 
 /// Produce a valid identifier (see TfIsValidIdentifier) from \p in by

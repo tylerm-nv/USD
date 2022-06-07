@@ -63,6 +63,8 @@ using std::vector;
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+TF_DEFINE_ENV_SETTING(ARCH_UTF8_IDENTIFIERS, true, "Allow UTF8 strings as identifiers and prim names");
+
 string
 TfVStringPrintf(const std::string& fmt, va_list ap)
 {
@@ -1153,34 +1155,43 @@ TfStringCatPaths( const string &prefix, const string &suffix )
 std::string
 TfMakeValidIdentifier(const std::string &in)
 {
-    std::string result;
-
-    if (in.empty()) {
-        result.push_back('_');
-        return result;
+    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    {
+        return TfUnicodeUtils::GetInstance().MakeValidUTF8Identifier(in);
     }
+    else
+    {
+        std::string result;
 
-    result.reserve(in.size());
-    char const *p = in.c_str();
-    if (!(('a' <= *p && *p <= 'z') || 
-          ('A' <= *p && *p <= 'Z') || 
-          *p == '_')) {
-        result.push_back('_');
-    } else {
-        result.push_back(*p);
-    }
-
-    for (++p; *p; ++p) {
-        if (!(('a' <= *p && *p <= 'z') ||    
-              ('A' <= *p && *p <= 'Z') ||  
-              ('0' <= *p && *p <= '9') ||  
-              *p == '_')) {
+        if (in.empty()) {
             result.push_back('_');
-        } else {
+            return result;
+        }
+
+        result.reserve(in.size());
+        char const* p = in.c_str();
+        if (!(('a' <= *p && *p <= 'z') ||
+            ('A' <= *p && *p <= 'Z') ||
+            *p == '_')) {
+            result.push_back('_');
+        }
+        else {
             result.push_back(*p);
         }
+
+        for (++p; *p; ++p) {
+            if (!(('a' <= *p && *p <= 'z') ||
+                ('A' <= *p && *p <= 'Z') ||
+                ('0' <= *p && *p <= '9') ||
+                *p == '_')) {
+                result.push_back('_');
+            }
+            else {
+                result.push_back(*p);
+            }
+        }
+        return result;
     }
-    return result;
 }
 
 std::string

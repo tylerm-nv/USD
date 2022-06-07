@@ -60,7 +60,7 @@ int pathYyparse(Sdf_PathParserContext *context);
 int pathYylex_init(yyscan_t *yyscanner);
 int pathYylex_destroy(yyscan_t yyscanner);
 yy_buffer_state *pathYy_scan_string(const char* str, yyscan_t yyscanner);
-yy_buffer_state *pathYy_scan_bytes(const char* str, size_t len, 
+yy_buffer_state *pathYy_scan_bytes(const char* str, int len, 
                                    yyscan_t yyscanner);
 void pathYy_delete_buffer(yy_buffer_state *b, yyscan_t yyscanner);
 

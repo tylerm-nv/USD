@@ -1566,7 +1566,7 @@ prim_type_name :
 prim_stmt_int:
     TOK_STRING {
             TfToken name($1.Get<std::string>());
-            if (!SdfPath::IsValidIdentifier(name)) {
+            if (!SdfPath::IsValidPrimName(name)) {
                 Err(context, "'%s' is not a valid prim name", name.GetText());
             }
             context->path = context->path.AppendChild(name);

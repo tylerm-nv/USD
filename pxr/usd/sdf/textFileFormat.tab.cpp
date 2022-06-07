@@ -3815,7 +3815,7 @@ yyreduce:
 #line 1567 "pxr/usd/sdf/textFileFormat.yy"
     {
             TfToken name((yyvsp[(1) - (1)]).Get<std::string>());
-            if (!SdfPath::IsValidIdentifier(name)) {
+            if (!SdfPath::IsValidPrimName(name)) {
                 Err(context, "'%s' is not a valid prim name", name.GetText());
             }
             context->path = context->path.AppendChild(name);

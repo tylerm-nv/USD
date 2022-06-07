@@ -1,29 +1,6 @@
-//
-// Copyright 2016 Pixar
-//
-// Licensed under the Apache License, Version 2.0 (the "Apache License")
-// with the following modification; you may not use this file except in
-// compliance with the Apache License and the following modification to it:
-// Section 6. Trademarks. is deleted and replaced with:
-//
-// 6. Trademarks. This License does not grant permission to use the trade
-//    names, trademarks, service marks, or product names of the Licensor
-//    and its affiliates, except as required to comply with Section 4(c) of
-//    the License and to reproduce the content of the NOTICE file.
-//
-// You may obtain a copy of the Apache License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the Apache License with the above modification is
-// distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-// KIND, either express or implied. See the Apache License for the specific
-// language governing permissions and limitations under the Apache License.
-//
-#line 2 "pxr/usd/sdf/textFileFormat.lex.cpp"
+#line 1 "./USD/pxr/usd/sdf/textFileFormat.lex.cpp"
 
-#line 4 "pxr/usd/sdf/textFileFormat.lex.cpp"
+#line 3 "./USD/pxr/usd/sdf/textFileFormat.lex.cpp"
 
 #define  YY_INT_ALIGNED short int
 
@@ -31,10 +8,232 @@
 
 #define FLEX_SCANNER
 #define YY_FLEX_MAJOR_VERSION 2
-#define YY_FLEX_MINOR_VERSION 5
-#define YY_FLEX_SUBMINOR_VERSION 39
+#define YY_FLEX_MINOR_VERSION 6
+#define YY_FLEX_SUBMINOR_VERSION 4
 #if YY_FLEX_SUBMINOR_VERSION > 0
 #define FLEX_BETA
+#endif
+
+#ifdef yy_create_buffer
+#define textFileFormatYy_create_buffer_ALREADY_DEFINED
+#else
+#define yy_create_buffer textFileFormatYy_create_buffer
+#endif
+
+#ifdef yy_delete_buffer
+#define textFileFormatYy_delete_buffer_ALREADY_DEFINED
+#else
+#define yy_delete_buffer textFileFormatYy_delete_buffer
+#endif
+
+#ifdef yy_scan_buffer
+#define textFileFormatYy_scan_buffer_ALREADY_DEFINED
+#else
+#define yy_scan_buffer textFileFormatYy_scan_buffer
+#endif
+
+#ifdef yy_scan_string
+#define textFileFormatYy_scan_string_ALREADY_DEFINED
+#else
+#define yy_scan_string textFileFormatYy_scan_string
+#endif
+
+#ifdef yy_scan_bytes
+#define textFileFormatYy_scan_bytes_ALREADY_DEFINED
+#else
+#define yy_scan_bytes textFileFormatYy_scan_bytes
+#endif
+
+#ifdef yy_init_buffer
+#define textFileFormatYy_init_buffer_ALREADY_DEFINED
+#else
+#define yy_init_buffer textFileFormatYy_init_buffer
+#endif
+
+#ifdef yy_flush_buffer
+#define textFileFormatYy_flush_buffer_ALREADY_DEFINED
+#else
+#define yy_flush_buffer textFileFormatYy_flush_buffer
+#endif
+
+#ifdef yy_load_buffer_state
+#define textFileFormatYy_load_buffer_state_ALREADY_DEFINED
+#else
+#define yy_load_buffer_state textFileFormatYy_load_buffer_state
+#endif
+
+#ifdef yy_switch_to_buffer
+#define textFileFormatYy_switch_to_buffer_ALREADY_DEFINED
+#else
+#define yy_switch_to_buffer textFileFormatYy_switch_to_buffer
+#endif
+
+#ifdef yypush_buffer_state
+#define textFileFormatYypush_buffer_state_ALREADY_DEFINED
+#else
+#define yypush_buffer_state textFileFormatYypush_buffer_state
+#endif
+
+#ifdef yypop_buffer_state
+#define textFileFormatYypop_buffer_state_ALREADY_DEFINED
+#else
+#define yypop_buffer_state textFileFormatYypop_buffer_state
+#endif
+
+#ifdef yyensure_buffer_stack
+#define textFileFormatYyensure_buffer_stack_ALREADY_DEFINED
+#else
+#define yyensure_buffer_stack textFileFormatYyensure_buffer_stack
+#endif
+
+#ifdef yylex
+#define textFileFormatYylex_ALREADY_DEFINED
+#else
+#define yylex textFileFormatYylex
+#endif
+
+#ifdef yyrestart
+#define textFileFormatYyrestart_ALREADY_DEFINED
+#else
+#define yyrestart textFileFormatYyrestart
+#endif
+
+#ifdef yylex_init
+#define textFileFormatYylex_init_ALREADY_DEFINED
+#else
+#define yylex_init textFileFormatYylex_init
+#endif
+
+#ifdef yylex_init_extra
+#define textFileFormatYylex_init_extra_ALREADY_DEFINED
+#else
+#define yylex_init_extra textFileFormatYylex_init_extra
+#endif
+
+#ifdef yylex_destroy
+#define textFileFormatYylex_destroy_ALREADY_DEFINED
+#else
+#define yylex_destroy textFileFormatYylex_destroy
+#endif
+
+#ifdef yyget_debug
+#define textFileFormatYyget_debug_ALREADY_DEFINED
+#else
+#define yyget_debug textFileFormatYyget_debug
+#endif
+
+#ifdef yyset_debug
+#define textFileFormatYyset_debug_ALREADY_DEFINED
+#else
+#define yyset_debug textFileFormatYyset_debug
+#endif
+
+#ifdef yyget_extra
+#define textFileFormatYyget_extra_ALREADY_DEFINED
+#else
+#define yyget_extra textFileFormatYyget_extra
+#endif
+
+#ifdef yyset_extra
+#define textFileFormatYyset_extra_ALREADY_DEFINED
+#else
+#define yyset_extra textFileFormatYyset_extra
+#endif
+
+#ifdef yyget_in
+#define textFileFormatYyget_in_ALREADY_DEFINED
+#else
+#define yyget_in textFileFormatYyget_in
+#endif
+
+#ifdef yyset_in
+#define textFileFormatYyset_in_ALREADY_DEFINED
+#else
+#define yyset_in textFileFormatYyset_in
+#endif
+
+#ifdef yyget_out
+#define textFileFormatYyget_out_ALREADY_DEFINED
+#else
+#define yyget_out textFileFormatYyget_out
+#endif
+
+#ifdef yyset_out
+#define textFileFormatYyset_out_ALREADY_DEFINED
+#else
+#define yyset_out textFileFormatYyset_out
+#endif
+
+#ifdef yyget_leng
+#define textFileFormatYyget_leng_ALREADY_DEFINED
+#else
+#define yyget_leng textFileFormatYyget_leng
+#endif
+
+#ifdef yyget_text
+#define textFileFormatYyget_text_ALREADY_DEFINED
+#else
+#define yyget_text textFileFormatYyget_text
+#endif
+
+#ifdef yyget_lineno
+#define textFileFormatYyget_lineno_ALREADY_DEFINED
+#else
+#define yyget_lineno textFileFormatYyget_lineno
+#endif
+
+#ifdef yyset_lineno
+#define textFileFormatYyset_lineno_ALREADY_DEFINED
+#else
+#define yyset_lineno textFileFormatYyset_lineno
+#endif
+
+#ifdef yyget_column
+#define textFileFormatYyget_column_ALREADY_DEFINED
+#else
+#define yyget_column textFileFormatYyget_column
+#endif
+
+#ifdef yyset_column
+#define textFileFormatYyset_column_ALREADY_DEFINED
+#else
+#define yyset_column textFileFormatYyset_column
+#endif
+
+#ifdef yywrap
+#define textFileFormatYywrap_ALREADY_DEFINED
+#else
+#define yywrap textFileFormatYywrap
+#endif
+
+#ifdef yyget_lval
+#define textFileFormatYyget_lval_ALREADY_DEFINED
+#else
+#define yyget_lval textFileFormatYyget_lval
+#endif
+
+#ifdef yyset_lval
+#define textFileFormatYyset_lval_ALREADY_DEFINED
+#else
+#define yyset_lval textFileFormatYyset_lval
+#endif
+
+#ifdef yyalloc
+#define textFileFormatYyalloc_ALREADY_DEFINED
+#else
+#define yyalloc textFileFormatYyalloc
+#endif
+
+#ifdef yyrealloc
+#define textFileFormatYyrealloc_ALREADY_DEFINED
+#else
+#define yyrealloc textFileFormatYyrealloc
+#endif
+
+#ifdef yyfree
+#define textFileFormatYyfree_ALREADY_DEFINED
+#else
+#define yyfree textFileFormatYyfree
 #endif
 
 /* First, we deal with  platform-specific or compiler-specific issues. */
@@ -107,40 +306,32 @@ typedef unsigned int flex_uint32_t;
 #define UINT32_MAX             (4294967295U)
 #endif
 
+#ifndef SIZE_MAX
+#define SIZE_MAX               (~(size_t)0)
+#endif
+
 #endif /* ! C99 */
 
 #endif /* ! FLEXINT_H */
 
-#ifdef __cplusplus
+/* begin standard C++ headers. */
 
-/* The "const" storage-class-modifier is valid. */
-#define YY_USE_CONST
-
-#else	/* ! __cplusplus */
-
-/* C99 requires __STDC__ to be defined as 1. */
-#if defined (__STDC__)
-
-#define YY_USE_CONST
-
-#endif	/* defined (__STDC__) */
-#endif	/* ! __cplusplus */
-
-#ifdef YY_USE_CONST
+/* TODO: this is always defined, so inline it */
 #define yyconst const
+
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define yynoreturn __attribute__((__noreturn__))
 #else
-#define yyconst
+#define yynoreturn
 #endif
 
 /* Returned upon end-of-file. */
 #define YY_NULL 0
 
-/* Promotes a possibly negative, possibly signed char to an unsigned
- * integer for use as an array index.  If the signed char is negative,
- * we want to instead treat it as an 8-bit unsigned char, hence the
- * double cast.
+/* Promotes a possibly negative, possibly signed char to an
+ *   integer in range [0..255] for use as an array index.
  */
-#define YY_SC_TO_UI(c) ((unsigned int) (unsigned char) c)
+#define YY_SC_TO_UI(c) ((YY_CHAR) (c))
 
 /* An opaque pointer. */
 #ifndef YY_TYPEDEF_YY_SCANNER_T
@@ -164,25 +355,29 @@ typedef void* yyscan_t;
  * definition of BEGIN.
  */
 #define BEGIN yyg->yy_start = 1 + 2 *
-
 /* Translate the current start state into a value that can be later handed
  * to BEGIN to return to the state.  The YYSTATE alias is for lex
  * compatibility.
  */
 #define YY_START ((yyg->yy_start - 1) / 2)
 #define YYSTATE YY_START
-
 /* Action number for EOF rule of a given start state. */
 #define YY_STATE_EOF(state) (YY_END_OF_BUFFER + state + 1)
-
 /* Special action meaning "start processing a new file". */
-#define YY_NEW_FILE textFileFormatYyrestart(yyin ,yyscanner )
-
+#define YY_NEW_FILE yyrestart( yyin , yyscanner )
 #define YY_END_OF_BUFFER_CHAR 0
 
 /* Size of default input buffer. */
 #ifndef YY_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k.
+ * Moreover, YY_BUF_SIZE is 2*YY_READ_BUF_SIZE in the general case.
+ * Ditto for the __ia64__ case accordingly.
+ */
+#define YY_BUF_SIZE 32768
+#else
 #define YY_BUF_SIZE 16384
+#endif /* __ia64__ */
 #endif
 
 /* The state buf must be large enough to hold one state per character in the main buffer.
@@ -202,7 +397,7 @@ typedef size_t yy_size_t;
 #define EOB_ACT_CONTINUE_SCAN 0
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
-
+    
     #define YY_LESS_LINENO(n)
     #define YY_LINENO_REWIND_TO(ptr)
     
@@ -219,7 +414,6 @@ typedef size_t yy_size_t;
 		YY_DO_BEFORE_ACTION; /* set up yytext again */ \
 		} \
 	while ( 0 )
-
 #define unput(c) yyunput( c, yyg->yytext_ptr , yyscanner )
 
 #ifndef YY_STRUCT_YY_BUFFER_STATE
@@ -234,12 +428,12 @@ struct yy_buffer_state
 	/* Size of input buffer in bytes, not including room for EOB
 	 * characters.
 	 */
-	yy_size_t yy_buf_size;
+	int yy_buf_size;
 
 	/* Number of characters read into yy_ch_buf, not including EOB
 	 * characters.
 	 */
-	yy_size_t yy_n_chars;
+	int yy_n_chars;
 
 	/* Whether we "own" the buffer - i.e., we know we created it,
 	 * and can realloc() it to grow it, and should free() it to
@@ -262,7 +456,7 @@ struct yy_buffer_state
 
     int yy_bs_lineno; /**< The line count. */
     int yy_bs_column; /**< The column count. */
-    
+
 	/* Whether to try to fill the input buffer when we reach the
 	 * end of it.
 	 */
@@ -279,7 +473,7 @@ struct yy_buffer_state
 	 * possible backing-up.
 	 *
 	 * When we actually see the EOF, we change the status to "new"
-	 * (via textFileFormatYyrestart()), so that the user can continue scanning by
+	 * (via yyrestart()), so that the user can continue scanning by
 	 * just pointing yyin at a new input file.
 	 */
 #define YY_BUFFER_EOF_PENDING 2
@@ -296,3822 +490,77 @@ struct yy_buffer_state
 #define YY_CURRENT_BUFFER ( yyg->yy_buffer_stack \
                           ? yyg->yy_buffer_stack[yyg->yy_buffer_stack_top] \
                           : NULL)
-
 /* Same as previous macro, but useful when we know that the buffer stack is not
  * NULL or when we need an lvalue. For internal use only.
  */
 #define YY_CURRENT_BUFFER_LVALUE yyg->yy_buffer_stack[yyg->yy_buffer_stack_top]
 
-void textFileFormatYyrestart (FILE *input_file ,yyscan_t yyscanner );
-void textFileFormatYy_switch_to_buffer (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-YY_BUFFER_STATE textFileFormatYy_create_buffer (FILE *file,int size ,yyscan_t yyscanner );
-void textFileFormatYy_delete_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void textFileFormatYy_flush_buffer (YY_BUFFER_STATE b ,yyscan_t yyscanner );
-void textFileFormatYypush_buffer_state (YY_BUFFER_STATE new_buffer ,yyscan_t yyscanner );
-void textFileFormatYypop_buffer_state (yyscan_t yyscanner );
+void yyrestart ( FILE *input_file , yyscan_t yyscanner );
+void yy_switch_to_buffer ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_create_buffer ( FILE *file, int size , yyscan_t yyscanner );
+void yy_delete_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yy_flush_buffer ( YY_BUFFER_STATE b , yyscan_t yyscanner );
+void yypush_buffer_state ( YY_BUFFER_STATE new_buffer , yyscan_t yyscanner );
+void yypop_buffer_state ( yyscan_t yyscanner );
 
-static void textFileFormatYyensure_buffer_stack (yyscan_t yyscanner );
-static void textFileFormatYy_load_buffer_state (yyscan_t yyscanner );
-static void textFileFormatYy_init_buffer (YY_BUFFER_STATE b,FILE *file ,yyscan_t yyscanner );
+static void yyensure_buffer_stack ( yyscan_t yyscanner );
+static void yy_load_buffer_state ( yyscan_t yyscanner );
+static void yy_init_buffer ( YY_BUFFER_STATE b, FILE *file , yyscan_t yyscanner );
+#define YY_FLUSH_BUFFER yy_flush_buffer( YY_CURRENT_BUFFER , yyscanner)
 
-#define YY_FLUSH_BUFFER textFileFormatYy_flush_buffer(YY_CURRENT_BUFFER ,yyscanner)
+YY_BUFFER_STATE yy_scan_buffer ( char *base, yy_size_t size , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_string ( const char *yy_str , yyscan_t yyscanner );
+YY_BUFFER_STATE yy_scan_bytes ( const char *bytes, int len , yyscan_t yyscanner );
 
-YY_BUFFER_STATE textFileFormatYy_scan_buffer (char *base,yy_size_t size ,yyscan_t yyscanner );
-YY_BUFFER_STATE textFileFormatYy_scan_string (yyconst char *yy_str ,yyscan_t yyscanner );
-YY_BUFFER_STATE textFileFormatYy_scan_bytes (yyconst char *bytes,yy_size_t len ,yyscan_t yyscanner );
+void *yyalloc ( yy_size_t , yyscan_t yyscanner );
+void *yyrealloc ( void *, yy_size_t , yyscan_t yyscanner );
+void yyfree ( void * , yyscan_t yyscanner );
 
-void *textFileFormatYyalloc (yy_size_t ,yyscan_t yyscanner );
-void *textFileFormatYyrealloc (void *,yy_size_t ,yyscan_t yyscanner );
-void textFileFormatYyfree (void * ,yyscan_t yyscanner );
-
-#define yy_new_buffer textFileFormatYy_create_buffer
-
+#define yy_new_buffer yy_create_buffer
 #define yy_set_interactive(is_interactive) \
 	{ \
 	if ( ! YY_CURRENT_BUFFER ){ \
-        textFileFormatYyensure_buffer_stack (yyscanner); \
+        yyensure_buffer_stack (yyscanner); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            textFileFormatYy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner); \
+            yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_is_interactive = is_interactive; \
 	}
-
 #define yy_set_bol(at_bol) \
 	{ \
 	if ( ! YY_CURRENT_BUFFER ){\
-        textFileFormatYyensure_buffer_stack (yyscanner); \
+        yyensure_buffer_stack (yyscanner); \
 		YY_CURRENT_BUFFER_LVALUE =    \
-            textFileFormatYy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner); \
+            yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner); \
 	} \
 	YY_CURRENT_BUFFER_LVALUE->yy_at_bol = at_bol; \
 	}
-
 #define YY_AT_BOL() (YY_CURRENT_BUFFER_LVALUE->yy_at_bol)
 
 /* Begin user sect3 */
 
-#define textFileFormatYywrap(yyscanner) 1
+#define textFileFormatYywrap(yyscanner) (/*CONSTCOND*/1)
 #define YY_SKIP_YYWRAP
-
-typedef unsigned char YY_CHAR;
+typedef flex_uint8_t YY_CHAR;
 
 typedef int yy_state_type;
 
 #define yytext_ptr yytext_r
 
-static yyconst flex_int16_t yy_nxt[][55] =
-    {
-    {
-        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
-        0,    0,    0,    0,    0
-    },
-
-    {
-        5,    6,    7,    8,    9,   10,   11,   12,   13,    6,
-        6,   14,   15,   16,   17,   17,   12,   18,    6,   19,
-       20,   20,   20,   20,   20,   20,   20,   21,   20,   20,
-       20,   22,   23,   20,   24,   25,   20,   20,   20,   20,
-
-       26,   27,   20,   20,   28,   29,   30,   31,   32,   33,
-       34,   35,   20,   20,   20
-    },
-
-    {
-        5,    6,    7,    8,    9,   10,   11,   12,   13,    6,
-        6,   14,   15,   16,   17,   17,   12,   18,    6,   19,
-       20,   20,   20,   20,   20,   20,   20,   21,   20,   20,
-       20,   22,   23,   20,   24,   25,   20,   20,   20,   20,
-       26,   27,   20,   20,   28,   29,   30,   31,   32,   33,
-       34,   35,   20,   20,   20
-    },
-
-    {
-        5,   36,   36,   37,   38,   36,   36,   36,   36,   39,
-       36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
-
-       36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   40,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   36,   36,   36,   36
-    },
-
-    {
-        5,   36,   36,   37,   38,   36,   36,   36,   36,   39,
-       36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   40,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   36,   36,   36,   36,   36,   36,   36,   36,   36,
-       36,   36,   36,   36,   36
-
-    },
-
-    {
-       -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,
-       -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,
-       -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,
-       -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,
-       -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,   -5,
-       -5,   -5,   -5,   -5,   -5
-    },
-
-    {
-        5,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,
-       -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,
-       -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,
-       -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,
-
-       -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,   -6,
-       -6,   -6,   -6,   -6,   -6
-    },
-
-    {
-        5,   -7,   41,   -7,   -7,   -7,   -7,   -7,   -7,   -7,
-       -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,
-       -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,
-       -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,
-       -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,   -7,
-       -7,   -7,   -7,   -7,   -7
-    },
-
-    {
-        5,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,
-       -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,
-
-       -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,
-       -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,
-       -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,   -8,
-       -8,   -8,   -8,   -8,   -8
-    },
-
-    {
-        5,   -9,   -9,   42,   -9,   -9,   -9,   -9,   -9,   -9,
-       -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,
-       -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,
-       -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,
-       -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,   -9,
-       -9,   -9,   -9,   -9,   -9
-
-    },
-
-    {
-        5,   43,   43,  -10,  -10,   44,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   45,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43
-    },
-
-    {
-        5,   46,   46,  -11,  -11,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46
-    },
-
-    {
-        5,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,
-      -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,
-      -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,
-      -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,
-      -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,  -12,
-      -12,  -12,  -12,  -12,  -12
-    },
-
-    {
-        5,   47,   47,  -13,  -13,   47,   47,   47,   48,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   49,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47
-    },
-
-    {
-        5,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,
-      -14,  -14,   50,  -14,   51,   52,  -14,  -14,  -14,  -14,
-      -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,
-      -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,
-       53,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,  -14,
-      -14,  -14,  -14,  -14,  -14
-
-    },
-
-    {
-        5,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,
-      -15,  -15,  -15,  -15,   54,   54,  -15,  -15,  -15,  -15,
-      -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,
-      -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,
-      -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,  -15,
-      -15,  -15,  -15,  -15,  -15
-    },
-
-    {
-        5,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,   55,
-      -16,  -16,  -16,   56,  -16,  -16,  -16,  -16,  -16,  -16,
-      -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,
-      -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,
-
-      -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,  -16,
-      -16,  -16,  -16,  -16,  -16
-    },
-
-    {
-        5,  -17,  -17,  -17,  -17,  -17,  -17,  -17,  -17,  -17,
-      -17,  -17,   57,  -17,   58,   58,  -17,  -17,  -17,  -17,
-      -17,  -17,  -17,  -17,   59,  -17,  -17,  -17,  -17,  -17,
-      -17,  -17,  -17,  -17,  -17,  -17,   59,  -17,  -17,  -17,
-      -17,  -17,  -17,  -17,  -17,  -17,  -17,  -17,  -17,  -17,
-      -17,  -17,  -17,  -17,  -17
-    },
-
-    {
-        5,   60,   60,  -18,  -18,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60,   60,   60,  -18,   61,   60,
-
-       60,   60,   60,   60,   60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60
-    },
-
-    {
-        5,   62,   62,  -19,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   63,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62
-
-    },
-
-    {
-        5,  -20,  -20,  -20,  -20,  -20,  -20,  -20,  -20,  -20,
-      -20,  -20,  -20,  -20,   64,   64,   65,  -20,  -20,  -20,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -20,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -21,  -21,  -21,  -21,  -21,  -21,  -21,  -21,  -21,
-      -21,  -21,  -21,  -21,   64,   64,   65,  -21,  -21,  -21,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -21,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   66,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,
-      -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,
-      -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,
-      -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,  -22,
-      -22,  -22,  -22,  -22,   67,  -22,  -22,  -22,  -22,  -22,
-      -22,  -22,  -22,  -22,  -22
-    },
-
-    {
-        5,  -23,  -23,  -23,  -23,  -23,  -23,  -23,  -23,  -23,
-      -23,  -23,  -23,  -23,   64,   64,   65,  -23,  -23,  -23,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -23,   64,   64,   64,   68,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   69,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -24,  -24,  -24,  -24,  -24,  -24,  -24,  -24,  -24,
-      -24,  -24,  -24,  -24,   64,   64,   65,  -24,  -24,  -24,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -24,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   70,   64,   64,   71,   64,   64,   64,   64,
-       72,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -25,  -25,  -25,  -25,  -25,  -25,  -25,  -25,  -25,
-      -25,  -25,  -25,  -25,   64,   64,   65,  -25,  -25,  -25,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -25,   64,   64,   64,   64,   73,   64,   64,   64,
-       74,   64,   64,   64,   64,   75,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -26,  -26,  -26,  -26,  -26,  -26,  -26,  -26,  -26,
-      -26,  -26,  -26,  -26,   64,   64,   65,  -26,  -26,  -26,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -26,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   76,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -27,  -27,  -27,  -27,  -27,  -27,  -27,  -27,  -27,
-      -27,  -27,  -27,  -27,   64,   64,   65,  -27,  -27,  -27,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -27,   64,   64,   64,   64,   64,   64,   64,   64,
-       77,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -28,  -28,  -28,  -28,  -28,  -28,  -28,  -28,  -28,
-      -28,  -28,  -28,  -28,   64,   64,   65,  -28,  -28,  -28,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -28,   78,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -29,  -29,  -29,  -29,  -29,  -29,  -29,  -29,  -29,
-      -29,  -29,  -29,  -29,   64,   64,   65,  -29,  -29,  -29,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -29,   64,   64,   64,   64,   64,   79,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   80,   64,   64,   64
-
-    },
-
-    {
-        5,  -30,  -30,  -30,  -30,  -30,  -30,  -30,  -30,  -30,
-      -30,  -30,  -30,  -30,   64,   64,   65,  -30,  -30,  -30,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -30,   81,   64,   64,   64,   82,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   83,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -31,  -31,  -31,  -31,  -31,  -31,  -31,  -31,  -31,
-      -31,  -31,  -31,  -31,   64,   64,   65,  -31,  -31,  -31,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -31,   64,   64,   64,   64,   84,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   85,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -32,  -32,  -32,  -32,  -32,  -32,  -32,  -32,  -32,
-      -32,  -32,  -32,  -32,   64,   64,   65,  -32,  -32,  -32,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -32,   64,   64,   86,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   87,   64,   64,   64,
-       88,   64,   64,   89,   64
-    },
-
-    {
-        5,  -33,  -33,  -33,  -33,  -33,  -33,  -33,  -33,  -33,
-      -33,  -33,  -33,  -33,   64,   64,   65,  -33,  -33,  -33,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -33,   64,   64,   64,   64,   64,   64,   64,   64,
-       90,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -34,  -34,  -34,  -34,  -34,  -34,  -34,  -34,  -34,
-      -34,  -34,  -34,  -34,   64,   64,   65,  -34,  -34,  -34,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -34,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   91,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -35,  -35,  -35,  -35,  -35,  -35,  -35,  -35,  -35,
-      -35,  -35,  -35,  -35,   64,   64,   65,  -35,  -35,  -35,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -35,   92,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,
-      -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,
-      -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,
-      -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,
-
-      -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,  -36,
-      -36,  -36,  -36,  -36,  -36
-    },
-
-    {
-        5,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,
-      -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,
-      -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,
-      -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,
-      -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,  -37,
-      -37,  -37,  -37,  -37,  -37
-    },
-
-    {
-        5,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,
-      -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,
-
-      -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,
-      -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,
-      -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,  -38,
-      -38,  -38,  -38,  -38,  -38
-    },
-
-    {
-        5,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,
-      -39,  -39,  -39,   93,  -39,  -39,  -39,  -39,  -39,  -39,
-      -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,
-      -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,
-      -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,  -39,
-      -39,  -39,  -39,  -39,  -39
-
-    },
-
-    {
-        5,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,
-      -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,
-      -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,
-      -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,  -40,
-      -40,  -40,  -40,  -40,   67,  -40,  -40,  -40,  -40,  -40,
-      -40,  -40,  -40,  -40,  -40
-    },
-
-    {
-        5,  -41,   41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,
-      -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,
-      -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,
-      -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,
-
-      -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,  -41,
-      -41,  -41,  -41,  -41,  -41
-    },
-
-    {
-        5,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,
-      -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,
-      -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,
-      -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,
-      -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,  -42,
-      -42,  -42,  -42,  -42,  -42
-    },
-
-    {
-        5,   43,   43,  -43,  -43,   94,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   45,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43
-    },
-
-    {
-        5,   95,   95,   95,   95,   96,   95,   95,   95,   95,
-       95,   95,   95,   95,   95,   95,   95,   95,   95,   95,
-       95,   95,   95,   95,   95,   95,   95,   95,   95,   95,
-       95,   95,   95,   95,   95,   95,   95,   95,   95,   95,
-       95,   95,   95,   95,   95,   95,   95,   95,   95,   95,
-       95,   95,   95,   95,   95
-
-    },
-
-    {
-        5,   97,   97,  -45,   43,   98,   97,   97,   97,   97,
-       97,   97,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   97,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   99,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   97,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   97,   97,   97,   97
-    },
-
-    {
-        5,   46,   46,  -46,  -46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-
-       46,   46,   46,   46,   46,   46,   46,   46,   46,   46,
-       46,   46,   46,   46,   46
-    },
-
-    {
-        5,   47,   47,  -47,  -47,   47,   47,   47,  100,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   49,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47
-    },
-
-    {
-        5,  101,  101,  101,  101,  101,  101,  101,  102,  101,
-      101,  101,  101,  101,  101,  101,  101,  101,  101,  101,
-
-      101,  101,  101,  101,  101,  101,  101,  101,  101,  101,
-      101,  101,  101,  101,  101,  101,  101,  101,  101,  101,
-      101,  101,  101,  101,  101,  101,  101,  101,  101,  101,
-      101,  101,  101,  101,  101
-    },
-
-    {
-        5,  103,  103,  -49,   47,  103,  103,  103,  104,  103,
-      103,  103,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  103,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  105,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  103,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  103,  103,  103,  103
-
-    },
-
-    {
-        5,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,
-      -50,  -50,  -50,  -50,   54,   54,  -50,  -50,  -50,  -50,
-      -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,
-      -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,
-      -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,  -50,
-      -50,  -50,  -50,  -50,  -50
-    },
-
-    {
-        5,  -51,  -51,  -51,  -51,  -51,  -51,  -51,  -51,  -51,
-      -51,  -51,   57,  -51,   52,   52,  -51,  -51,  -51,  -51,
-      -51,  -51,  -51,  -51,   59,  -51,  -51,  -51,  -51,  -51,
-      -51,  -51,  -51,  -51,  -51,  -51,   59,  -51,  -51,  -51,
-
-      -51,  -51,  -51,  -51,  -51,  -51,  -51,  -51,  -51,  -51,
-      -51,  -51,  -51,  -51,  -51
-    },
-
-    {
-        5,  -52,  -52,  -52,  -52,  -52,  -52,  -52,  -52,  -52,
-      -52,  -52,   57,  -52,   52,   52,  -52,  -52,  -52,  -52,
-      -52,  -52,  -52,  -52,   59,  -52,  -52,  -52,  -52,  -52,
-      -52,  -52,  -52,  -52,  -52,  -52,   59,  -52,  -52,  -52,
-      -52,  -52,  -52,  -52,  -52,  -52,  -52,  -52,  -52,  -52,
-      -52,  -52,  -52,  -52,  -52
-    },
-
-    {
-        5,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,
-      -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,
-
-      -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,
-      -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,  -53,
-      -53,  -53,  -53,  -53,  106,  -53,  -53,  -53,  -53,  -53,
-      -53,  -53,  -53,  -53,  -53
-    },
-
-    {
-        5,  -54,  -54,  -54,  -54,  -54,  -54,  -54,  -54,  -54,
-      -54,  -54,  -54,  -54,   54,   54,  -54,  -54,  -54,  -54,
-      -54,  -54,  -54,  -54,  107,  -54,  -54,  -54,  -54,  -54,
-      -54,  -54,  -54,  -54,  -54,  -54,  107,  -54,  -54,  -54,
-      -54,  -54,  -54,  -54,  -54,  -54,  -54,  -54,  -54,  -54,
-      -54,  -54,  -54,  -54,  -54
-
-    },
-
-    {
-        5,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,
-      -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,
-      -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,
-      -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,
-      -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,  -55,
-      -55,  -55,  -55,  -55,  -55
-    },
-
-    {
-        5,  108,  108,  -56,  -56,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108
-    },
-
-    {
-        5,  -57,  -57,  -57,  -57,  -57,  -57,  -57,  -57,  -57,
-      -57,  -57,  -57,  -57,  109,  109,  -57,  -57,  -57,  -57,
-      -57,  -57,  -57,  -57,   59,  -57,  -57,  -57,  -57,  -57,
-      -57,  -57,  -57,  -57,  -57,  -57,   59,  -57,  -57,  -57,
-      -57,  -57,  -57,  -57,  -57,  -57,  -57,  -57,  -57,  -57,
-      -57,  -57,  -57,  -57,  -57
-    },
-
-    {
-        5,  -58,  -58,  -58,  -58,  -58,  -58,  -58,  -58,  -58,
-      -58,  -58,   57,  -58,   58,   58,  -58,  -58,  -58,  -58,
-
-      -58,  -58,  -58,  -58,   59,  -58,  -58,  -58,  -58,  -58,
-      -58,  -58,  -58,  -58,  -58,  -58,   59,  -58,  -58,  -58,
-      -58,  -58,  -58,  -58,  -58,  -58,  -58,  -58,  -58,  -58,
-      -58,  -58,  -58,  -58,  -58
-    },
-
-    {
-        5,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,
-      110,  110,  -59,  -59,  111,  111,  -59,  -59,  -59,  -59,
-      -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,
-      -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,
-      -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,  -59,
-      -59,  -59,  -59,  -59,  -59
-
-    },
-
-    {
-        5,   60,   60,  -60,  -60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60,   60,   60,  -60,   61,   60,
-       60,   60,   60,   60,   60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60,   60,   60,   60,   60,   60,
-       60,   60,   60,   60,   60
-    },
-
-    {
-        5,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,
-      -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,
-      -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,
-      -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,
-
-      -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,  -61,
-      -61,  -61,  -61,  -61,  -61
-    },
-
-    {
-        5,   62,   62,  -62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,  112,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62,   62,   62,   62,   62,   62,
-       62,   62,   62,   62,   62
-    },
-
-    {
-        5,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,
-      -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  113,
-
-      -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,
-      -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,
-      -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,  -63,
-      -63,  -63,  -63,  -63,  -63
-    },
-
-    {
-        5,  -64,  -64,  -64,  -64,  -64,  -64,  -64,  -64,  -64,
-      -64,  -64,  -64,  -64,   64,   64,   65,  -64,  -64,  -64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -65,  -65,  -65,  -65,  -65,  -65,  -65,  -65,  -65,
-      -65,  -65,  -65,  -65,  -65,  -65,  114,  -65,  -65,  -65,
-      115,  115,  115,  115,  115,  115,  115,  115,  115,  115,
-      115,  -65,  115,  115,  115,  115,  115,  115,  115,  115,
-      115,  115,  115,  115,  115,  115,  115,  115,  115,  115,
-      115,  115,  115,  115,  115
-    },
-
-    {
-        5,  -66,  -66,  -66,  -66,  -66,  -66,  -66,  -66,  -66,
-      -66,  -66,  -66,  -66,   64,   64,   65,  -66,  -66,  -66,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -66,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,  116,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,
-      -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,
-      -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,
-      -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,
-      -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,  -67,
-      -67,  -67,  -67,  -67,  -67
-    },
-
-    {
-        5,  -68,  -68,  -68,  -68,  -68,  -68,  -68,  -68,  -68,
-      -68,  -68,  -68,  -68,   64,   64,   65,  -68,  -68,  -68,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -68,   64,   64,   64,  117,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -69,  -69,  -69,  -69,  -69,  -69,  -69,  -69,  -69,
-      -69,  -69,  -69,  -69,   64,   64,   65,  -69,  -69,  -69,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -69,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,  118,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -70,  -70,  -70,  -70,  -70,  -70,  -70,  -70,  -70,
-      -70,  -70,  -70,  -70,   64,   64,   65,  -70,  -70,  -70,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -70,  119,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -71,  -71,  -71,  -71,  -71,  -71,  -71,  -71,  -71,
-      -71,  -71,  -71,  -71,   64,   64,   65,  -71,  -71,  -71,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -71,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,  120,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -72,  -72,  -72,  -72,  -72,  -72,  -72,  -72,  -72,
-      -72,  -72,  -72,  -72,   64,   64,   65,  -72,  -72,  -72,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -72,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  121,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -73,  -73,  -73,  -73,  -73,  -73,  -73,  -73,  -73,
-      -73,  -73,  -73,  -73,   64,   64,   65,  -73,  -73,  -73,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -73,   64,   64,   64,   64,   64,  122,   64,   64,
-       64,   64,  123,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -74,  -74,  -74,  -74,  -74,  -74,  -74,  -74,  -74,
-      -74,  -74,  -74,  -74,   64,   64,   65,  -74,  -74,  -74,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -74,   64,   64,  124,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  125,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -75,  -75,  -75,  -75,  -75,  -75,  -75,  -75,  -75,
-      -75,  -75,  -75,  -75,   64,   64,   65,  -75,  -75,  -75,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -75,   64,   64,  126,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -76,  -76,  -76,  -76,  -76,  -76,  -76,  -76,  -76,
-      -76,  -76,  -76,  -76,   64,   64,   65,  -76,  -76,  -76,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -76,   64,   64,   64,   64,   64,   64,   64,  127,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -77,  -77,  -77,  -77,  -77,  -77,  -77,  -77,  -77,
-      -77,  -77,  -77,  -77,   64,   64,   65,  -77,  -77,  -77,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -77,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  128,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -78,  -78,  -78,  -78,  -78,  -78,  -78,  -78,  -78,
-      -78,  -78,  -78,  -78,   64,   64,   65,  -78,  -78,  -78,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -78,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  129,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -79,  -79,  -79,  -79,  -79,  -79,  -79,  -79,  -79,
-      -79,  -79,  -79,  -79,   64,   64,   65,  -79,  -79,  -79,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -79,   64,   64,   64,   64,   64,  130,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -80,  -80,  -80,  -80,  -80,  -80,  -80,  -80,  -80,
-      -80,  -80,  -80,  -80,   64,   64,   65,  -80,  -80,  -80,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -80,   64,   64,   64,   64,  131,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -81,  -81,  -81,  -81,  -81,  -81,  -81,  -81,  -81,
-      -81,  -81,  -81,  -81,   64,   64,   65,  -81,  -81,  -81,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -81,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  132,   64
-    },
-
-    {
-        5,  -82,  -82,  -82,  -82,  -82,  -82,  -82,  -82,  -82,
-      -82,  -82,  -82,  -82,   64,   64,   65,  -82,  -82,  -82,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -82,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  133,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -83,  -83,  -83,  -83,  -83,  -83,  -83,  -83,  -83,
-      -83,  -83,  -83,  -83,   64,   64,   65,  -83,  -83,  -83,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -83,   64,   64,   64,   64,  134,   64,   64,   64,
-       64,   64,   64,   64,   64,  135,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -84,  -84,  -84,  -84,  -84,  -84,  -84,  -84,  -84,
-      -84,  -84,  -84,  -84,   64,   64,   65,  -84,  -84,  -84,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -84,   64,   64,   64,   64,   64,  136,   64,   64,
-       64,   64,  137,   64,   64,  138,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -85,  -85,  -85,  -85,  -85,  -85,  -85,  -85,  -85,
-      -85,  -85,  -85,  -85,   64,   64,   65,  -85,  -85,  -85,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -85,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  139,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -86,  -86,  -86,  -86,  -86,  -86,  -86,  -86,  -86,
-      -86,  -86,  -86,  -86,   64,   64,   65,  -86,  -86,  -86,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -86,  140,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -87,  -87,  -87,  -87,  -87,  -87,  -87,  -87,  -87,
-      -87,  -87,  -87,  -87,   64,   64,   65,  -87,  -87,  -87,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -87,   64,   64,   64,   64,  141,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -88,  -88,  -88,  -88,  -88,  -88,  -88,  -88,  -88,
-      -88,  -88,  -88,  -88,   64,   64,   65,  -88,  -88,  -88,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -88,   64,  142,   64,   64,   64,  143,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -89,  -89,  -89,  -89,  -89,  -89,  -89,  -89,  -89,
-      -89,  -89,  -89,  -89,   64,   64,   65,  -89,  -89,  -89,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -89,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  144,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  -90,  -90,  -90,  -90,  -90,  -90,  -90,  -90,  -90,
-      -90,  -90,  -90,  -90,   64,   64,   65,  -90,  -90,  -90,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -90,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  145,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -91,  -91,  -91,  -91,  -91,  -91,  -91,  -91,  -91,
-      -91,  -91,  -91,  -91,   64,   64,   65,  -91,  -91,  -91,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -91,   64,   64,   64,   64,   64,   64,   64,   64,
-
-      146,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -92,  -92,  -92,  -92,  -92,  -92,  -92,  -92,  -92,
-      -92,  -92,  -92,  -92,   64,   64,   65,  -92,  -92,  -92,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,  -92,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  147,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,
-      -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,
-
-      -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,
-      -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,
-      -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,  -93,
-      -93,  -93,  -93,  -93,  -93
-    },
-
-    {
-        5,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,
-      -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,
-      -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,
-      -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,
-      -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,  -94,
-      -94,  -94,  -94,  -94,  -94
-
-    },
-
-    {
-        5,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,
-      -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,
-      -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,
-      -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,
-      -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,  -95,
-      -95,  -95,  -95,  -95,  -95
-    },
-
-    {
-        5,  148,  148,  148,  148,  149,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  150,  148,  148,  148,  148,  148,  148,  148,  148,
-
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-    },
-
-    {
-        5,   43,   43,  -97,  -97,   94,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   45,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43
-    },
-
-    {
-        5,   43,   43,  -98,  -98,   94,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   45,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43,   43,   43,   43,   43,   43,
-       43,   43,   43,   43,   43
-    },
-
-    {
-        5,   97,   97,  -99,   43,   98,   97,   97,   97,   97,
-       97,   97,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   97,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   99,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   97,   97,   97,   97,   97,   97,   97,   97,   97,
-       97,   97,   97,   97,   97
-
-    },
-
-    {
-        5, -100, -100, -100, -100, -100, -100, -100, -100, -100,
-     -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,
-     -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,
-     -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,
-     -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,
-     -100, -100, -100, -100, -100
-    },
-
-    {
-        5, -101, -101, -101, -101, -101, -101, -101, -101, -101,
-     -101, -101, -101, -101, -101, -101, -101, -101, -101, -101,
-     -101, -101, -101, -101, -101, -101, -101, -101, -101, -101,
-     -101, -101, -101, -101, -101, -101, -101, -101, -101, -101,
-
-     -101, -101, -101, -101, -101, -101, -101, -101, -101, -101,
-     -101, -101, -101, -101, -101
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  152,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  153,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5,   47,   47, -103, -103,   47,   47,   47,  100,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   49,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47
-    },
-
-    {
-        5,   47,   47, -104, -104,   47,   47,   47,  100,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   49,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47,   47,   47,   47,   47,   47,
-       47,   47,   47,   47,   47
-
-    },
-
-    {
-        5,  103,  103, -105,   47,  103,  103,  103,  104,  103,
-      103,  103,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  103,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  105,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  103,  103,  103,  103,  103,  103,  103,  103,  103,
-      103,  103,  103,  103,  103
-    },
-
-    {
-        5, -106, -106, -106, -106, -106, -106, -106, -106, -106,
-     -106, -106, -106, -106, -106, -106, -106, -106, -106, -106,
-     -106, -106, -106, -106, -106, -106, -106, -106, -106, -106,
-     -106, -106, -106, -106, -106, -106, -106,  154, -106, -106,
-
-     -106, -106, -106, -106, -106, -106, -106, -106, -106, -106,
-     -106, -106, -106, -106, -106
-    },
-
-    {
-        5, -107, -107, -107, -107, -107, -107, -107, -107, -107,
-      155,  155, -107, -107,  156,  156, -107, -107, -107, -107,
-     -107, -107, -107, -107, -107, -107, -107, -107, -107, -107,
-     -107, -107, -107, -107, -107, -107, -107, -107, -107, -107,
-     -107, -107, -107, -107, -107, -107, -107, -107, -107, -107,
-     -107, -107, -107, -107, -107
-    },
-
-    {
-        5,  108,  108, -108, -108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108,  108,  108,  108,  108,  108,
-      108,  108,  108,  108,  108
-    },
-
-    {
-        5, -109, -109, -109, -109, -109, -109, -109, -109, -109,
-     -109, -109, -109, -109,  109,  109, -109, -109, -109, -109,
-     -109, -109, -109, -109,   59, -109, -109, -109, -109, -109,
-     -109, -109, -109, -109, -109, -109,   59, -109, -109, -109,
-     -109, -109, -109, -109, -109, -109, -109, -109, -109, -109,
-     -109, -109, -109, -109, -109
-
-    },
-
-    {
-        5, -110, -110, -110, -110, -110, -110, -110, -110, -110,
-     -110, -110, -110, -110,  111,  111, -110, -110, -110, -110,
-     -110, -110, -110, -110, -110, -110, -110, -110, -110, -110,
-     -110, -110, -110, -110, -110, -110, -110, -110, -110, -110,
-     -110, -110, -110, -110, -110, -110, -110, -110, -110, -110,
-     -110, -110, -110, -110, -110
-    },
-
-    {
-        5, -111, -111, -111, -111, -111, -111, -111, -111, -111,
-     -111, -111, -111, -111,  111,  111, -111, -111, -111, -111,
-     -111, -111, -111, -111, -111, -111, -111, -111, -111, -111,
-     -111, -111, -111, -111, -111, -111, -111, -111, -111, -111,
-
-     -111, -111, -111, -111, -111, -111, -111, -111, -111, -111,
-     -111, -111, -111, -111, -111
-    },
-
-    {
-        5, -112, -112, -112, -112, -112, -112, -112, -112, -112,
-     -112, -112, -112, -112, -112, -112, -112, -112, -112, -112,
-     -112, -112, -112, -112, -112, -112, -112, -112, -112, -112,
-     -112, -112, -112, -112, -112, -112, -112, -112, -112, -112,
-     -112, -112, -112, -112, -112, -112, -112, -112, -112, -112,
-     -112, -112, -112, -112, -112
-    },
-
-    {
-        5,  157,  157, -113,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  158,
-
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  159,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5, -114, -114, -114, -114, -114, -114, -114, -114, -114,
-     -114, -114, -114, -114, -114, -114, -114, -114, -114, -114,
-      160,  160,  160,  160,  160,  160,  160,  160,  160,  160,
-      160, -114,  160,  160,  160,  160,  160,  160,  160,  160,
-      160,  160,  160,  160,  160,  160,  160,  160,  160,  160,
-      160,  160,  160,  160,  160
-
-    },
-
-    {
-        5, -115, -115, -115, -115, -115, -115, -115, -115, -115,
-     -115, -115, -115, -115,  161,  161,  162, -115, -115, -115,
-      161,  161,  161,  161,  161,  161,  161,  161,  161,  161,
-      161, -115,  161,  161,  161,  161,  161,  161,  161,  161,
-      161,  161,  161,  161,  161,  161,  161,  161,  161,  161,
-      161,  161,  161,  161,  161
-    },
-
-    {
-        5, -116, -116, -116, -116, -116, -116, -116, -116, -116,
-     -116, -116, -116, -116,   64,   64,   65, -116, -116, -116,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -116,   64,   64,   64,   64,  163,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -117, -117, -117, -117, -117, -117, -117, -117, -117,
-     -117, -117, -117, -117,   64,   64,   65, -117, -117, -117,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -117,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -118, -118, -118, -118, -118, -118, -118, -118, -118,
-     -118, -118, -118, -118,   64,   64,   65, -118, -118, -118,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -118,   64,   64,   64,   64,  164,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -119, -119, -119, -119, -119, -119, -119, -119, -119,
-     -119, -119, -119, -119,   64,   64,   65, -119, -119, -119,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -119,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  165,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -120, -120, -120, -120, -120, -120, -120, -120, -120,
-     -120, -120, -120, -120,   64,   64,   65, -120, -120, -120,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -120,   64,   64,   64,   64,   64,  166,   64,   64,
-       64,   64,   64,   64,  167,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -121, -121, -121, -121, -121, -121, -121, -121, -121,
-     -121, -121, -121, -121,   64,   64,   65, -121, -121, -121,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -121,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  168,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -122, -122, -122, -122, -122, -122, -122, -122, -122,
-     -122, -122, -122, -122,   64,   64,   65, -122, -122, -122,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -122,  169,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -123, -123, -123, -123, -123, -123, -123, -123, -123,
-     -123, -123, -123, -123,   64,   64,   65, -123, -123, -123,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -123,   64,   64,   64,   64,  170,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -124, -124, -124, -124, -124, -124, -124, -124, -124,
-     -124, -124, -124, -124,   64,   64,   65, -124, -124, -124,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -124,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  171,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -125, -125, -125, -125, -125, -125, -125, -125, -125,
-     -125, -125, -125, -125,   64,   64,   65, -125, -125, -125,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -125,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,  172,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -126, -126, -126, -126, -126, -126, -126, -126, -126,
-     -126, -126, -126, -126,   64,   64,   65, -126, -126, -126,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -126,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -127, -127, -127, -127, -127, -127, -127, -127, -127,
-     -127, -127, -127, -127,   64,   64,   65, -127, -127, -127,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -127,   64,   64,   64,   64,  173,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -128, -128, -128, -128, -128, -128, -128, -128, -128,
-     -128, -128, -128, -128,   64,   64,   65, -128, -128, -128,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -128,   64,   64,   64,  174,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -129, -129, -129, -129, -129, -129, -129, -129, -129,
-     -129, -129, -129, -129,   64,   64,   65, -129, -129, -129,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -129,   64,   64,   64,   64,  175,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -130, -130, -130, -130, -130, -130, -130, -130, -130,
-     -130, -130, -130, -130,   64,   64,   65, -130, -130, -130,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -130,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  176,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -131, -131, -131, -131, -131, -131, -131, -131, -131,
-     -131, -131, -131, -131,   64,   64,   65, -131, -131, -131,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -131,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,  177,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -132, -132, -132, -132, -132, -132, -132, -132, -132,
-     -132, -132, -132, -132,   64,   64,   65, -132, -132, -132,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -132,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  178,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -133, -133, -133, -133, -133, -133, -133, -133, -133,
-     -133, -133, -133, -133,   64,   64,   65, -133, -133, -133,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -133,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  179,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -134, -134, -134, -134, -134, -134, -134, -134, -134,
-     -134, -134, -134, -134,   64,   64,   65, -134, -134, -134,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -134,   64,   64,   64,   64,   64,  180,   64,   64,
-       64,   64,   64,   64,   64,   64,  181,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -135, -135, -135, -135, -135, -135, -135, -135, -135,
-     -135, -135, -135, -135,   64,   64,   65, -135, -135, -135,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -135,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,  182,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -136, -136, -136, -136, -136, -136, -136, -136, -136,
-     -136, -136, -136, -136,   64,   64,   65, -136, -136, -136,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -136,   64,   64,   64,   64,  183,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -137, -137, -137, -137, -137, -137, -137, -137, -137,
-     -137, -137, -137, -137,   64,   64,   65, -137, -137, -137,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -137,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  184,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -138, -138, -138, -138, -138, -138, -138, -138, -138,
-     -138, -138, -138, -138,   64,   64,   65, -138, -138, -138,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -138,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  185,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -139, -139, -139, -139, -139, -139, -139, -139, -139,
-     -139, -139, -139, -139,   64,   64,   65, -139, -139, -139,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -139,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  186,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -140, -140, -140, -140, -140, -140, -140, -140, -140,
-     -140, -140, -140, -140,   64,   64,   65, -140, -140, -140,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -140,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  187,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -141, -141, -141, -141, -141, -141, -141, -141, -141,
-     -141, -141, -141, -141,   64,   64,   65, -141, -141, -141,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -141,   64,   64,  188,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -142, -142, -142, -142, -142, -142, -142, -142, -142,
-     -142, -142, -142, -142,   64,   64,   65, -142, -142, -142,
-       64,   64,   64,   64,   64,   64,  189,   64,   64,   64,
-       64, -142,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -143, -143, -143, -143, -143, -143, -143, -143, -143,
-     -143, -143, -143, -143,   64,   64,   65, -143, -143, -143,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -143,   64,   64,   64,   64,   64,  190,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -144, -144, -144, -144, -144, -144, -144, -144, -144,
-     -144, -144, -144, -144,   64,   64,   65, -144, -144, -144,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -144,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  191,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -145, -145, -145, -145, -145, -145, -145, -145, -145,
-     -145, -145, -145, -145,   64,   64,   65, -145, -145, -145,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -145,   64,   64,   64,   64,  192,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -146, -146, -146, -146, -146, -146, -146, -146, -146,
-     -146, -146, -146, -146,   64,   64,   65, -146, -146, -146,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -146,   64,   64,   64,   64,   64,  193,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -147, -147, -147, -147, -147, -147, -147, -147, -147,
-     -147, -147, -147, -147,   64,   64,   65, -147, -147, -147,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -147,   64,   64,   64,   64,   64,   64,   64,   64,
-      194,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  195,   64
-    },
-
-    {
-        5,  148,  148,  148,  148,  149,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  150,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-    },
-
-    {
-        5,  148,  148,  148,  148,  196,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-
-    },
-
-    {
-        5,  197,  197,  148,  197,  198,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  199,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  152,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  153,  151,  151,  151,  151,  151,  151,  151,  151,
-
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  200,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5,  201,  201,  151,  201,  201,  201,  201,  202,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  203,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201
-    },
-
-    {
-        5, -154, -154, -154, -154, -154, -154, -154, -154, -154,
-     -154, -154, -154, -154, -154, -154, -154, -154, -154, -154,
-     -154, -154, -154, -154, -154, -154, -154, -154, -154, -154,
-     -154, -154, -154, -154, -154, -154, -154, -154, -154, -154,
-     -154, -154, -154, -154, -154, -154, -154, -154, -154, -154,
-     -154, -154, -154, -154, -154
-
-    },
-
-    {
-        5, -155, -155, -155, -155, -155, -155, -155, -155, -155,
-     -155, -155, -155, -155,  156,  156, -155, -155, -155, -155,
-     -155, -155, -155, -155, -155, -155, -155, -155, -155, -155,
-     -155, -155, -155, -155, -155, -155, -155, -155, -155, -155,
-     -155, -155, -155, -155, -155, -155, -155, -155, -155, -155,
-     -155, -155, -155, -155, -155
-    },
-
-    {
-        5, -156, -156, -156, -156, -156, -156, -156, -156, -156,
-     -156, -156, -156, -156,  156,  156, -156, -156, -156, -156,
-     -156, -156, -156, -156, -156, -156, -156, -156, -156, -156,
-     -156, -156, -156, -156, -156, -156, -156, -156, -156, -156,
-
-     -156, -156, -156, -156, -156, -156, -156, -156, -156, -156,
-     -156, -156, -156, -156, -156
-    },
-
-    {
-        5,  157,  157, -157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  158,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  159,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5,  157,  157, -158,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  204,
-
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5,  157,  157, -159,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  205,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  159,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-
-    },
-
-    {
-        5, -160, -160, -160, -160, -160, -160, -160, -160, -160,
-     -160, -160, -160, -160,  206,  206,  207, -160, -160, -160,
-      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
-      206, -160,  206,  206,  206,  206,  206,  206,  206,  206,
-      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
-      206,  206,  206,  206,  206
-    },
-
-    {
-        5, -161, -161, -161, -161, -161, -161, -161, -161, -161,
-     -161, -161, -161, -161,  161,  161,  162, -161, -161, -161,
-      161,  161,  161,  161,  161,  161,  161,  161,  161,  161,
-      161, -161,  161,  161,  161,  161,  161,  161,  161,  161,
-
-      161,  161,  161,  161,  161,  161,  161,  161,  161,  161,
-      161,  161,  161,  161,  161
-    },
-
-    {
-        5, -162, -162, -162, -162, -162, -162, -162, -162, -162,
-     -162, -162, -162, -162, -162, -162, -162, -162, -162, -162,
-      115,  115,  115,  115,  115,  115,  115,  115,  115,  115,
-      115, -162,  115,  115,  115,  115,  115,  115,  115,  115,
-      115,  115,  115,  115,  115,  115,  115,  115,  115,  115,
-      115,  115,  115,  115,  115
-    },
-
-    {
-        5, -163, -163, -163, -163, -163, -163, -163, -163, -163,
-     -163, -163, -163, -163,   64,   64,   65, -163, -163, -163,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -163,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -164, -164, -164, -164, -164, -164, -164, -164, -164,
-     -164, -164, -164, -164,   64,   64,   65, -164, -164, -164,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -164,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  208,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -165, -165, -165, -165, -165, -165, -165, -165, -165,
-     -165, -165, -165, -165,   64,   64,   65, -165, -165, -165,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -165,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  209,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -166, -166, -166, -166, -166, -166, -166, -166, -166,
-     -166, -166, -166, -166,   64,   64,   65, -166, -166, -166,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -166,   64,   64,   64,   64,   64,   64,   64,   64,
-
-      210,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -167, -167, -167, -167, -167, -167, -167, -167, -167,
-     -167, -167, -167, -167,   64,   64,   65, -167, -167, -167,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -167,   64,   64,   64,   64,  211,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -168, -168, -168, -168, -168, -168, -168, -168, -168,
-     -168, -168, -168, -168,   64,   64,   65, -168, -168, -168,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -168,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  212,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -169, -169, -169, -169, -169, -169, -169, -169, -169,
-     -169, -169, -169, -169,   64,   64,   65, -169, -169, -169,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -169,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      213,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -170, -170, -170, -170, -170, -170, -170, -170, -170,
-     -170, -170, -170, -170,   64,   64,   65, -170, -170, -170,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -170,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  214,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -171, -171, -171, -171, -171, -171, -171, -171, -171,
-     -171, -171, -171, -171,   64,   64,   65, -171, -171, -171,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -171,   64,   64,   64,   64,   64,   64,   64,   64,
-
-      215,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -172, -172, -172, -172, -172, -172, -172, -172, -172,
-     -172, -172, -172, -172,   64,   64,   65, -172, -172, -172,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -172,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  216,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -173, -173, -173, -173, -173, -173, -173, -173, -173,
-     -173, -173, -173, -173,   64,   64,   65, -173, -173, -173,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -173,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  217,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -174, -174, -174, -174, -174, -174, -174, -174, -174,
-     -174, -174, -174, -174,   64,   64,   65, -174, -174, -174,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -174,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -175, -175, -175, -175, -175, -175, -175, -175, -175,
-     -175, -175, -175, -175,   64,   64,   65, -175, -175, -175,
-       64,   64,  218,   64,   64,   64,   64,   64,   64,   64,
-       64, -175,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -176, -176, -176, -176, -176, -176, -176, -176, -176,
-     -176, -176, -176, -176,   64,   64,   65, -176, -176, -176,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -176,   64,   64,   64,   64,  219,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -177, -177, -177, -177, -177, -177, -177, -177, -177,
-     -177, -177, -177, -177,   64,   64,   65, -177, -177, -177,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -177,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -178, -178, -178, -178, -178, -178, -178, -178, -178,
-     -178, -178, -178, -178,   64,   64,   65, -178, -178, -178,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -178,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  220,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -179, -179, -179, -179, -179, -179, -179, -179, -179,
-     -179, -179, -179, -179,   64,   64,   65, -179, -179, -179,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -179,   64,   64,   64,   64,   64,   64,   64,   64,
-      221,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -180, -180, -180, -180, -180, -180, -180, -180, -180,
-     -180, -180, -180, -180,   64,   64,   65, -180, -180, -180,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -180,   64,   64,   64,   64,   64,   64,   64,   64,
-      222,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -181, -181, -181, -181, -181, -181, -181, -181, -181,
-     -181, -181, -181, -181,   64,   64,   65, -181, -181, -181,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -181,   64,   64,   64,   64,  223,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -182, -182, -182, -182, -182, -182, -182, -182, -182,
-     -182, -182, -182, -182,   64,   64,   65, -182, -182, -182,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -182,   64,   64,   64,   64,  224,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -183, -183, -183, -183, -183, -183, -183, -183, -183,
-     -183, -183, -183, -183,   64,   64,   65, -183, -183, -183,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -183,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  225,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -184, -184, -184, -184, -184, -184, -184, -184, -184,
-     -184, -184, -184, -184,   64,   64,   65, -184, -184, -184,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -184,   64,   64,  226,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -185, -185, -185, -185, -185, -185, -185, -185, -185,
-     -185, -185, -185, -185,   64,   64,   65, -185, -185, -185,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -185,   64,   64,   64,  227,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -186, -186, -186, -186, -186, -186, -186, -186, -186,
-     -186, -186, -186, -186,   64,   64,   65, -186, -186, -186,
-       64,   64,   64,   64,   64,   64,   64,   64,  228,   64,
-       64, -186,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -187, -187, -187, -187, -187, -187, -187, -187, -187,
-     -187, -187, -187, -187,   64,   64,   65, -187, -187, -187,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -187,   64,   64,   64,   64,  229,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -188, -188, -188, -188, -188, -188, -188, -188, -188,
-     -188, -188, -188, -188,   64,   64,   65, -188, -188, -188,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -188,   64,   64,   64,   64,   64,   64,   64,   64,
-      230,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -189, -189, -189, -189, -189, -189, -189, -189, -189,
-     -189, -189, -189, -189,   64,   64,   65, -189, -189, -189,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -189,  231,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -190, -190, -190, -190, -190, -190, -190, -190, -190,
-     -190, -190, -190, -190,   64,   64,   65, -190, -190, -190,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -190,   64,   64,   64,   64,   64,   64,   64,   64,
-      232,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -191, -191, -191, -191, -191, -191, -191, -191, -191,
-     -191, -191, -191, -191,   64,   64,   65, -191, -191, -191,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -191,   64,   64,   64,   64,  233,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -192, -192, -192, -192, -192, -192, -192, -192, -192,
-     -192, -192, -192, -192,   64,   64,   65, -192, -192, -192,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  234,
-       64, -192,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -193, -193, -193, -193, -193, -193, -193, -193, -193,
-     -193, -193, -193, -193,   64,   64,   65, -193, -193, -193,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -193,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  235,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -194, -194, -194, -194, -194, -194, -194, -194, -194,
-     -194, -194, -194, -194,   64,   64,   65, -194, -194, -194,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -194,  236,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -195, -195, -195, -195, -195, -195, -195, -195, -195,
-     -195, -195, -195, -195,   64,   64,   65, -195, -195, -195,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -195,   64,   64,   64,   64,   64,   64,   64,   64,
-      237,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  148,  148,  148,  148,  238,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-    },
-
-    {
-        5,  148,  148,  148,  148,  149,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  150,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-    },
-
-    {
-        5,  197,  197,  197,  197,  239,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  199,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197
-    },
-
-    {
-        5,  197,  197,  148,  197,  198,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  199,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197,  197,  197,  197,  197,  197,
-      197,  197,  197,  197,  197
-
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  240,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  152,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  153,  151,  151,  151,  151,  151,  151,  151,  151,
-
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5,  201,  201,  201,  201,  201,  201,  201,  241,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  203,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201
-    },
-
-    {
-        5,  201,  201,  151,  201,  201,  201,  201,  202,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  203,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201,  201,  201,  201,  201,  201,
-      201,  201,  201,  201,  201
-    },
-
-    {
-        5,  157,  157, -204,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  242,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-
-    },
-
-    {
-        5,  157,  157, -205,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  243,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5, -206, -206, -206, -206, -206, -206, -206, -206, -206,
-     -206, -206, -206, -206,  206,  206,  207, -206, -206, -206,
-      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
-      206, -206,  206,  206,  206,  206,  206,  206,  206,  206,
-
-      206,  206,  206,  206,  206,  206,  206,  206,  206,  206,
-      206,  206,  206,  206,  206
-    },
-
-    {
-        5, -207, -207, -207, -207, -207, -207, -207, -207, -207,
-     -207, -207, -207, -207, -207, -207,  114, -207, -207, -207,
-     -207, -207, -207, -207, -207, -207, -207, -207, -207, -207,
-     -207, -207, -207, -207, -207, -207, -207, -207, -207, -207,
-     -207, -207, -207, -207, -207, -207, -207, -207, -207, -207,
-     -207, -207, -207, -207, -207
-    },
-
-    {
-        5, -208, -208, -208, -208, -208, -208, -208, -208, -208,
-     -208, -208, -208, -208,   64,   64,   65, -208, -208, -208,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -208,   64,   64,   64,  244,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -209, -209, -209, -209, -209, -209, -209, -209, -209,
-     -209, -209, -209, -209,   64,   64,   65, -209, -209, -209,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -209,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -210, -210, -210, -210, -210, -210, -210, -210, -210,
-     -210, -210, -210, -210,   64,   64,   65, -210, -210, -210,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -210,   64,   64,   64,   64,   64,   64,  245,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -211, -211, -211, -211, -211, -211, -211, -211, -211,
-     -211, -211, -211, -211,   64,   64,   65, -211, -211, -211,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -211,   64,   64,  246,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -212, -212, -212, -212, -212, -212, -212, -212, -212,
-     -212, -212, -212, -212,   64,   64,   65, -212, -212, -212,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -212,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  247,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -213, -213, -213, -213, -213, -213, -213, -213, -213,
-     -213, -213, -213, -213,   64,   64,   65, -213, -213, -213,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -213,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  248,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -214, -214, -214, -214, -214, -214, -214, -214, -214,
-     -214, -214, -214, -214,   64,   64,   65, -214, -214, -214,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -214,   64,   64,   64,   64,  249,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -215, -215, -215, -215, -215, -215, -215, -215, -215,
-     -215, -215, -215, -215,   64,   64,   65, -215, -215, -215,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -215,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  250,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -216, -216, -216, -216, -216, -216, -216, -216, -216,
-     -216, -216, -216, -216,   64,   64,   65, -216, -216, -216,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -216,  251,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -217, -217, -217, -217, -217, -217, -217, -217, -217,
-     -217, -217, -217, -217,   64,   64,   65, -217, -217, -217,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -217,   64,   64,   64,   64,   64,   64,   64,   64,
-      252,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -218, -218, -218, -218, -218, -218, -218, -218, -218,
-     -218, -218, -218, -218,   64,   64,   65, -218, -218, -218,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -218,   64,   64,   64,   64,   64,   64,   64,  253,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -219, -219, -219, -219, -219, -219, -219, -219, -219,
-     -219, -219, -219, -219,   64,   64,   65, -219, -219, -219,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -219,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  254,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -220, -220, -220, -220, -220, -220, -220, -220, -220,
-     -220, -220, -220, -220,   64,   64,   65, -220, -220, -220,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -220,  255,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -221, -221, -221, -221, -221, -221, -221, -221, -221,
-     -221, -221, -221, -221,   64,   64,   65, -221, -221, -221,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -221,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  256,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -222, -222, -222, -222, -222, -222, -222, -222, -222,
-     -222, -222, -222, -222,   64,   64,   65, -222, -222, -222,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -222,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  257,   64,   64
-    },
-
-    {
-        5, -223, -223, -223, -223, -223, -223, -223, -223, -223,
-     -223, -223, -223, -223,   64,   64,   65, -223, -223, -223,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -223,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  258,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -224, -224, -224, -224, -224, -224, -224, -224, -224,
-     -224, -224, -224, -224,   64,   64,   65, -224, -224, -224,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -224,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  259,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -225, -225, -225, -225, -225, -225, -225, -225, -225,
-     -225, -225, -225, -225,   64,   64,   65, -225, -225, -225,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -225,   64,   64,   64,   64,  260,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -226, -226, -226, -226, -226, -226, -226, -226, -226,
-     -226, -226, -226, -226,   64,   64,   65, -226, -226, -226,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -226,  261,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -227, -227, -227, -227, -227, -227, -227, -227, -227,
-     -227, -227, -227, -227,   64,   64,   65, -227, -227, -227,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -227,   64,   64,   64,   64,  262,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -228, -228, -228, -228, -228, -228, -228, -228, -228,
-     -228, -228, -228, -228,   64,   64,   65, -228, -228, -228,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -228,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  263,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -229, -229, -229, -229, -229, -229, -229, -229, -229,
-     -229, -229, -229, -229,   64,   64,   65, -229, -229, -229,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -229,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -230, -230, -230, -230, -230, -230, -230, -230, -230,
-     -230, -230, -230, -230,   64,   64,   65, -230, -230, -230,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -230,  264,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -231, -231, -231, -231, -231, -231, -231, -231, -231,
-     -231, -231, -231, -231,   64,   64,   65, -231, -231, -231,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -231,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  265,   64
-    },
-
-    {
-        5, -232, -232, -232, -232, -232, -232, -232, -232, -232,
-     -232, -232, -232, -232,   64,   64,   65, -232, -232, -232,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -232,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  266,   64,   64
-    },
-
-    {
-        5, -233, -233, -233, -233, -233, -233, -233, -233, -233,
-     -233, -233, -233, -233,   64,   64,   65, -233, -233, -233,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -233,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  267,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -234, -234, -234, -234, -234, -234, -234, -234, -234,
-     -234, -234, -234, -234,   64,   64,   65, -234, -234, -234,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -234,  268,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -235, -235, -235, -235, -235, -235, -235, -235, -235,
-     -235, -235, -235, -235,   64,   64,   65, -235, -235, -235,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -235,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  269,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -236, -236, -236, -236, -236, -236, -236, -236, -236,
-     -236, -236, -236, -236,   64,   64,   65, -236, -236, -236,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -236,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,  270,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -237, -237, -237, -237, -237, -237, -237, -237, -237,
-     -237, -237, -237, -237,   64,   64,   65, -237, -237, -237,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -237,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  271,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -238, -238, -238, -238, -238, -238, -238, -238, -238,
-     -238, -238, -238, -238, -238, -238, -238, -238, -238, -238,
-
-     -238, -238, -238, -238, -238, -238, -238, -238, -238, -238,
-     -238, -238, -238, -238, -238, -238, -238, -238, -238, -238,
-     -238, -238, -238, -238, -238, -238, -238, -238, -238, -238,
-     -238, -238, -238, -238, -238
-    },
-
-    {
-        5,  148,  148,  148,  148,  272,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-
-    },
-
-    {
-        5, -240, -240, -240, -240, -240, -240, -240, -240, -240,
-     -240, -240, -240, -240, -240, -240, -240, -240, -240, -240,
-     -240, -240, -240, -240, -240, -240, -240, -240, -240, -240,
-     -240, -240, -240, -240, -240, -240, -240, -240, -240, -240,
-     -240, -240, -240, -240, -240, -240, -240, -240, -240, -240,
-     -240, -240, -240, -240, -240
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  273,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5, -242, -242, -242, -242, -242, -242, -242, -242, -242,
-     -242, -242, -242, -242, -242, -242, -242, -242, -242,  274,
-     -242, -242, -242, -242, -242, -242, -242, -242, -242, -242,
-     -242, -242, -242, -242, -242, -242, -242, -242, -242, -242,
-     -242, -242, -242, -242, -242, -242, -242, -242, -242, -242,
-     -242, -242, -242, -242, -242
-    },
-
-    {
-        5,  157,  157, -243,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  275,
-
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5, -244, -244, -244, -244, -244, -244, -244, -244, -244,
-     -244, -244, -244, -244,   64,   64,   65, -244, -244, -244,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -244,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -245, -245, -245, -245, -245, -245, -245, -245, -245,
-     -245, -245, -245, -245,   64,   64,   65, -245, -245, -245,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -245,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -246, -246, -246, -246, -246, -246, -246, -246, -246,
-     -246, -246, -246, -246,   64,   64,   65, -246, -246, -246,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -246,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  276,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -247, -247, -247, -247, -247, -247, -247, -247, -247,
-     -247, -247, -247, -247,   64,   64,   65, -247, -247, -247,
-       64,   64,   64,  277,   64,   64,   64,   64,   64,   64,
-       64, -247,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -248, -248, -248, -248, -248, -248, -248, -248, -248,
-     -248, -248, -248, -248,   64,   64,   65, -248, -248, -248,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -248,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  278,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -249, -249, -249, -249, -249, -249, -249, -249, -249,
-     -249, -249, -249, -249,   64,   64,   65, -249, -249, -249,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -249,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -250, -250, -250, -250, -250, -250, -250, -250, -250,
-     -250, -250, -250, -250,   64,   64,   65, -250, -250, -250,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -250,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  279,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -251, -251, -251, -251, -251, -251, -251, -251, -251,
-     -251, -251, -251, -251,   64,   64,   65, -251, -251, -251,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -251,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  280,   64
-    },
-
-    {
-        5, -252, -252, -252, -252, -252, -252, -252, -252, -252,
-     -252, -252, -252, -252,   64,   64,   65, -252, -252, -252,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -252,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  281,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -253, -253, -253, -253, -253, -253, -253, -253, -253,
-     -253, -253, -253, -253,   64,   64,   65, -253, -253, -253,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -253,   64,   64,   64,   64,   64,   64,   64,   64,
-      282,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -254, -254, -254, -254, -254, -254, -254, -254, -254,
-     -254, -254, -254, -254,   64,   64,   65, -254, -254, -254,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -254,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -255, -255, -255, -255, -255, -255, -255, -255, -255,
-     -255, -255, -255, -255,   64,   64,   65, -255, -255, -255,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -255,   64,   64,   64,  283,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -256, -256, -256, -256, -256, -256, -256, -256, -256,
-     -256, -256, -256, -256,   64,   64,   65, -256, -256, -256,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -256,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  284,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -257, -257, -257, -257, -257, -257, -257, -257, -257,
-     -257, -257, -257, -257,   64,   64,   65, -257, -257, -257,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  285,
-       64, -257,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -258, -258, -258, -258, -258, -258, -258, -258, -258,
-     -258, -258, -258, -258,   64,   64,   65, -258, -258, -258,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -258,   64,   64,   64,  286,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -259, -259, -259, -259, -259, -259, -259, -259, -259,
-     -259, -259, -259, -259,   64,   64,   65, -259, -259, -259,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -259,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  287,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -260, -260, -260, -260, -260, -260, -260, -260, -260,
-     -260, -260, -260, -260,   64,   64,   65, -260, -260, -260,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -260,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  288,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -261, -261, -261, -261, -261, -261, -261, -261, -261,
-     -261, -261, -261, -261,   64,   64,   65, -261, -261, -261,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -261,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  289,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -262, -262, -262, -262, -262, -262, -262, -262, -262,
-     -262, -262, -262, -262,   64,   64,   65, -262, -262, -262,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -262,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  290,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -263, -263, -263, -263, -263, -263, -263, -263, -263,
-     -263, -263, -263, -263,   64,   64,   65, -263, -263, -263,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -263,   64,   64,   64,   64,   64,   64,   64,   64,
-      291,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -264, -264, -264, -264, -264, -264, -264, -264, -264,
-     -264, -264, -264, -264,   64,   64,   65, -264, -264, -264,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -264,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  292,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -265, -265, -265, -265, -265, -265, -265, -265, -265,
-     -265, -265, -265, -265,   64,   64,   65, -265, -265, -265,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -265,   64,   64,   64,   64,  293,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -266, -266, -266, -266, -266, -266, -266, -266, -266,
-     -266, -266, -266, -266,   64,   64,   65, -266, -266, -266,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  294,
-       64, -266,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -267, -267, -267, -267, -267, -267, -267, -267, -267,
-     -267, -267, -267, -267,   64,   64,   65, -267, -267, -267,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -267,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  295,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -268, -268, -268, -268, -268, -268, -268, -268, -268,
-     -268, -268, -268, -268,   64,   64,   65, -268, -268, -268,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -268,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  296,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -269, -269, -269, -269, -269, -269, -269, -269, -269,
-     -269, -269, -269, -269,   64,   64,   65, -269, -269, -269,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -269,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  297,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -270, -270, -270, -270, -270, -270, -270, -270, -270,
-     -270, -270, -270, -270,   64,   64,   65, -270, -270, -270,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -270,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  298,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -271, -271, -271, -271, -271, -271, -271, -271, -271,
-     -271, -271, -271, -271,   64,   64,   65, -271, -271, -271,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -271,   64,   64,   64,   64,   64,   64,  299,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5,  148,  148,  148,  148,  238,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148,  148,  148,  148,  148,  148,
-      148,  148,  148,  148,  148
-    },
-
-    {
-        5,  151,  151,  151,  151,  151,  151,  151,  240,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151,  151,  151,  151,  151,  151,
-      151,  151,  151,  151,  151
-    },
-
-    {
-        5, -274, -274, -274, -274, -274, -274, -274, -274, -274,
-     -274, -274, -274, -274, -274, -274, -274, -274, -274,  300,
-     -274, -274, -274, -274, -274, -274, -274, -274, -274, -274,
-     -274, -274, -274, -274, -274, -274, -274, -274, -274, -274,
-     -274, -274, -274, -274, -274, -274, -274, -274, -274, -274,
-     -274, -274, -274, -274, -274
-
-    },
-
-    {
-        5,  157,  157, -275,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  301,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  159,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5, -276, -276, -276, -276, -276, -276, -276, -276, -276,
-     -276, -276, -276, -276,   64,   64,   65, -276, -276, -276,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -276,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -277, -277, -277, -277, -277, -277, -277, -277, -277,
-     -277, -277, -277, -277,   64,   64,   65, -277, -277, -277,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -277,  302,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -278, -278, -278, -278, -278, -278, -278, -278, -278,
-     -278, -278, -278, -278,   64,   64,   65, -278, -278, -278,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -278,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -279, -279, -279, -279, -279, -279, -279, -279, -279,
-     -279, -279, -279, -279,   64,   64,   65, -279, -279, -279,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -279,  303,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -280, -280, -280, -280, -280, -280, -280, -280, -280,
-     -280, -280, -280, -280,   64,   64,   65, -280, -280, -280,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      304, -280,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -281, -281, -281, -281, -281, -281, -281, -281, -281,
-     -281, -281, -281, -281,   64,   64,   65, -281, -281, -281,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -281,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  305,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -282, -282, -282, -282, -282, -282, -282, -282, -282,
-     -282, -282, -282, -282,   64,   64,   65, -282, -282, -282,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -282,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  306,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -283, -283, -283, -283, -283, -283, -283, -283, -283,
-     -283, -283, -283, -283,   64,   64,   65, -283, -283, -283,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -283,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -284, -284, -284, -284, -284, -284, -284, -284, -284,
-     -284, -284, -284, -284,   64,   64,   65, -284, -284, -284,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -284,   64,   64,   64,   64,   64,   64,   64,   64,
-      307,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -285, -285, -285, -285, -285, -285, -285, -285, -285,
-     -285, -285, -285, -285,   64,   64,   65, -285, -285, -285,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -285,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      308,   64,   64,   64,   64
-    },
-
-    {
-        5, -286, -286, -286, -286, -286, -286, -286, -286, -286,
-     -286, -286, -286, -286,   64,   64,   65, -286, -286, -286,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -286,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -287, -287, -287, -287, -287, -287, -287, -287, -287,
-     -287, -287, -287, -287,   64,   64,   65, -287, -287, -287,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -287,   64,   64,   64,   64,   64,   64,   64,   64,
-      309,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -288, -288, -288, -288, -288, -288, -288, -288, -288,
-     -288, -288, -288, -288,   64,   64,   65, -288, -288, -288,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -288,   64,   64,  310,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -289, -289, -289, -289, -289, -289, -289, -289, -289,
-     -289, -289, -289, -289,   64,   64,   65, -289, -289, -289,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -289,   64,   64,   64,   64,  311,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -290, -290, -290, -290, -290, -290, -290, -290, -290,
-     -290, -290, -290, -290,   64,   64,   65, -290, -290, -290,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -290,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -291, -291, -291, -291, -291, -291, -291, -291, -291,
-     -291, -291, -291, -291,   64,   64,   65, -291, -291, -291,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -291,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,  312,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -292, -292, -292, -292, -292, -292, -292, -292, -292,
-     -292, -292, -292, -292,   64,   64,   65, -292, -292, -292,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -292,   64,   64,   64,   64,   64,   64,   64,   64,
-      313,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -293, -293, -293, -293, -293, -293, -293, -293, -293,
-     -293, -293, -293, -293,   64,   64,   65, -293, -293, -293,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -293,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  314,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -294, -294, -294, -294, -294, -294, -294, -294, -294,
-     -294, -294, -294, -294,   64,   64,   65, -294, -294, -294,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -294,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      315,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -295, -295, -295, -295, -295, -295, -295, -295, -295,
-     -295, -295, -295, -295,   64,   64,   65, -295, -295, -295,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -295,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  316,   64
-    },
-
-    {
-        5, -296, -296, -296, -296, -296, -296, -296, -296, -296,
-     -296, -296, -296, -296,   64,   64,   65, -296, -296, -296,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -296,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,  317,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -297, -297, -297, -297, -297, -297, -297, -297, -297,
-     -297, -297, -297, -297,   64,   64,   65, -297, -297, -297,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -297,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -298, -298, -298, -298, -298, -298, -298, -298, -298,
-     -298, -298, -298, -298,   64,   64,   65, -298, -298, -298,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  318,
-       64, -298,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  319,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -299, -299, -299, -299, -299, -299, -299, -299, -299,
-     -299, -299, -299, -299,   64,   64,   65, -299, -299, -299,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -299,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -300, -300, -300, -300, -300, -300, -300, -300, -300,
-     -300, -300, -300, -300, -300, -300, -300, -300, -300, -300,
-     -300, -300, -300, -300, -300, -300, -300, -300, -300, -300,
-     -300, -300, -300, -300, -300, -300, -300, -300, -300, -300,
-     -300, -300, -300, -300, -300, -300, -300, -300, -300, -300,
-     -300, -300, -300, -300, -300
-    },
-
-    {
-        5,  157,  157, -301,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  320,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5, -302, -302, -302, -302, -302, -302, -302, -302, -302,
-     -302, -302, -302, -302,   64,   64,   65, -302, -302, -302,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -302,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  321,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -303, -303, -303, -303, -303, -303, -303, -303, -303,
-     -303, -303, -303, -303,   64,   64,   65, -303, -303, -303,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -303,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  322,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -304, -304, -304, -304, -304, -304, -304, -304, -304,
-     -304, -304, -304, -304,   64,   64,   65, -304, -304, -304,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -304,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  323,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -305, -305, -305, -305, -305, -305, -305, -305, -305,
-     -305, -305, -305, -305,   64,   64,   65, -305, -305, -305,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -305,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -306, -306, -306, -306, -306, -306, -306, -306, -306,
-     -306, -306, -306, -306,   64,   64,   65, -306, -306, -306,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -306,   64,   64,   64,  324,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -307, -307, -307, -307, -307, -307, -307, -307, -307,
-     -307, -307, -307, -307,   64,   64,   65, -307, -307, -307,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -307,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  325,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -308, -308, -308, -308, -308, -308, -308, -308, -308,
-     -308, -308, -308, -308,   64,   64,   65, -308, -308, -308,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -308,   64,  326,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -309, -309, -309, -309, -309, -309, -309, -309, -309,
-     -309, -309, -309, -309,   64,   64,   65, -309, -309, -309,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -309,   64,   64,   64,   64,  327,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -310, -310, -310, -310, -310, -310, -310, -310, -310,
-     -310, -310, -310, -310,   64,   64,   65, -310, -310, -310,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -310,   64,   64,   64,   64,  328,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -311, -311, -311, -311, -311, -311, -311, -311, -311,
-     -311, -311, -311, -311,   64,   64,   65, -311, -311, -311,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -311,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  329,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -312, -312, -312, -312, -312, -312, -312, -312, -312,
-     -312, -312, -312, -312,   64,   64,   65, -312, -312, -312,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -312,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  330,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -313, -313, -313, -313, -313, -313, -313, -313, -313,
-     -313, -313, -313, -313,   64,   64,   65, -313, -313, -313,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -313,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  331
-    },
-
-    {
-        5, -314, -314, -314, -314, -314, -314, -314, -314, -314,
-     -314, -314, -314, -314,   64,   64,   65, -314, -314, -314,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -314,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  332,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -315, -315, -315, -315, -315, -315, -315, -315, -315,
-     -315, -315, -315, -315,   64,   64,   65, -315, -315, -315,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -315,   64,  333,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -316, -316, -316, -316, -316, -316, -316, -316, -316,
-     -316, -316, -316, -316,   64,   64,   65, -316, -316, -316,
-      334,   64,   64,   64,   64,  335,   64,   64,   64,   64,
-       64, -316,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -317, -317, -317, -317, -317, -317, -317, -317, -317,
-     -317, -317, -317, -317,   64,   64,   65, -317, -317, -317,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -317,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,  336,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -318, -318, -318, -318, -318, -318, -318, -318, -318,
-     -318, -318, -318, -318,   64,   64,   65, -318, -318, -318,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -318,   64,   64,   64,   64,  337,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -319, -319, -319, -319, -319, -319, -319, -319, -319,
-     -319, -319, -319, -319,   64,   64,   65, -319, -319, -319,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -319,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5,  157,  157, -320,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  242,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157,  157,  157,  157,  157,  157,
-      157,  157,  157,  157,  157
-    },
-
-    {
-        5, -321, -321, -321, -321, -321, -321, -321, -321, -321,
-     -321, -321, -321, -321,   64,   64,   65, -321, -321, -321,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -321,  338,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -322, -322, -322, -322, -322, -322, -322, -322, -322,
-     -322, -322, -322, -322,   64,   64,   65, -322, -322, -322,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -322,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  339,   64
-    },
-
-    {
-        5, -323, -323, -323, -323, -323, -323, -323, -323, -323,
-     -323, -323, -323, -323,   64,   64,   65, -323, -323, -323,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -323,   64,   64,   64,   64,   64,   64,   64,   64,
-      340,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -324, -324, -324, -324, -324, -324, -324, -324, -324,
-     -324, -324, -324, -324,   64,   64,   65, -324, -324, -324,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -324,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  341,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -325, -325, -325, -325, -325, -325, -325, -325, -325,
-     -325, -325, -325, -325,   64,   64,   65, -325, -325, -325,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -325,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  342,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -326, -326, -326, -326, -326, -326, -326, -326, -326,
-     -326, -326, -326, -326,   64,   64,   65, -326, -326, -326,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -326,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  343,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -327, -327, -327, -327, -327, -327, -327, -327, -327,
-     -327, -327, -327, -327,   64,   64,   65, -327, -327, -327,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -327,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  344,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -328, -328, -328, -328, -328, -328, -328, -328, -328,
-     -328, -328, -328, -328,   64,   64,   65, -328, -328, -328,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -328,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  345,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -329, -329, -329, -329, -329, -329, -329, -329, -329,
-     -329, -329, -329, -329,   64,   64,   65, -329, -329, -329,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -329,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -330, -330, -330, -330, -330, -330, -330, -330, -330,
-     -330, -330, -330, -330,   64,   64,   65, -330, -330, -330,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -330,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -331, -331, -331, -331, -331, -331, -331, -331, -331,
-     -331, -331, -331, -331,   64,   64,   65, -331, -331, -331,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -331,   64,   64,   64,   64,  346,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -332, -332, -332, -332, -332, -332, -332, -332, -332,
-     -332, -332, -332, -332,   64,   64,   65, -332, -332, -332,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -332,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -333, -333, -333, -333, -333, -333, -333, -333, -333,
-     -333, -333, -333, -333,   64,   64,   65, -333, -333, -333,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -333,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  347,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -334, -334, -334, -334, -334, -334, -334, -334, -334,
-     -334, -334, -334, -334,   64,   64,   65, -334, -334, -334,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -334,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,  348,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -335, -335, -335, -335, -335, -335, -335, -335, -335,
-     -335, -335, -335, -335,   64,   64,   65, -335, -335, -335,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -335,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      349,   64,   64,   64,   64
-    },
-
-    {
-        5, -336, -336, -336, -336, -336, -336, -336, -336, -336,
-     -336, -336, -336, -336,   64,   64,   65, -336, -336, -336,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -336,   64,   64,   64,   64,  350,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -337, -337, -337, -337, -337, -337, -337, -337, -337,
-     -337, -337, -337, -337,   64,   64,   65, -337, -337, -337,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -337,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  351,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -338, -338, -338, -338, -338, -338, -338, -338, -338,
-     -338, -338, -338, -338,   64,   64,   65, -338, -338, -338,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -338,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -339, -339, -339, -339, -339, -339, -339, -339, -339,
-     -339, -339, -339, -339,   64,   64,   65, -339, -339, -339,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -339,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -340, -340, -340, -340, -340, -340, -340, -340, -340,
-     -340, -340, -340, -340,   64,   64,   65, -340, -340, -340,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -340,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  352,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -341, -341, -341, -341, -341, -341, -341, -341, -341,
-     -341, -341, -341, -341,   64,   64,   65, -341, -341, -341,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -341,   64,   64,   64,   64,  353,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -342, -342, -342, -342, -342, -342, -342, -342, -342,
-     -342, -342, -342, -342,   64,   64,   65, -342, -342, -342,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -342,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -343, -343, -343, -343, -343, -343, -343, -343, -343,
-     -343, -343, -343, -343,   64,   64,   65, -343, -343, -343,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -343,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  354,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -344, -344, -344, -344, -344, -344, -344, -344, -344,
-     -344, -344, -344, -344,   64,   64,   65, -344, -344, -344,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -344,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -345, -345, -345, -345, -345, -345, -345, -345, -345,
-     -345, -345, -345, -345,   64,   64,   65, -345, -345, -345,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -345,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -346, -346, -346, -346, -346, -346, -346, -346, -346,
-     -346, -346, -346, -346,   64,   64,   65, -346, -346, -346,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -346,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  355,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -347, -347, -347, -347, -347, -347, -347, -347, -347,
-     -347, -347, -347, -347,   64,   64,   65, -347, -347, -347,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -347,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  356,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -348, -348, -348, -348, -348, -348, -348, -348, -348,
-     -348, -348, -348, -348,   64,   64,   65, -348, -348, -348,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -348,   64,   64,   64,   64,   64,   64,  357,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -349, -349, -349, -349, -349, -349, -349, -349, -349,
-     -349, -349, -349, -349,   64,   64,   65, -349, -349, -349,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -349,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  358,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -350, -350, -350, -350, -350, -350, -350, -350, -350,
-     -350, -350, -350, -350,   64,   64,   65, -350, -350, -350,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -350,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  359,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -351, -351, -351, -351, -351, -351, -351, -351, -351,
-     -351, -351, -351, -351,   64,   64,   65, -351, -351, -351,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -351,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  360,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -352, -352, -352, -352, -352, -352, -352, -352, -352,
-     -352, -352, -352, -352,   64,   64,   65, -352, -352, -352,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -352,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -353, -353, -353, -353, -353, -353, -353, -353, -353,
-     -353, -353, -353, -353,   64,   64,   65, -353, -353, -353,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -353,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  361,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -354, -354, -354, -354, -354, -354, -354, -354, -354,
-     -354, -354, -354, -354,   64,   64,   65, -354, -354, -354,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -354,   64,   64,   64,   64,   64,   64,   64,   64,
-      362,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -355, -355, -355, -355, -355, -355, -355, -355, -355,
-     -355, -355, -355, -355,   64,   64,   65, -355, -355, -355,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -355,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -356, -356, -356, -356, -356, -356, -356, -356, -356,
-     -356, -356, -356, -356,   64,   64,   65, -356, -356, -356,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -356,   64,   64,   64,   64,   64,   64,   64,   64,
-
-      363,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -357, -357, -357, -357, -357, -357, -357, -357, -357,
-     -357, -357, -357, -357,   64,   64,   65, -357, -357, -357,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -357,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      364,   64,   64,   64,   64
-    },
-
-    {
-        5, -358, -358, -358, -358, -358, -358, -358, -358, -358,
-     -358, -358, -358, -358,   64,   64,   65, -358, -358, -358,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -358,   64,   64,  365,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -359, -359, -359, -359, -359, -359, -359, -359, -359,
-     -359, -359, -359, -359,   64,   64,   65, -359, -359, -359,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -359,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -360, -360, -360, -360, -360, -360, -360, -360, -360,
-     -360, -360, -360, -360,   64,   64,   65, -360, -360, -360,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -360,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -361, -361, -361, -361, -361, -361, -361, -361, -361,
-     -361, -361, -361, -361,   64,   64,   65, -361, -361, -361,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -361,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -362, -362, -362, -362, -362, -362, -362, -362, -362,
-     -362, -362, -362, -362,   64,   64,   65, -362, -362, -362,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -362,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  366,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -363, -363, -363, -363, -363, -363, -363, -363, -363,
-     -363, -363, -363, -363,   64,   64,   65, -363, -363, -363,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -363,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  367,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -364, -364, -364, -364, -364, -364, -364, -364, -364,
-     -364, -364, -364, -364,   64,   64,   65, -364, -364, -364,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -364,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,  368,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -365, -365, -365, -365, -365, -365, -365, -365, -365,
-     -365, -365, -365, -365,   64,   64,   65, -365, -365, -365,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -365,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  369,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -366, -366, -366, -366, -366, -366, -366, -366, -366,
-     -366, -366, -366, -366,   64,   64,   65, -366, -366, -366,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -366,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      370,   64,   64,   64,   64
-    },
-
-    {
-        5, -367, -367, -367, -367, -367, -367, -367, -367, -367,
-     -367, -367, -367, -367,   64,   64,   65, -367, -367, -367,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -367,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-      371,   64,   64,   64,   64
-    },
-
-    {
-        5, -368, -368, -368, -368, -368, -368, -368, -368, -368,
-     -368, -368, -368, -368,   64,   64,   65, -368, -368, -368,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -368,   64,   64,   64,   64,  372,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -369, -369, -369, -369, -369, -369, -369, -369, -369,
-     -369, -369, -369, -369,   64,   64,   65, -369, -369, -369,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -369,   64,   64,   64,   64,   64,   64,   64,   64,
-      373,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -370, -370, -370, -370, -370, -370, -370, -370, -370,
-     -370, -370, -370, -370,   64,   64,   65, -370, -370, -370,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -370,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  374,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -371, -371, -371, -371, -371, -371, -371, -371, -371,
-     -371, -371, -371, -371,   64,   64,   65, -371, -371, -371,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -371,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  375,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -372, -372, -372, -372, -372, -372, -372, -372, -372,
-     -372, -372, -372, -372,   64,   64,   65, -372, -372, -372,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -372,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  376,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -373, -373, -373, -373, -373, -373, -373, -373, -373,
-     -373, -373, -373, -373,   64,   64,   65, -373, -373, -373,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -373,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  377,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -374, -374, -374, -374, -374, -374, -374, -374, -374,
-     -374, -374, -374, -374,   64,   64,   65, -374, -374, -374,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -374,   64,   64,   64,   64,   64,   64,   64,   64,
-      378,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -375, -375, -375, -375, -375, -375, -375, -375, -375,
-     -375, -375, -375, -375,   64,   64,   65, -375, -375, -375,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -375,   64,   64,   64,   64,   64,   64,   64,   64,
-      379,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -376, -376, -376, -376, -376, -376, -376, -376, -376,
-     -376, -376, -376, -376,   64,   64,   65, -376, -376, -376,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -376,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,  380,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -377, -377, -377, -377, -377, -377, -377, -377, -377,
-     -377, -377, -377, -377,   64,   64,   65, -377, -377, -377,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -377,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  381,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -378, -378, -378, -378, -378, -378, -378, -378, -378,
-     -378, -378, -378, -378,   64,   64,   65, -378, -378, -378,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -378,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  382,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -379, -379, -379, -379, -379, -379, -379, -379, -379,
-     -379, -379, -379, -379,   64,   64,   65, -379, -379, -379,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -379,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,  383,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -380, -380, -380, -380, -380, -380, -380, -380, -380,
-     -380, -380, -380, -380,   64,   64,   65, -380, -380, -380,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -380,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  384,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -381, -381, -381, -381, -381, -381, -381, -381, -381,
-     -381, -381, -381, -381,   64,   64,   65, -381, -381, -381,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -381,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -382, -382, -382, -382, -382, -382, -382, -382, -382,
-     -382, -382, -382, -382,   64,   64,   65, -382, -382, -382,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -382,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  385,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -383, -383, -383, -383, -383, -383, -383, -383, -383,
-     -383, -383, -383, -383,   64,   64,   65, -383, -383, -383,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -383,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,  386,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -384, -384, -384, -384, -384, -384, -384, -384, -384,
-     -384, -384, -384, -384,   64,   64,   65, -384, -384, -384,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -384,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-
-    },
-
-    {
-        5, -385, -385, -385, -385, -385, -385, -385, -385, -385,
-     -385, -385, -385, -385,   64,   64,   65, -385, -385, -385,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -385,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,  387,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -386, -386, -386, -386, -386, -386, -386, -386, -386,
-     -386, -386, -386, -386,   64,   64,   65, -386, -386, -386,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -386,   64,   64,   64,   64,   64,   64,   64,   64,
-
-       64,   64,   64,   64,   64,   64,   64,   64,  388,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -387, -387, -387, -387, -387, -387, -387, -387, -387,
-     -387, -387, -387, -387,   64,   64,   65, -387, -387, -387,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -387,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    {
-        5, -388, -388, -388, -388, -388, -388, -388, -388, -388,
-     -388, -388, -388, -388,   64,   64,   65, -388, -388, -388,
-
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64, -388,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64,   64,   64,   64,   64,   64,
-       64,   64,   64,   64,   64
-    },
-
-    } ;
-
-static yy_state_type yy_get_previous_state (yyscan_t yyscanner );
-static yy_state_type yy_try_NUL_trans (yy_state_type current_state  ,yyscan_t yyscanner);
-static int yy_get_next_buffer (yyscan_t yyscanner );
-static void yy_fatal_error (yyconst char msg[] ,yyscan_t yyscanner );
+static yy_state_type yy_get_previous_state ( yyscan_t yyscanner );
+static yy_state_type yy_try_NUL_trans ( yy_state_type current_state  , yyscan_t yyscanner);
+static int yy_get_next_buffer ( yyscan_t yyscanner );
+static void yynoreturn yy_fatal_error ( const char* msg , yyscan_t yyscanner );
 
 /* Done after the current pattern has been matched and before the
  * corresponding action - sets up yytext.
  */
 #define YY_DO_BEFORE_ACTION \
 	yyg->yytext_ptr = yy_bp; \
-	yyleng = (size_t) (yy_cp - yy_bp); \
+	yyleng = (int) (yy_cp - yy_bp); \
 	yyg->yy_hold_char = *yy_cp; \
 	*yy_cp = '\0'; \
 	yyg->yy_c_buf_p = yy_cp;
-
 #define YY_NUM_RULES 69
 #define YY_END_OF_BUFFER 70
 /* This struct is not used in this scanner,
@@ -4121,53 +570,59 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static yyconst flex_int16_t yy_accept[389] =
+static const flex_int16_t yy_accept[432] =
     {   0,
         0,    0,    0,    0,   70,   68,    1,    7,    7,   68,
         2,   67,   68,   67,   67,   68,   62,   68,   67,   49,
        49,   68,   49,   49,   49,   49,   49,   49,   49,   49,
-       49,   49,   49,   49,   49,    5,    5,    5,    5,    5,
-        1,    7,    0,    0,    0,    2,    0,    0,    0,    0,
-       61,   63,    0,   65,    4,    3,   64,   62,    0,    0,
-       52,    0,   53,   49,    0,   49,   68,   49,   49,   49,
+       49,   49,   49,   49,   49,   68,   68,   68,    5,    5,
+        5,    5,    5,    1,    7,    0,    0,    0,    2,    0,
+        0,    0,    0,   61,   63,    0,   65,    4,    3,   64,
+       62,    0,    0,   52,    0,   53,   49,    0,    0,    0,
+        0,   49,   68,   49,   49,   49,   49,   49,   49,   49,
        49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
-       49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
-       49,   49,    6,   56,   58,    0,    0,   56,    0,   55,
+       49,   49,   49,   49,   49,   49,   49,   49,   49,    0,
 
-       57,    0,    0,   55,    0,    0,    0,    3,   64,    0,
-       64,   53,    0,    0,   51,   49,    8,   49,   49,   49,
-       49,   16,   49,   49,   49,   20,   49,   49,   49,   49,
-       49,   49,   49,   49,   49,   49,   34,   49,   49,   49,
-       49,   49,   49,   49,   49,   49,   49,    0,    0,    0,
-        0,    0,    0,   66,    0,   65,    0,    0,    0,   50,
-       51,    0,   24,   49,   49,   49,   49,   49,   49,   49,
-       49,   49,   49,   22,   49,   49,   26,   49,   49,   49,
-       49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
-       49,   49,   49,   49,   49,    0,    0,    0,    0,    0,
+        0,    6,   56,   58,    0,    0,   56,    0,   55,   57,
+        0,    0,   55,    0,    0,    0,    3,   64,    0,   64,
+       53,    0,    0,   51,    0,    0,    0,   49,    0,    0,
+       49,    8,   49,   49,   49,   49,   16,   49,   49,   49,
+       20,   49,   49,   49,   49,   49,   49,   49,   49,   49,
+       49,   34,   49,   49,   49,   49,   49,   49,   49,   49,
+       49,   49,    0,    0,    0,    0,    0,    0,    0,   66,
+        0,   65,    0,    0,    0,   50,    0,    0,    0,   51,
+        0,    0,    0,    0,   51,    0,    0,    0,   24,   49,
+       49,   49,   49,   49,   49,   49,   49,   49,   49,   22,
 
-        0,    0,    0,    0,    0,   50,    0,   49,   10,   49,
+       49,   49,   26,   49,   49,   49,   49,   49,   49,   49,
        49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
-       49,   49,   49,   49,   49,   49,   49,   49,   37,   49,
-       49,   49,   49,   49,   49,   49,   49,   60,    0,   59,
-        0,   54,    0,    9,   11,   49,   13,   49,   17,   49,
-       49,   49,   49,   25,   49,   49,   49,   49,   49,   49,
+       49,    0,    0,    0,    0,    0,    0,    0,    0,    0,
+        0,   50,    0,    0,    0,    0,   50,    0,    0,   51,
+        0,    0,    0,   49,   10,   49,   49,   49,   49,   49,
        49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
-       49,   60,   59,   54,   54,   12,   49,   15,   49,   49,
-       49,   49,   27,   49,   49,   30,   49,   49,   49,   35,
-       49,   49,   49,   49,   49,   49,   44,   49,   48,   54,
+       49,   49,   49,   49,   37,   49,   49,   49,   49,   49,
+       49,   49,   49,   60,    0,   59,    0,   54,    0,   50,
+        0,    0,    0,    0,    9,   11,   49,   13,   49,   17,
+       49,   49,   49,   49,   25,   49,   49,   49,   49,   49,
 
-       54,   49,   49,   49,   21,   49,   49,   49,   49,   49,
-       49,   49,   49,   49,   49,   49,   49,   49,   47,   54,
-       49,   49,   49,   49,   49,   49,   49,   49,   33,   36,
-       49,   38,   49,   49,   49,   49,   49,   14,   18,   49,
-       49,   28,   49,   31,   32,   49,   49,   49,   49,   49,
-       45,   19,   49,   49,   40,   49,   49,   49,   43,   46,
-       23,   49,   49,   49,   49,   49,   49,   49,   49,   49,
        49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
-       42,   49,   49,   41,   49,   49,   29,   39
+       49,   49,   60,   59,   54,   54,    0,   12,   49,   15,
+       49,   49,   49,   49,   27,   49,   49,   30,   49,   49,
+       49,   35,   49,   49,   49,   49,   49,   49,   44,   49,
+       48,   54,   54,   49,   49,   49,   21,   49,   49,   49,
+       49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
+       47,   54,   49,   49,   49,   49,   49,   49,   49,   49,
+       33,   36,   49,   38,   49,   49,   49,   49,   49,   14,
+       18,   49,   49,   28,   49,   31,   32,   49,   49,   49,
+       49,   49,   45,   19,   49,   49,   40,   49,   49,   49,
+
+       43,   46,   23,   49,   49,   49,   49,   49,   49,   49,
+       49,   49,   49,   49,   49,   49,   49,   49,   49,   49,
+       49,   49,   42,   49,   49,   41,   49,   49,   29,   39,
+        0
     } ;
 
-static yyconst flex_int32_t yy_ec[256] =
+static const YY_CHAR yy_ec[256] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    2,    3,
         1,    1,    4,    1,    1,    1,    1,    1,    1,    1,
@@ -4178,25 +633,621 @@ static yyconst flex_int32_t yy_ec[256] =
         7,   18,    1,   19,   20,   21,   22,   23,   24,   25,
        21,   21,   21,   21,   21,   26,   21,   27,   21,   28,
        21,   21,   29,   21,   30,   21,   21,   21,   21,   21,
-        7,   31,    7,    1,   21,    1,   32,   33,   34,   35,
+        7,   31,    7,    1,   32,    1,   33,   34,   35,   36,
 
-       36,   37,   38,   39,   40,   21,   41,   42,   43,   44,
-       45,   46,   21,   47,   48,   49,   50,   51,   21,   52,
-       53,   54,    7,    1,    7,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+       37,   38,   39,   40,   41,   42,   43,   44,   45,   46,
+       47,   48,   42,   49,   50,   51,   52,   53,   42,   54,
+       55,   56,    7,    1,    7,    1,    1,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,   57,   57,   57,   57,   57,   57,   57,   57,   57,
+       57,    1,    1,   58,   58,   58,   58,   58,   58,   58,
 
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+       58,   58,   58,   58,   58,   58,   58,   58,   58,   58,
+       58,   58,   58,   58,   58,   58,   58,   58,   58,   58,
+       58,   58,   58,   59,   59,   59,   59,   59,   59,   59,
+       59,   59,   59,   59,   59,   59,   59,   59,   59,   60,
+       60,   60,   60,   60,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1
+    } ;
+
+static const YY_CHAR yy_meta[61] =
+    {   0,
+        1,    1,    2,    3,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    4,    4,    5,    6,    1,    1,    7,
+        7,    7,    7,    7,    7,    7,    7,    7,    7,    7,
+        1,    7,    7,    7,    7,    7,    7,    7,    7,    7,
+        7,    7,    7,    7,    7,    7,    7,    7,    7,    7,
+        7,    7,    7,    7,    7,    7,    1,    7,    7,    7
+    } ;
+
+static const flex_int16_t yy_base[453] =
+    {   0,
+        0,    0,   58,   60,  717, 2075,  712, 2075,  710,   61,
+        0, 2075,   57,   56,   58,   65,   69,  689,  681,   59,
+       63,  647,   66,   83,   91,   87,   95,  104,  118,  124,
+      128,  144,  150,  154,  164,  624,  612,  611, 2075, 2075,
+     2075,  650,  615,  658, 2075,   81,  649,  100,    0,   69,
+      640,  164,   80,  203,  214,  601,  206, 2075,    0,  217,
+      221,  179,  626, 2075,  616,  611,  189,  203,  558,  556,
+      555,  209, 2075,  221,  218,  226,  236,  240,  249,  254,
+      257,  281,  272,  275,  267,  285,  294,  307,  313,  330,
+      322,  303,  339,  362,  348,  359,  343,  367,  354,  539,
+
+      515, 2075, 2075, 2075,   82,   85,  143,  154, 2075, 2075,
+       77,  121,  208,  320,  518,  418,    0,  416,  192,  257,
+     2075,  150,  327,  376,  475,  470,  467,  379,  465,  438,
+      407,  389,  425,  429,  434,  439,  442,  445,  455,  460,
+      452,  470,  480,  505,  475,  501,  493,  510,  528,  525,
+      520,  542,  532,  546,  551,  558,  582,  561,  578,  566,
+      591,  598,  424,  306,  469,  540,  438,  465,  624, 2075,
+      260,  288,  360,  451,  423,  606,  407,  406,  403,  612,
+      615,  402,  400,  399,  618,  386,  367,  358,  627,  636,
+      630,  643,  646,  651,  663,  675,  683,  692,  696,  700,
+
+      703,  711,  714,  721,  724,  737,  730,  748,  760,  770,
+      741,  775,  778,  782,  788,  798,  794,  816,  808,  811,
+      843,  406,  446,  447,  544,  402,  515,  523,  689,  390,
+      375,  827,  342,  300,  291,  290,  833,  285,  249,  846,
+      207,  203,  196,  861,  849,  856,  864,  867,  873,  897,
+      882,  878,  894,  923,  914,  927,  930,  942,  933,  945,
+      960,  951,  979,  982,  948,  996, 1005,  999, 1010, 1014,
+     1017, 1032, 1035, 2075,  245, 2075,  238,  225,  192, 1027,
+      144,  141,  110,   82, 1046, 1051, 1063, 1066, 1080, 1083,
+     1086, 1092, 1097, 1112, 1100, 1118, 1133, 1104, 1145, 1149,
+
+     1152, 1163, 1157, 1172, 1180, 1183, 1168, 1186, 1202, 1209,
+     1213, 1217,  110,  101,   82,  614,   41, 1220, 1232, 1235,
+     1241, 1254, 1247, 1265, 1269, 1280, 1292, 1272, 1295, 1287,
+     1300, 1303, 1319, 1325, 1332, 1341, 1310, 1355, 1351, 1358,
+     1364, 2075,   77, 1370, 1378, 1373, 1381, 1389, 1396, 1386,
+     1426, 1434, 1410, 1437, 1418, 1441, 1445, 1482, 1464, 1451,
+     1456,   61, 1473, 1496, 1502, 1509, 1513, 1520, 1531, 1534,
+     1505, 1528, 1537, 1541, 1559, 1566, 1569, 1586, 1582, 1589,
+     1592, 1604, 1598, 1614, 1618, 1621, 1627, 1638, 1643, 1650,
+     1654, 1666, 1677, 1659, 1674, 1688, 1683, 1699, 1712, 1695,
+
+     1691, 1707, 1715, 1728, 1740, 1723, 1744, 1753, 1762, 1769,
+     1774, 1780, 1785, 1791, 1794, 1801, 1807, 1819, 1830, 1839,
+     1846, 1814, 1842, 1864, 1867, 1859, 1871, 1878, 1875, 1887,
+     2075, 1947, 1954, 1961, 1968, 1975, 1982, 1986, 1993, 2000,
+     2007, 2014, 2021, 2024, 2031, 2038, 2045,   69, 2049, 2056,
+     2063, 2067
+    } ;
+
+static const flex_int16_t yy_def[453] =
+    {   0,
+      431,    1,  432,  432,  431,  431,  431,  431,  431,  433,
+      434,  431,  435,  431,  431,  431,  431,  436,  437,  438,
+      438,  431,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  433,  439,  440,  434,  435,
+      441,  442,  431,  431,  431,  431,  431,  431,  443,  431,
+      431,  431,  436,  431,  437,  431,  438,  444,  431,  431,
+      431,  438,  431,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  431,
+
+      431,  431,  431,  431,  445,  433,  433,  440,  431,  431,
+      446,  435,  435,  442,  431,  431,  443,  431,  431,  431,
+      431,  447,  448,  449,  431,  431,  431,  438,  431,  431,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  431,  445,  445,  450,  446,  446,  451,  431,
+      431,  431,  447,  447,  447,  452,  431,  431,  431,  449,
+      444,  431,  431,  431,  449,  431,  431,  431,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  445,  445,  450,  450,  446,  446,  451,  451,  447,
+      447,  452,  431,  431,  431,  431,  452,  431,  431,  449,
+      431,  431,  431,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  431,  445,  431,  446,  431,  447,  452,
+      431,  431,  431,  431,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  445,  446,  431,  447,  431,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  431,  447,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  447,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+      438,  438,  438,  438,  438,  438,  438,  438,  438,  438,
+        0,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431
+    } ;
+
+static const flex_int16_t yy_nxt[2136] =
+    {   0,
+        6,    7,    8,    9,   10,   11,   12,   13,    6,    6,
+       14,   15,   16,   17,   17,   12,   18,    6,   19,   20,
+       20,   20,   20,   20,   20,   20,   21,   20,   20,   20,
+       22,   20,   23,   20,   24,   25,   20,   20,   20,   20,
+       26,   20,   27,   20,   20,   28,   29,   30,   31,   32,
+       33,   34,   35,   20,   20,   20,    6,   36,   37,   38,
+       40,   41,   40,   41,   51,   47,   42,   53,   42,   54,
+       55,   57,   57,   58,   68,  176,  109,   59,   68,  278,
+       60,   68,   61,   61,  168,  103,  165,   52,   43,  103,
+       43,   48,   62,   57,   57,  362,   56,  280,   68,   52,
+
+      342,   74,   68,   46,  107,   62,   68,  169,  276,   72,
+       68,   48,  166,   75,  274,   48,   69,   70,   71,   68,
+       69,   70,   71,   69,   70,   71,   76,   79,  109,   77,
+      108,   80,   82,   68,   78,   83,   84,   81,  240,   68,
+       69,   70,   71,   68,   69,   70,   71,  103,   69,   70,
+       71,   52,   69,   70,   71,   85,   87,   46,  107,   68,
+       88,   69,   70,   71,   90,   68,  237,   50,  174,   68,
+       86,  113,   89,   48,   91,   69,   70,   71,   92,   68,
+      175,   69,   70,   71,  108,   69,   70,   71,  119,  119,
+       96,   93,  120,  120,  114,   94,   98,  317,   95,   97,
+
+      280,   69,   70,   71,   68,  120,  120,   69,   70,   71,
+      316,   69,   70,   71,   60,  109,   55,   55,  123,   57,
+       57,   69,   70,   71,   68,   60,   62,   55,   55,  116,
+      118,  118,   60,   68,   61,   61,   68,   62,   52,   62,
+       62,   68,  116,  315,   62,  314,   69,   70,   71,  313,
+       62,   68,  185,   62,  131,   68,  132,   62,  134,  284,
+      125,  126,  127,  240,   68,  133,   69,   70,   71,   68,
+      120,  120,   68,  172,  172,   69,   70,   71,   69,   70,
+       71,  135,   68,   69,   70,   71,  137,   68,  139,  136,
+       68,  141,  138,   69,   70,   71,   68,   69,   70,   71,
+
+       68,  172,  172,  140,  145,  283,   69,   70,   71,   68,
+      165,   69,   70,   71,   69,   70,   71,  143,   68,  144,
+      142,  146,   68,   50,   69,   70,   71,  113,   68,   69,
+       70,   71,   69,   70,   71,  155,  166,   68,   69,   70,
+       71,  237,   69,   70,   71,   68,  282,  281,  147,  149,
+      114,   69,   70,   71,   68,  148,  280,  123,   68,  150,
+       69,   70,   71,   68,   69,   70,   71,  151,  154,   68,
+       69,   70,   71,  152,   68,  156,  153,   68,  174,   69,
+       70,   71,   68,  161,  177,  178,  179,   69,   70,   71,
+      175,  181,  159,  279,   68,  157,   69,   70,   71,  158,
+
+       69,   70,   71,  160,   68,   69,   70,   71,  278,  276,
+      274,   69,   70,   71,  128,  162,   69,   70,   71,   69,
+       70,   71,   68,  243,   69,   70,   71,  171,  171,  118,
+      118,  172,  172,  182,  183,  184,   69,   70,   71,   62,
+       68,  231,  185,  189,   68,  168,   69,   70,   71,   68,
+      165,  275,   62,  175,   68,  242,  241,   68,  240,  239,
+       68,  190,  238,  237,   69,   70,   71,   68,  169,  230,
+       68,  192,  226,  222,  195,   68,  166,  225,  191,  193,
+       99,  196,   69,   70,   71,   68,   69,   70,   71,  194,
+       68,   69,   70,   71,  188,   68,   69,   70,   71,   69,
+
+       70,   71,   69,   70,   71,  197,  199,  198,   68,   69,
+       70,   71,   69,   70,   71,  200,   68,   69,   70,   71,
+       68,  128,  168,  187,  202,   68,  186,   69,   70,   71,
+      277,  185,   69,   70,   71,   68,  204,   69,   70,   71,
+       68,  201,  164,   68,  224,  169,  164,   68,  224,  203,
+       69,   70,   71,  229,  205,  170,  209,   68,   69,   70,
+       71,   68,   69,   70,   71,  206,   68,   69,   70,   71,
+      225,  163,  208,   68,  225,  207,   68,   69,   70,   71,
+      211,   68,   69,   70,   71,   69,   70,   71,  210,   69,
+       70,   71,  214,   68,  213,   99,  212,   68,  216,   69,
+
+       70,   71,  218,   69,   70,   71,   68,  215,   69,   70,
+       71,  130,  129,   68,  128,   69,   70,   71,   69,   70,
+       71,  233,  217,   69,   70,   71,  167,  181,  219,  122,
+      431,  228,  343,  181,  121,   69,   70,   71,  220,   69,
+       70,   71,   68,   64,  175,   68,  115,  111,   69,   70,
+       71,   68,  221,  105,  229,   69,   70,   71,   68,   44,
+       73,   68,  102,  234,  235,  236,   68,  101,  100,  182,
+      183,  184,  125,  126,  127,  182,  183,  184,   68,  245,
+       99,  244,  247,  246,   69,   70,   71,   69,   70,   71,
+       68,  167,   73,   69,   70,   71,  228,  248,   68,   66,
+
+       69,   70,   71,   69,   70,   71,   64,   68,   69,   70,
+       71,   68,   45,   44,  249,   68,  431,  431,   68,  229,
+       69,   70,   71,  251,  254,  250,   68,  431,  431,   68,
+      431,  431,   69,   70,   71,  252,   68,  431,  431,   68,
+       69,   70,   71,  431,  253,   68,  431,  255,  431,   69,
+       70,   71,   68,   69,   70,   71,   68,   69,   70,   71,
+       69,   70,   71,   68,  257,  431,  259,  256,   69,   70,
+       71,   69,   70,   71,  431,   68,  263,  258,   69,   70,
+       71,   69,   70,   71,  260,   68,  431,   69,   70,   71,
+       68,  431,  431,   68,   69,   70,   71,   68,   69,   70,
+
+       71,  431,  264,   68,  262,   69,   70,   71,  261,   68,
+      431,  431,  431,   68,  265,  431,  431,   69,   70,   71,
+      267,  431,  266,   68,  431,  431,   68,   69,   70,   71,
+      269,   68,   69,   70,   71,   69,   70,   71,  268,   69,
+       70,   71,  233,  272,  270,   69,   70,   71,  233,  431,
+      431,   69,   70,   71,  271,   69,   70,   71,   68,  431,
+      431,  181,  431,  431,   68,   69,   70,   71,   69,   70,
+       71,   68,  431,   69,   70,   71,   68,  431,  431,   68,
+      431,  431,   68,  273,  234,  235,  236,  431,   68,  431,
+      234,  235,  236,   68,  286,  431,  285,   68,  287,  431,
+
+       69,   70,   71,  182,  183,  184,   69,   70,   71,   68,
+      292,  288,   68,   69,   70,   71,  289,  431,   69,   70,
+       71,   69,   70,   71,   69,   70,   71,  431,  291,   68,
+       69,   70,   71,  290,  293,   69,   70,   71,   68,   69,
+       70,   71,   68,  431,  431,   68,  431,  431,   68,  431,
+      431,   69,   70,   71,   69,   70,   71,   68,  431,  296,
+       68,  431,  294,   68,  295,  431,   68,  431,  431,  431,
+      431,   69,   70,   71,  431,   68,  431,  431,  299,  297,
+       69,   70,   71,  302,   69,   70,   71,   69,   70,   71,
+       69,   70,   71,  300,   68,  298,  301,   68,  431,   69,
+
+       70,   71,   69,   70,   71,   69,   70,   71,   69,   70,
+       71,   68,  431,  431,   68,  303,  431,   69,   70,   71,
+       68,  431,  431,  431,  431,   68,  431,  431,  305,   68,
+      304,  431,   68,  431,  431,  431,   69,   70,   71,   69,
+       70,   71,  233,  431,  431,  431,  309,   68,  431,  431,
+       68,  431,  307,   69,   70,   71,   69,   70,   71,  306,
+      308,   68,   69,   70,   71,  310,   68,   69,   70,   71,
+      431,   69,   70,   71,   69,   70,   71,  311,   68,  431,
+      312,   68,  431,  431,  234,  235,  236,  431,  319,   69,
+       70,   71,   69,   70,   71,   68,  431,  431,   68,  431,
+
+      431,   68,  431,   69,   70,   71,  431,   68,   69,   70,
+       71,  431,   68,  318,  431,   68,  431,  431,  431,   68,
+       69,   70,   71,   69,   70,   71,  431,   68,  431,  431,
+      320,  321,  327,   68,  431,  431,  431,   69,   70,   71,
+       69,   70,   71,   69,   70,   71,  322,  323,   68,   69,
+       70,   71,  324,  325,   69,   70,   71,   69,   70,   71,
+       68,   69,   70,   71,   68,  431,  431,   68,  431,   69,
+       70,   71,   68,  431,  431,   69,   70,   71,   68,  431,
+      328,  431,  326,   68,  431,  431,  431,   68,  431,  431,
+       69,   70,   71,  431,  431,   68,  336,  330,   68,  329,
+
+      431,   68,   69,   70,   71,  332,   69,   70,   71,   69,
+       70,   71,  333,  331,   69,   70,   71,   68,  431,  335,
+       69,   70,   71,  334,   68,   69,   70,   71,   68,   69,
+       70,   71,   68,  431,  337,   68,  431,   69,   70,   71,
+       69,   70,   71,   69,   70,   71,  338,   68,  431,  431,
+       68,  431,  431,  339,  431,  341,   68,  431,  431,   69,
+       70,   71,   68,  340,  344,  431,   69,   70,   71,   68,
+       69,   70,   71,  345,   69,   70,   71,   69,   70,   71,
+       68,  431,  431,  346,   68,  431,  431,   68,  431,   69,
+       70,   71,   69,   70,   71,   68,  347,  431,   69,   70,
+
+       71,  431,   68,  431,   69,   70,   71,   68,  348,  431,
+       68,   69,   70,   71,  431,   68,  431,  431,   68,  431,
+      349,  352,   69,   70,   71,   68,   69,   70,   71,   69,
+       70,   71,  431,  431,   68,  351,  353,   69,   70,   71,
+       68,  431,  431,  350,   69,   70,   71,   68,  431,   69,
+       70,   71,   69,   70,   71,  431,   68,   69,   70,   71,
+       69,   70,   71,  354,  358,  355,   68,   69,   70,   71,
+       68,  431,  431,   68,  431,  431,   69,   70,   71,   68,
+      356,  431,   69,   70,   71,   68,  360,  431,   68,   69,
+       70,   71,  357,   68,  431,  431,   68,  431,   69,   70,
+
+       71,   68,  359,  431,   68,  431,  431,  361,   69,   70,
+       71,   68,   69,   70,   71,   69,   70,   71,  365,  368,
+      363,   69,   70,   71,  366,   68,  364,   69,   70,   71,
+       69,   70,   71,   68,  431,   69,   70,   71,   69,   70,
+       71,   68,  367,   69,   70,   71,   69,   70,   71,   68,
+      431,  431,   68,   69,   70,   71,   68,  431,  431,  371,
+       68,  431,  369,  431,  431,  431,   68,   69,   70,   71,
+      370,   68,  431,  373,  431,   69,   70,   71,  375,   68,
+      431,  431,  431,   69,   70,   71,  372,  379,   68,  431,
+      374,   69,   70,   71,   69,   70,   71,   68,   69,   70,
+
+       71,  376,   69,   70,   71,  380,  377,  378,   69,   70,
+       71,   68,  431,   69,   70,   71,  431,   68,  431,  431,
+       68,   69,   70,   71,   68,  431,  431,  431,   68,  431,
+       69,   70,   71,  431,  431,   68,  431,  431,  431,   69,
+       70,   71,  382,   68,  431,  431,   68,  431,  431,   68,
+      381,  431,   68,   69,   70,   71,   68,  383,  384,   69,
+       70,   71,   69,   70,   71,  431,   69,   70,   71,  385,
+       69,   70,   71,  388,   68,  431,  431,   69,   70,   71,
+      386,   68,  431,  387,   68,   69,   70,   71,   69,   70,
+       71,   69,   70,   71,   69,   70,   71,   68,   69,   70,
+
+       71,   68,  431,  431,   68,  431,  431,   68,  389,  431,
+      431,  431,  431,   68,  390,  431,   69,   70,   71,   68,
+      391,  431,  392,   69,   70,   71,   69,   70,   71,   68,
+      431,  431,  393,   68,  395,  431,   68,  431,  431,   69,
+       70,   71,   68,   69,   70,   71,   69,   70,   71,   69,
+       70,   71,  431,   68,  394,   69,   70,   71,   68,  431,
+      431,   69,   70,   71,  431,   68,  431,  431,  396,   68,
+      431,   69,   70,   71,   68,   69,   70,   71,   69,   70,
+       71,   68,  431,  431,   69,   70,   71,  397,  399,   68,
+      431,  431,   68,  398,  431,   69,   70,   71,   68,  400,
+
+       69,   70,   71,   68,  431,  431,   68,   69,   70,   71,
+       68,   69,   70,   71,   68,  401,   69,   70,   71,  403,
+      431,  431,   68,   69,   70,   71,  402,   68,  404,  407,
+       68,   69,   70,   71,   69,   70,   71,  431,   68,  405,
+       69,   70,   71,   68,  431,   69,   70,   71,   69,   70,
+       71,  431,   69,   70,   71,   68,   69,   70,   71,   68,
+      431,  431,  431,  406,   69,   70,   71,  410,   68,   69,
+       70,   71,   69,   70,   71,  431,  431,   68,  408,  431,
+       69,   70,   71,  431,   68,   69,   70,   71,  431,   68,
+      409,  431,  431,  431,  411,   68,  431,   69,   70,   71,
+
+       68,   69,   70,   71,  412,  414,   68,  431,  431,   68,
+       69,   70,   71,  413,  415,  431,   68,  431,  431,   69,
+       70,   71,   68,  431,  431,  431,   69,   70,   71,   68,
+      416,   69,   70,   71,   68,  417,  418,   69,   70,   71,
+      419,  420,   69,   70,   71,   68,  431,  421,   69,   70,
+       71,   69,   70,   71,   68,  431,  431,   68,   69,   70,
+       71,   68,  431,  426,   69,   70,   71,  431,  431,  422,
+      431,   69,   70,   71,   68,  423,   69,   70,   71,   68,
+      431,  431,   68,  431,  431,  424,   68,   69,   70,   71,
+       68,  431,  425,   68,  431,  431,   69,   70,   71,   69,
+
+       70,   71,   68,   69,   70,   71,  431,  431,  431,  427,
+      431,  431,  428,  431,  431,  431,   69,   70,   71,  431,
+      429,   69,   70,   71,   69,   70,   71,  430,   69,   70,
+       71,  431,   69,   70,   71,   69,   70,   71,  431,  431,
+      431,  431,  431,  431,   69,   70,   71,   39,   39,   39,
+       39,   39,   39,   39,   46,  431,  431,   46,   46,   46,
+       46,   49,  431,  431,   49,   49,   49,   49,   50,  431,
+      431,   50,   50,   50,   50,   63,  431,  431,   63,   63,
+      431,   63,   65,  431,   65,   65,   65,   65,   65,   67,
+       67,  431,   67,  104,  104,  104,  104,  104,  104,  104,
+
+      106,  431,  106,  106,  106,  106,  106,  110,  110,  110,
+      110,  110,  110,  110,  112,  431,  112,  112,  112,  112,
+      112,  117,  431,  431,  117,  117,  117,  117,  124,  431,
+      124,  164,  164,  164,  164,  164,  164,  164,  167,  167,
+      167,  167,  167,  167,  167,  173,  431,  173,  173,  173,
+      173,  173,  180,  180,  431,  180,  223,  223,  223,  223,
+      223,  223,  223,  227,  227,  227,  227,  227,  227,  227,
+      232,  232,  431,  232,    5,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431
+    } ;
+
+static const flex_int16_t yy_chk[2136] =
+    {   0,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
+        3,    3,    4,    4,   13,   10,    3,   14,    4,   14,
+       14,   15,   15,   16,   20,  448,   50,   16,   21,  362,
+       17,   23,   17,   17,  111,   46,  105,   13,    3,  106,
+        4,   10,   17,   53,   53,  343,   14,  317,   24,   50,
+
+      315,   23,   26,   48,   48,   17,   25,  111,  314,   21,
+       27,   46,  105,   23,  313,  106,   20,   20,   20,   28,
+       21,   21,   21,   23,   23,   23,   24,   25,  112,   24,
+       48,   25,   26,   29,   24,   27,   28,   25,  284,   30,
+       24,   24,   24,   31,   26,   26,   26,  107,   25,   25,
+       25,  112,   27,   27,   27,   29,   30,  108,  108,   32,
+       30,   28,   28,   28,   31,   33,  283,   52,  122,   34,
+       29,   52,   30,  107,   31,   29,   29,   29,   32,   35,
+      122,   30,   30,   30,  108,   31,   31,   31,   62,   62,
+       33,   32,   62,   62,   52,   32,   35,  282,   32,   34,
+
+      281,   32,   32,   32,   67,  119,  119,   33,   33,   33,
+      279,   34,   34,   34,   54,  113,   54,   54,   68,   57,
+       57,   35,   35,   35,   72,   55,   54,   55,   55,   57,
+       60,   60,   61,   75,   61,   61,   74,   55,  113,   54,
+       60,   76,   57,  278,   61,  277,   67,   67,   67,  275,
+       55,   77,  243,   60,   72,   78,   74,   61,   76,  242,
+       68,   68,   68,  241,   79,   75,   72,   72,   72,   80,
+      120,  120,   81,  171,  171,   75,   75,   75,   74,   74,
+       74,   77,   85,   76,   76,   76,   79,   83,   80,   78,
+       84,   81,   79,   77,   77,   77,   82,   78,   78,   78,
+
+       86,  172,  172,   80,   85,  239,   79,   79,   79,   87,
+      164,   80,   80,   80,   81,   81,   81,   83,   92,   84,
+       82,   86,   88,  114,   85,   85,   85,  114,   89,   83,
+       83,   83,   84,   84,   84,   92,  164,   91,   82,   82,
+       82,  238,   86,   86,   86,   90,  236,  235,   87,   89,
+      114,   87,   87,   87,   93,   88,  234,  233,   97,   89,
+       92,   92,   92,   95,   88,   88,   88,   90,   91,   99,
+       89,   89,   89,   90,   96,   93,   90,   94,  173,   91,
+       91,   91,   98,   97,  123,  123,  123,   90,   90,   90,
+      173,  124,   95,  231,  128,   94,   93,   93,   93,   94,
+
+       97,   97,   97,   96,  132,   95,   95,   95,  230,  226,
+      222,   99,   99,   99,  188,   98,   96,   96,   96,   94,
+       94,   94,  131,  187,   98,   98,   98,  116,  116,  118,
+      118,  116,  116,  124,  124,  124,  128,  128,  128,  118,
+      133,  175,  186,  131,  134,  167,  132,  132,  132,  135,
+      223,  224,  118,  175,  136,  184,  183,  137,  182,  179,
+      138,  133,  178,  177,  131,  131,  131,  141,  167,  174,
+      139,  135,  168,  165,  137,  140,  223,  224,  134,  135,
+      163,  138,  133,  133,  133,  142,  134,  134,  134,  136,
+      145,  135,  135,  135,  130,  143,  136,  136,  136,  137,
+
+      137,  137,  138,  138,  138,  139,  142,  140,  147,  141,
+      141,  141,  139,  139,  139,  143,  146,  140,  140,  140,
+      144,  129,  227,  127,  145,  148,  126,  142,  142,  142,
+      228,  125,  145,  145,  145,  151,  147,  143,  143,  143,
+      150,  144,  166,  149,  166,  227,  225,  153,  225,  146,
+      147,  147,  147,  228,  148,  115,  151,  152,  146,  146,
+      146,  154,  144,  144,  144,  149,  155,  148,  148,  148,
+      166,  101,  150,  156,  225,  149,  158,  151,  151,  151,
+      153,  160,  150,  150,  150,  149,  149,  149,  152,  153,
+      153,  153,  156,  159,  155,  100,  154,  157,  158,  152,
+
+      152,  152,  160,  154,  154,  154,  161,  157,  155,  155,
+      155,   71,   70,  162,   69,  156,  156,  156,  158,  158,
+      158,  176,  159,  160,  160,  160,  169,  180,  161,   66,
+      181,  169,  316,  185,   65,  159,  159,  159,  162,  157,
+      157,  157,  189,   63,  316,  191,   56,   51,  161,  161,
+      161,  190,  162,   47,  169,  162,  162,  162,  192,   44,
+       43,  193,   42,  176,  176,  176,  194,   38,   37,  180,
+      180,  180,  181,  181,  181,  185,  185,  185,  195,  191,
+       36,  190,  193,  192,  189,  189,  189,  191,  191,  191,
+      196,  229,   22,  190,  190,  190,  229,  194,  197,   19,
+
+      192,  192,  192,  193,  193,  193,   18,  198,  194,  194,
+      194,  199,    9,    7,  195,  200,    5,    0,  201,  229,
+      195,  195,  195,  197,  201,  196,  202,    0,    0,  203,
+        0,    0,  196,  196,  196,  198,  204,    0,    0,  205,
+      197,  197,  197,    0,  199,  207,    0,  202,    0,  198,
+      198,  198,  206,  199,  199,  199,  211,  200,  200,  200,
+      201,  201,  201,  208,  205,    0,  207,  204,  202,  202,
+      202,  203,  203,  203,    0,  209,  211,  206,  204,  204,
+      204,  205,  205,  205,  208,  210,    0,  207,  207,  207,
+      212,    0,    0,  213,  206,  206,  206,  214,  211,  211,
+
+      211,    0,  212,  215,  210,  208,  208,  208,  209,  217,
+        0,    0,    0,  216,  213,    0,    0,  209,  209,  209,
+      215,    0,  214,  219,    0,    0,  220,  210,  210,  210,
+      217,  218,  212,  212,  212,  213,  213,  213,  216,  214,
+      214,  214,  232,  220,  218,  215,  215,  215,  237,    0,
+        0,  217,  217,  217,  219,  216,  216,  216,  221,    0,
+        0,  240,    0,    0,  245,  219,  219,  219,  220,  220,
+      220,  246,    0,  218,  218,  218,  244,    0,    0,  247,
+        0,    0,  248,  221,  232,  232,  232,    0,  249,    0,
+      237,  237,  237,  252,  246,    0,  244,  251,  247,    0,
+
+      221,  221,  221,  240,  240,  240,  245,  245,  245,  253,
+      252,  248,  250,  246,  246,  246,  249,    0,  244,  244,
+      244,  247,  247,  247,  248,  248,  248,    0,  251,  255,
+      249,  249,  249,  250,  253,  252,  252,  252,  254,  251,
+      251,  251,  256,    0,    0,  257,    0,    0,  259,    0,
+        0,  253,  253,  253,  250,  250,  250,  258,    0,  256,
+      260,    0,  254,  265,  255,    0,  262,    0,    0,    0,
+        0,  255,  255,  255,    0,  261,    0,    0,  259,  257,
+      254,  254,  254,  262,  256,  256,  256,  257,  257,  257,
+      259,  259,  259,  260,  263,  258,  261,  264,    0,  258,
+
+      258,  258,  260,  260,  260,  265,  265,  265,  262,  262,
+      262,  266,    0,    0,  268,  263,    0,  261,  261,  261,
+      267,    0,    0,    0,    0,  269,    0,    0,  266,  270,
+      264,    0,  271,    0,    0,    0,  263,  263,  263,  264,
+      264,  264,  280,    0,    0,    0,  270,  272,    0,    0,
+      273,    0,  268,  266,  266,  266,  268,  268,  268,  267,
+      269,  285,  267,  267,  267,  271,  286,  269,  269,  269,
+        0,  270,  270,  270,  271,  271,  271,  272,  287,    0,
+      273,  288,    0,    0,  280,  280,  280,    0,  288,  272,
+      272,  272,  273,  273,  273,  289,    0,    0,  290,    0,
+
+        0,  291,    0,  285,  285,  285,    0,  292,  286,  286,
+      286,    0,  293,  287,    0,  295,    0,    0,    0,  298,
+      287,  287,  287,  288,  288,  288,    0,  294,    0,    0,
+      289,  291,  298,  296,    0,    0,    0,  289,  289,  289,
+      290,  290,  290,  291,  291,  291,  292,  293,  297,  292,
+      292,  292,  294,  296,  293,  293,  293,  295,  295,  295,
+      299,  298,  298,  298,  300,    0,    0,  301,    0,  294,
+      294,  294,  303,    0,    0,  296,  296,  296,  302,    0,
+      299,    0,  297,  307,    0,    0,    0,  304,    0,    0,
+      297,  297,  297,    0,    0,  305,  307,  301,  306,  300,
+
+        0,  308,  299,  299,  299,  303,  300,  300,  300,  301,
+      301,  301,  304,  302,  303,  303,  303,  309,    0,  306,
+      302,  302,  302,  305,  310,  307,  307,  307,  311,  304,
+      304,  304,  312,    0,  308,  318,    0,  305,  305,  305,
+      306,  306,  306,  308,  308,  308,  309,  319,    0,    0,
+      320,    0,    0,  310,    0,  312,  321,    0,    0,  309,
+      309,  309,  323,  311,  319,    0,  310,  310,  310,  322,
+      311,  311,  311,  321,  312,  312,  312,  318,  318,  318,
+      324,    0,    0,  322,  325,    0,    0,  328,    0,  319,
+      319,  319,  320,  320,  320,  326,  323,    0,  321,  321,
+
+      321,    0,  330,    0,  323,  323,  323,  327,  324,    0,
+      329,  322,  322,  322,    0,  331,    0,    0,  332,    0,
+      326,  330,  324,  324,  324,  337,  325,  325,  325,  328,
+      328,  328,    0,    0,  333,  329,  331,  326,  326,  326,
+      334,    0,    0,  327,  330,  330,  330,  335,    0,  327,
+      327,  327,  329,  329,  329,    0,  336,  331,  331,  331,
+      332,  332,  332,  333,  337,  334,  339,  337,  337,  337,
+      338,    0,    0,  340,    0,    0,  333,  333,  333,  341,
+      335,    0,  334,  334,  334,  344,  340,    0,  346,  335,
+      335,  335,  336,  345,    0,    0,  347,    0,  336,  336,
+
+      336,  350,  338,    0,  348,    0,    0,  340,  339,  339,
+      339,  349,  338,  338,  338,  340,  340,  340,  346,  350,
+      344,  341,  341,  341,  348,  353,  345,  344,  344,  344,
+      346,  346,  346,  355,    0,  345,  345,  345,  347,  347,
+      347,  351,  349,  350,  350,  350,  348,  348,  348,  352,
+        0,    0,  354,  349,  349,  349,  356,    0,    0,  353,
+      357,    0,  351,    0,    0,    0,  360,  353,  353,  353,
+      352,  361,    0,  355,    0,  355,  355,  355,  357,  359,
+        0,    0,    0,  351,  351,  351,  354,  360,  363,    0,
+      356,  352,  352,  352,  354,  354,  354,  358,  356,  356,
+
+      356,  358,  357,  357,  357,  363,  358,  359,  360,  360,
+      360,  364,    0,  361,  361,  361,    0,  365,    0,    0,
+      371,  359,  359,  359,  366,    0,    0,    0,  367,    0,
+      363,  363,  363,    0,    0,  368,    0,    0,    0,  358,
+      358,  358,  365,  372,    0,    0,  369,    0,    0,  370,
+      364,    0,  373,  364,  364,  364,  374,  366,  367,  365,
+      365,  365,  371,  371,  371,    0,  366,  366,  366,  368,
+      367,  367,  367,  373,  375,    0,    0,  368,  368,  368,
+      369,  376,    0,  370,  377,  372,  372,  372,  369,  369,
+      369,  370,  370,  370,  373,  373,  373,  379,  374,  374,
+
+      374,  378,    0,    0,  380,    0,    0,  381,  375,    0,
+        0,    0,    0,  383,  376,    0,  375,  375,  375,  382,
+      377,    0,  378,  376,  376,  376,  377,  377,  377,  384,
+        0,    0,  379,  385,  383,    0,  386,    0,    0,  379,
+      379,  379,  387,  378,  378,  378,  380,  380,  380,  381,
+      381,  381,    0,  388,  382,  383,  383,  383,  389,    0,
+        0,  382,  382,  382,    0,  390,    0,    0,  385,  391,
+        0,  384,  384,  384,  394,  385,  385,  385,  386,  386,
+      386,  392,    0,    0,  387,  387,  387,  388,  390,  395,
+        0,    0,  393,  389,    0,  388,  388,  388,  397,  391,
+
+      389,  389,  389,  396,    0,    0,  401,  390,  390,  390,
+      400,  391,  391,  391,  398,  392,  394,  394,  394,  395,
+        0,    0,  402,  392,  392,  392,  393,  399,  396,  400,
+      403,  395,  395,  395,  393,  393,  393,    0,  406,  398,
+      397,  397,  397,  404,    0,  396,  396,  396,  401,  401,
+      401,    0,  400,  400,  400,  405,  398,  398,  398,  407,
+        0,    0,    0,  399,  402,  402,  402,  406,  408,  399,
+      399,  399,  403,  403,  403,    0,    0,  409,  404,    0,
+      406,  406,  406,    0,  410,  404,  404,  404,    0,  411,
+      405,    0,    0,    0,  407,  412,    0,  405,  405,  405,
+
+      413,  407,  407,  407,  408,  410,  414,    0,    0,  415,
+      408,  408,  408,  409,  411,    0,  416,    0,    0,  409,
+      409,  409,  417,    0,    0,    0,  410,  410,  410,  422,
+      412,  411,  411,  411,  418,  413,  414,  412,  412,  412,
+      415,  416,  413,  413,  413,  419,    0,  417,  414,  414,
+      414,  415,  415,  415,  420,    0,    0,  423,  416,  416,
+      416,  421,    0,  422,  417,  417,  417,    0,    0,  418,
+        0,  422,  422,  422,  426,  419,  418,  418,  418,  424,
+        0,    0,  425,    0,    0,  420,  427,  419,  419,  419,
+      429,    0,  421,  428,    0,    0,  420,  420,  420,  423,
+
+      423,  423,  430,  421,  421,  421,    0,    0,    0,  424,
+        0,    0,  425,    0,    0,    0,  426,  426,  426,    0,
+      427,  424,  424,  424,  425,  425,  425,  428,  427,  427,
+      427,    0,  429,  429,  429,  428,  428,  428,    0,    0,
+        0,    0,    0,    0,  430,  430,  430,  432,  432,  432,
+      432,  432,  432,  432,  433,    0,    0,  433,  433,  433,
+      433,  434,    0,    0,  434,  434,  434,  434,  435,    0,
+        0,  435,  435,  435,  435,  436,    0,    0,  436,  436,
+        0,  436,  437,    0,  437,  437,  437,  437,  437,  438,
+      438,    0,  438,  439,  439,  439,  439,  439,  439,  439,
+
+      440,    0,  440,  440,  440,  440,  440,  441,  441,  441,
+      441,  441,  441,  441,  442,    0,  442,  442,  442,  442,
+      442,  443,    0,    0,  443,  443,  443,  443,  444,    0,
+      444,  445,  445,  445,  445,  445,  445,  445,  446,  446,
+      446,  446,  446,  446,  446,  447,    0,  447,  447,  447,
+      447,  447,  449,  449,    0,  449,  450,  450,  450,  450,
+      450,  450,  450,  451,  451,  451,  451,  451,  451,  451,
+      452,  452,    0,  452,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431,  431,  431,  431,  431,  431,
+      431,  431,  431,  431,  431
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -4206,8 +1257,8 @@ static yyconst flex_int32_t yy_ec[256] =
 #define yymore() yymore_used_but_not_detected
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
-#line 1 "pxr/usd/sdf/textFileFormat.ll"
-#line 2 "pxr/usd/sdf/textFileFormat.ll"
+#line 1 "./USD/pxr/usd/sdf/textFileFormat.ll"
+#line 2 "./USD/pxr/usd/sdf/textFileFormat.ll"
 //
 // Copyright 2016 Pixar
 //
@@ -4262,10 +1313,21 @@ PXR_NAMESPACE_USING_DIRECTIVE
 // The context object will be used to store global state for the parser.
 #define YY_EXTRA_TYPE Sdf_TextParserContext *
 
+#line 1316 "./USD/pxr/usd/sdf/textFileFormat.lex.cpp"
 /* Configuration options for flex */
+/* character classes
+  * defines UTF-8 encoded byte values for standard ASCII
+  * and multi-byte UTF-8 character sets
+  * valid multi-byte UTF-8 sequences are as follows:
+  * For an n-byte encoded UTF-8 character, the last n-1 bytes range [\x80-\xbf]
+  * 2-byte UTF-8 characters, first byte in range [\xc2-\xdf]
+  * 3-byte UTF-8 characters, first byte in range [\xe0-\xef]
+  * 4-byte UTF-8 characters, first byte in range [\xf0-\xf4]
+  * ASCII characters span [\x41-\x5a] (upper case) [\x61-\x7a] (lower case) [\x30-39] (digits)
+  */
 /* States */
 
-#line 4246 "pxr/usd/sdf/textFileFormat.lex.cpp"
+#line 1330 "./USD/pxr/usd/sdf/textFileFormat.lex.cpp"
 
 #define INITIAL 0
 #define SLASHTERIX_COMMENT 1
@@ -4277,7 +1339,7 @@ PXR_NAMESPACE_USING_DIRECTIVE
  */
 #include <unistd.h>
 #endif
-
+    
 #ifndef YY_EXTRA_TYPE
 #define YY_EXTRA_TYPE void *
 #endif
@@ -4295,8 +1357,8 @@ struct yyguts_t
     size_t yy_buffer_stack_max; /**< capacity of stack. */
     YY_BUFFER_STATE * yy_buffer_stack; /**< Stack as an array. */
     char yy_hold_char;
-    yy_size_t yy_n_chars;
-    yy_size_t yyleng_r;
+    int yy_n_chars;
+    int yyleng_r;
     char *yy_c_buf_p;
     int yy_init;
     int yy_start;
@@ -4318,52 +1380,52 @@ struct yyguts_t
 
     }; /* end struct yyguts_t */
 
-static int yy_init_globals (yyscan_t yyscanner );
+static int yy_init_globals ( yyscan_t yyscanner );
 
     /* This must go here because YYSTYPE and YYLTYPE are included
      * from bison output in section 1.*/
     #    define yylval yyg->yylval_r
     
-int textFileFormatYylex_init (yyscan_t* scanner);
+int yylex_init (yyscan_t* scanner);
 
-int textFileFormatYylex_init_extra (YY_EXTRA_TYPE user_defined,yyscan_t* scanner);
+int yylex_init_extra ( YY_EXTRA_TYPE user_defined, yyscan_t* scanner);
 
 /* Accessor methods to globals.
    These are made visible to non-reentrant scanners for convenience. */
 
-int textFileFormatYylex_destroy (yyscan_t yyscanner );
+int yylex_destroy ( yyscan_t yyscanner );
 
-int textFileFormatYyget_debug (yyscan_t yyscanner );
+int yyget_debug ( yyscan_t yyscanner );
 
-void textFileFormatYyset_debug (int debug_flag ,yyscan_t yyscanner );
+void yyset_debug ( int debug_flag , yyscan_t yyscanner );
 
-YY_EXTRA_TYPE textFileFormatYyget_extra (yyscan_t yyscanner );
+YY_EXTRA_TYPE yyget_extra ( yyscan_t yyscanner );
 
-void textFileFormatYyset_extra (YY_EXTRA_TYPE user_defined ,yyscan_t yyscanner );
+void yyset_extra ( YY_EXTRA_TYPE user_defined , yyscan_t yyscanner );
 
-FILE *textFileFormatYyget_in (yyscan_t yyscanner );
+FILE *yyget_in ( yyscan_t yyscanner );
 
-void textFileFormatYyset_in  (FILE * in_str ,yyscan_t yyscanner );
+void yyset_in  ( FILE * _in_str , yyscan_t yyscanner );
 
-FILE *textFileFormatYyget_out (yyscan_t yyscanner );
+FILE *yyget_out ( yyscan_t yyscanner );
 
-void textFileFormatYyset_out  (FILE * out_str ,yyscan_t yyscanner );
+void yyset_out  ( FILE * _out_str , yyscan_t yyscanner );
 
-yy_size_t textFileFormatYyget_leng (yyscan_t yyscanner );
+			size_t yyget_leng ( yyscan_t yyscanner );
 
-char *textFileFormatYyget_text (yyscan_t yyscanner );
+char *yyget_text ( yyscan_t yyscanner );
 
-int textFileFormatYyget_lineno (yyscan_t yyscanner );
+int yyget_lineno ( yyscan_t yyscanner );
 
-void textFileFormatYyset_lineno (int line_number ,yyscan_t yyscanner );
+void yyset_lineno ( int _line_number , yyscan_t yyscanner );
 
-int textFileFormatYyget_column  (yyscan_t yyscanner );
+int yyget_column  ( yyscan_t yyscanner );
 
-void textFileFormatYyset_column (int column_no ,yyscan_t yyscanner );
+void yyset_column ( int _column_no , yyscan_t yyscanner );
 
-YYSTYPE * textFileFormatYyget_lval (yyscan_t yyscanner );
+YYSTYPE * yyget_lval ( yyscan_t yyscanner );
 
-void textFileFormatYyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
+void yyset_lval ( YYSTYPE * yylval_param , yyscan_t yyscanner );
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -4371,33 +1433,41 @@ void textFileFormatYyset_lval (YYSTYPE * yylval_param ,yyscan_t yyscanner );
 
 #ifndef YY_SKIP_YYWRAP
 #ifdef __cplusplus
-extern "C" int textFileFormatYywrap (yyscan_t yyscanner );
+extern "C" int yywrap ( yyscan_t yyscanner );
 #else
-extern int textFileFormatYywrap (yyscan_t yyscanner );
+extern int yywrap ( yyscan_t yyscanner );
 #endif
+#endif
+
+#ifndef YY_NO_UNPUT
+    
 #endif
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char *,yyconst char *,int ,yyscan_t yyscanner);
+static void yy_flex_strncpy ( char *, const char *, int , yyscan_t yyscanner);
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * ,yyscan_t yyscanner);
+static int yy_flex_strlen ( const char * , yyscan_t yyscanner);
 #endif
 
 #ifndef YY_NO_INPUT
-
 #ifdef __cplusplus
-static int yyinput (yyscan_t yyscanner );
+static int yyinput ( yyscan_t yyscanner );
 #else
-static int input (yyscan_t yyscanner );
+static int input ( yyscan_t yyscanner );
 #endif
 
 #endif
 
 /* Amount of stuff to slurp up with each read. */
 #ifndef YY_READ_BUF_SIZE
+#ifdef __ia64__
+/* On IA-64, the buffer size is 16k, not 8k */
+#define YY_READ_BUF_SIZE 16384
+#else
 #define YY_READ_BUF_SIZE 8192
+#endif /* __ia64__ */
 #endif
 
 /* Copy whatever the last rule matched to the standard output. */
@@ -4405,7 +1475,7 @@ static int input (yyscan_t yyscanner );
 /* This used to be an fputs(), but since the string might contain NUL's,
  * we now use fwrite().
  */
-#define ECHO do { if (fwrite( yytext, yyleng, 1, yyout )) {} } while (0)
+#define ECHO do { if (fwrite( yytext, (size_t) yyleng, 1, yyout )) {} } while (0)
 #endif
 
 /* Gets input and stuffs it into "buf".  number of characters read, or YY_NULL,
@@ -4416,7 +1486,7 @@ static int input (yyscan_t yyscanner );
 	if ( YY_CURRENT_BUFFER_LVALUE->yy_is_interactive ) \
 		{ \
 		int c = '*'; \
-		size_t n; \
+		int n; \
 		for ( n = 0; n < max_size && \
 			     (c = getc( yyin )) != EOF && c != '\n'; ++n ) \
 			buf[n] = (char) c; \
@@ -4429,7 +1499,7 @@ static int input (yyscan_t yyscanner );
 	else \
 		{ \
 		errno=0; \
-		while ( (result = fread(buf, 1, max_size, yyin))==0 && ferror(yyin)) \
+		while ( (result = (int) fread(buf, 1, (yy_size_t) max_size, yyin)) == 0 && ferror(yyin)) \
 			{ \
 			if( errno != EINTR) \
 				{ \
@@ -4470,10 +1540,10 @@ static int input (yyscan_t yyscanner );
 #ifndef YY_DECL
 #define YY_DECL_IS_OURS 1
 
-extern int textFileFormatYylex \
-               (YYSTYPE * yylval_param ,yyscan_t yyscanner);
+extern int yylex \
+               (YYSTYPE * yylval_param , yyscan_t yyscanner);
 
-#define YY_DECL int textFileFormatYylex \
+#define YY_DECL int yylex \
                (YYSTYPE * yylval_param , yyscan_t yyscanner)
 #endif /* !YY_DECL */
 
@@ -4486,7 +1556,7 @@ extern int textFileFormatYylex \
 
 /* Code executed at the end of each rule. */
 #ifndef YY_BREAK
-#define YY_BREAK break;
+#define YY_BREAK /*LINTED*/break;
 #endif
 
 #define YY_RULE_SETUP \
@@ -4496,9 +1566,9 @@ extern int textFileFormatYylex \
  */
 YY_DECL
 {
-	register yy_state_type yy_current_state;
-	register char *yy_cp, *yy_bp;
-	register int yy_act;
+	yy_state_type yy_current_state;
+	char *yy_cp, *yy_bp;
+	int yy_act;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
     yylval = yylval_param;
@@ -4521,24 +1591,25 @@ YY_DECL
 			yyout = stdout;
 
 		if ( ! YY_CURRENT_BUFFER ) {
-			textFileFormatYyensure_buffer_stack (yyscanner);
+			yyensure_buffer_stack (yyscanner);
 			YY_CURRENT_BUFFER_LVALUE =
-				textFileFormatYy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner);
+				yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner);
 		}
 
-		textFileFormatYy_load_buffer_state(yyscanner );
+		yy_load_buffer_state( yyscanner );
 		}
 
 	{
-#line 67 "pxr/usd/sdf/textFileFormat.ll"
+#line 97 "./USD/pxr/usd/sdf/textFileFormat.ll"
 
 
+#line 100 "./USD/pxr/usd/sdf/textFileFormat.ll"
     /* skip over whitespace and comments */
     /* handle the first line # comment specially, since it contains the
        magic token */
-#line 4517 "pxr/usd/sdf/textFileFormat.lex.cpp"
+#line 1610 "./USD/pxr/usd/sdf/textFileFormat.lex.cpp"
 
-	while ( 1 )		/* loops until end-of-file is reached */
+	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
 		yy_cp = yyg->yy_c_buf_p;
 
@@ -4552,21 +1623,33 @@ YY_DECL
 
 		yy_current_state = yyg->yy_start;
 yy_match:
-		while ( (yy_current_state = yy_nxt[yy_current_state][ yy_ec[YY_SC_TO_UI(*yy_cp)]  ]) > 0 )
+		do
 			{
+			YY_CHAR yy_c = yy_ec[YY_SC_TO_UI(*yy_cp)] ;
 			if ( yy_accept[yy_current_state] )
 				{
 				yyg->yy_last_accepting_state = yy_current_state;
 				yyg->yy_last_accepting_cpos = yy_cp;
 				}
-
+			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
+				{
+				yy_current_state = (int) yy_def[yy_current_state];
+				if ( yy_current_state >= 432 )
+					yy_c = yy_meta[yy_c];
+				}
+			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-
-		yy_current_state = -yy_current_state;
+		while ( yy_base[yy_current_state] != 2075 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
+		if ( yy_act == 0 )
+			{ /* have to back up */
+			yy_cp = yyg->yy_last_accepting_cpos;
+			yy_current_state = yyg->yy_last_accepting_state;
+			yy_act = yy_accept[yy_current_state];
+			}
 
 		YY_DO_BEFORE_ACTION;
 
@@ -4577,18 +1660,18 @@ do_action:	/* This label is used only to access EOF actions. */
 			case 0: /* must back up */
 			/* undo the effects of YY_DO_BEFORE_ACTION */
 			*yy_cp = yyg->yy_hold_char;
-			yy_cp = yyg->yy_last_accepting_cpos + 1;
+			yy_cp = yyg->yy_last_accepting_cpos;
 			yy_current_state = yyg->yy_last_accepting_state;
 			goto yy_find_action;
 
 case 1:
 YY_RULE_SETUP
-#line 72 "pxr/usd/sdf/textFileFormat.ll"
+#line 103 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 73 "pxr/usd/sdf/textFileFormat.ll"
+#line 104 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         if (yyextra->sdfLineNo == 1) {
             (*yylval_param) = std::string(yytext, yyleng);
@@ -4598,23 +1681,23 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 79 "pxr/usd/sdf/textFileFormat.ll"
+#line 110 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 80 "pxr/usd/sdf/textFileFormat.ll"
+#line 111 "./USD/pxr/usd/sdf/textFileFormat.ll"
 BEGIN SLASHTERIX_COMMENT ;
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 81 "pxr/usd/sdf/textFileFormat.ll"
+#line 112 "./USD/pxr/usd/sdf/textFileFormat.ll"
 ;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 82 "pxr/usd/sdf/textFileFormat.ll"
+#line 113 "./USD/pxr/usd/sdf/textFileFormat.ll"
 BEGIN INITIAL ;
 	YY_BREAK
 /* newline is returned as TOK_NL
@@ -4624,7 +1707,7 @@ BEGIN INITIAL ;
 case 7:
 /* rule 7 can match eol */
 YY_RULE_SETUP
-#line 88 "pxr/usd/sdf/textFileFormat.ll"
+#line 119 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         yyextra->sdfLineNo++;
         return TOK_NL;
@@ -4634,241 +1717,259 @@ YY_RULE_SETUP
        can make use of it. */
 case 8:
 YY_RULE_SETUP
-#line 95 "pxr/usd/sdf/textFileFormat.ll"
+#line 126 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_ADD; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 96 "pxr/usd/sdf/textFileFormat.ll"
+#line 127 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_APPEND; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 97 "pxr/usd/sdf/textFileFormat.ll"
+#line 128 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_CLASS; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 98 "pxr/usd/sdf/textFileFormat.ll"
+#line 129 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_CONFIG; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 99 "pxr/usd/sdf/textFileFormat.ll"
+#line 130 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_CONNECT; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 100 "pxr/usd/sdf/textFileFormat.ll"
+#line 131 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_CUSTOM; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 101 "pxr/usd/sdf/textFileFormat.ll"
+#line 132 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_CUSTOMDATA; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 102 "pxr/usd/sdf/textFileFormat.ll"
+#line 133 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_DEFAULT; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 103 "pxr/usd/sdf/textFileFormat.ll"
+#line 134 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_DEF; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 104 "pxr/usd/sdf/textFileFormat.ll"
+#line 135 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_DELETE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 105 "pxr/usd/sdf/textFileFormat.ll"
+#line 136 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_DICTIONARY; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 106 "pxr/usd/sdf/textFileFormat.ll"
+#line 137 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_DISPLAYUNIT; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 107 "pxr/usd/sdf/textFileFormat.ll"
+#line 138 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_DOC; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 108 "pxr/usd/sdf/textFileFormat.ll"
+#line 139 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_INHERITS; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 109 "pxr/usd/sdf/textFileFormat.ll"
+#line 140 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_KIND; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 110 "pxr/usd/sdf/textFileFormat.ll"
+#line 141 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_NAMECHILDREN; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 111 "pxr/usd/sdf/textFileFormat.ll"
+#line 142 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_NONE; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 112 "pxr/usd/sdf/textFileFormat.ll"
+#line 143 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_OFFSET; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 113 "pxr/usd/sdf/textFileFormat.ll"
+#line 144 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_OVER; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 114 "pxr/usd/sdf/textFileFormat.ll"
+#line 145 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_PAYLOAD; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 115 "pxr/usd/sdf/textFileFormat.ll"
+#line 146 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_PERMISSION; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 116 "pxr/usd/sdf/textFileFormat.ll"
+#line 147 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_PREFIX_SUBSTITUTIONS; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 117 "pxr/usd/sdf/textFileFormat.ll"
+#line 148 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_PREPEND; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 118 "pxr/usd/sdf/textFileFormat.ll"
+#line 149 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_PROPERTIES; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 119 "pxr/usd/sdf/textFileFormat.ll"
+#line 150 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_REFERENCES; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 120 "pxr/usd/sdf/textFileFormat.ll"
+#line 151 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_RELOCATES; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 121 "pxr/usd/sdf/textFileFormat.ll"
+#line 152 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_REL; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 122 "pxr/usd/sdf/textFileFormat.ll"
+#line 153 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_REORDER; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 123 "pxr/usd/sdf/textFileFormat.ll"
+#line 154 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_ROOTPRIMS; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 124 "pxr/usd/sdf/textFileFormat.ll"
+#line 155 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_SCALE; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 125 "pxr/usd/sdf/textFileFormat.ll"
+#line 156 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_SUBLAYERS; }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 126 "pxr/usd/sdf/textFileFormat.ll"
+#line 157 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_SUFFIX_SUBSTITUTIONS; }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 127 "pxr/usd/sdf/textFileFormat.ll"
+#line 158 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_SPECIALIZES; }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 128 "pxr/usd/sdf/textFileFormat.ll"
+#line 159 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_SYMMETRYARGUMENTS; }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 129 "pxr/usd/sdf/textFileFormat.ll"
+#line 160 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_SYMMETRYFUNCTION; }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 130 "pxr/usd/sdf/textFileFormat.ll"
+#line 161 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_TIME_SAMPLES; }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 131 "pxr/usd/sdf/textFileFormat.ll"
+#line 162 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_UNIFORM; }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 132 "pxr/usd/sdf/textFileFormat.ll"
+#line 163 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_VARIANTSET; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 133 "pxr/usd/sdf/textFileFormat.ll"
+#line 164 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_VARIANTSETS; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 134 "pxr/usd/sdf/textFileFormat.ll"
+#line 165 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_VARIANTS; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 135 "pxr/usd/sdf/textFileFormat.ll"
+#line 166 "./USD/pxr/usd/sdf/textFileFormat.ll"
 { (*yylval_param) = std::string(yytext, yyleng); return TOK_VARYING; }
 	YY_BREAK
-/* unquoted C/Python identifier */
+/* In a Unicode enabled scheme, 'identifiers' are generally
+  * categorized as something that begins with something in the
+  * XID_Start category followed by zero or more things in the
+  * XID_Continue category.  Since the number of characters in
+  * these classes are large, we can't explicitly validate them
+  * here easily, so the lex rule is pretty permissive with some
+  * further validation done in code prior to calling what was
+  * read an 'identifier'.  Note this rule will also match
+  * standard ASCII strings because the UTF-8 encoded byte 
+  * representation is the same for these characters.
+  * However, unlike the path lexer, we can guarantee that 
+  * prim names aren't something special to be called out here
+  * so we can be a little more specific about the kinds of strings
+  * we match, particularly to not collide with the pure digit match rule
+  * below
+  */
 case 49:
 YY_RULE_SETUP
-#line 138 "pxr/usd/sdf/textFileFormat.ll"
+#line 185 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
-        (*yylval_param) = std::string(yytext, yyleng);
-        return TOK_IDENTIFIER;
-    }
+    (*yylval_param) = std::string(yytext, yyleng);
+    return TOK_IDENTIFIER;
+}
 	YY_BREAK
-/* unquoted C++ namespaced identifier -- see bug 10775 */
+/* unquoted C++ namespaced identifiers are identifiers separated
+  * by the '::' character -- see bug 10775.
+  */
 case 50:
 YY_RULE_SETUP
-#line 144 "pxr/usd/sdf/textFileFormat.ll"
+#line 193 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
-        (*yylval_param) = std::string(yytext, yyleng);
-        return TOK_CXX_NAMESPACED_IDENTIFIER;
-    }
+    (*yylval_param) = std::string(yytext, yyleng);
+    return TOK_CXX_NAMESPACED_IDENTIFIER;
+}
 	YY_BREAK
-/* unquoted namespaced identifier.  matches any number of colon
-     * delimited C/Python identifiers */
+/* unquoted namespaced identifiers match any number of colon 
+  * delimited identifiers
+  */
 case 51:
 YY_RULE_SETUP
-#line 151 "pxr/usd/sdf/textFileFormat.ll"
+#line 201 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
-        (*yylval_param) = std::string(yytext, yyleng);
-        return TOK_NAMESPACED_IDENTIFIER;
-    }
+    *(yylval_param) = std::string(yytext, yyleng);
+    return TOK_NAMESPACED_IDENTIFIER;
+}
 	YY_BREAK
 /* scene paths */
 case 52:
 YY_RULE_SETUP
-#line 157 "pxr/usd/sdf/textFileFormat.ll"
+#line 207 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         (*yylval_param) = Sdf_EvalQuotedString(yytext, yyleng, 1);
         return TOK_PATHREF;
@@ -4877,7 +1978,7 @@ YY_RULE_SETUP
 /* Single '@'-delimited asset references */
 case 53:
 YY_RULE_SETUP
-#line 163 "pxr/usd/sdf/textFileFormat.ll"
+#line 213 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         TfErrorMark m;
         (*yylval_param) = 
@@ -4888,7 +1989,7 @@ YY_RULE_SETUP
 /* Triple '@'-delimited asset references. */
 case 54:
 YY_RULE_SETUP
-#line 171 "pxr/usd/sdf/textFileFormat.ll"
+#line 221 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         TfErrorMark m;
         (*yylval_param) = 
@@ -4901,10 +2002,10 @@ YY_RULE_SETUP
        them from the beginning of triply-quoted strings.
        Ex: "Foo \"foo\"" */
 case 55:
-#line 183 "pxr/usd/sdf/textFileFormat.ll"
+#line 233 "./USD/pxr/usd/sdf/textFileFormat.ll"
 case 56:
 YY_RULE_SETUP
-#line 183 "pxr/usd/sdf/textFileFormat.ll"
+#line 233 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {  /* " //<- unfreak out coloring code */
         (*yylval_param) = Sdf_EvalQuotedString(yytext, yyleng, 1);
         return TOK_STRING;
@@ -4919,7 +2020,7 @@ YY_LINENO_REWIND_TO(yy_bp + 2);
 yyg->yy_c_buf_p = yy_cp = yy_bp + 2;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 190 "pxr/usd/sdf/textFileFormat.ll"
+#line 240 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {  /* ' // <- keep syntax coloring from freaking out */
         (*yylval_param) = std::string();
         return TOK_STRING;
@@ -4932,7 +2033,7 @@ YY_LINENO_REWIND_TO(yy_bp + 2);
 yyg->yy_c_buf_p = yy_cp = yy_bp + 2;
 YY_DO_BEFORE_ACTION; /* set up yytext again */
 YY_RULE_SETUP
-#line 194 "pxr/usd/sdf/textFileFormat.ll"
+#line 244 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         (*yylval_param) = std::string();
         return TOK_STRING;
@@ -4942,11 +2043,11 @@ YY_RULE_SETUP
        Ex: """A\n\"B\"\nC""" */
 case 59:
 /* rule 59 can match eol */
-#line 202 "pxr/usd/sdf/textFileFormat.ll"
+#line 252 "./USD/pxr/usd/sdf/textFileFormat.ll"
 case 60:
 /* rule 60 can match eol */
 YY_RULE_SETUP
-#line 202 "pxr/usd/sdf/textFileFormat.ll"
+#line 252 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {  /* " //<- unfreak out coloring code */
 
         unsigned int numlines = 0;
@@ -4960,7 +2061,7 @@ YY_RULE_SETUP
      * don't know at this point what the final stored type will be. */
 case 61:
 YY_RULE_SETUP
-#line 213 "pxr/usd/sdf/textFileFormat.ll"
+#line 263 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         (*yylval_param) = double(-0.0);
         return TOK_NUMBER;
@@ -4969,7 +2070,7 @@ YY_RULE_SETUP
 /* Positive integers: store as uint64_t if in range, otherwise double. */
 case 62:
 YY_RULE_SETUP
-#line 219 "pxr/usd/sdf/textFileFormat.ll"
+#line 269 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         bool outOfRange = false;
         (*yylval_param) = TfStringToUInt64(yytext, &outOfRange);
@@ -4988,7 +2089,7 @@ YY_RULE_SETUP
 /* Negative integers: store as long. */
 case 63:
 YY_RULE_SETUP
-#line 235 "pxr/usd/sdf/textFileFormat.ll"
+#line 285 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         bool outOfRange = false;
         (*yylval_param) = TfStringToInt64(yytext, &outOfRange);
@@ -5006,10 +2107,10 @@ YY_RULE_SETUP
 	YY_BREAK
 /* Numbers with decimal places or exponents: store as double. */
 case 64:
-#line 252 "pxr/usd/sdf/textFileFormat.ll"
+#line 302 "./USD/pxr/usd/sdf/textFileFormat.ll"
 case 65:
 YY_RULE_SETUP
-#line 252 "pxr/usd/sdf/textFileFormat.ll"
+#line 302 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         (*yylval_param) = TfStringToDouble(yytext);
         return TOK_NUMBER;
@@ -5021,7 +2122,7 @@ YY_RULE_SETUP
      * identifiers. */
 case 66:
 YY_RULE_SETUP
-#line 261 "pxr/usd/sdf/textFileFormat.ll"
+#line 311 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         (*yylval_param) = -std::numeric_limits<double>::infinity();
         return TOK_NUMBER;
@@ -5032,7 +2133,7 @@ YY_RULE_SETUP
      */
 case 67:
 YY_RULE_SETUP
-#line 269 "pxr/usd/sdf/textFileFormat.ll"
+#line 319 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         return yytext[0];
     }
@@ -5043,17 +2144,17 @@ YY_RULE_SETUP
      */
 case 68:
 YY_RULE_SETUP
-#line 277 "pxr/usd/sdf/textFileFormat.ll"
+#line 327 "./USD/pxr/usd/sdf/textFileFormat.ll"
 {
         return TOK_SYNTAX_ERROR;
     }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 281 "pxr/usd/sdf/textFileFormat.ll"
+#line 331 "./USD/pxr/usd/sdf/textFileFormat.ll"
 ECHO;
 	YY_BREAK
-#line 5034 "pxr/usd/sdf/textFileFormat.lex.cpp"
+#line 2157 "./USD/pxr/usd/sdf/textFileFormat.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(SLASHTERIX_COMMENT):
 	yyterminate();
@@ -5072,7 +2173,7 @@ case YY_STATE_EOF(SLASHTERIX_COMMENT):
 			/* We're scanning a new file or input source.  It's
 			 * possible that this happened because the user
 			 * just pointed yyin at a new source and called
-			 * textFileFormatYylex().  If so, then we have to assure
+			 * yylex().  If so, then we have to assure
 			 * consistency between YY_CURRENT_BUFFER and our
 			 * globals.  Here is the right place to do so, because
 			 * this is the first action (other than possibly a
@@ -5132,7 +2233,7 @@ case YY_STATE_EOF(SLASHTERIX_COMMENT):
 				{
 				yyg->yy_did_buffer_switch_on_eof = 0;
 
-				if ( textFileFormatYywrap(yyscanner ) )
+				if ( yywrap( yyscanner ) )
 					{
 					/* Note: because we've taken care in
 					 * yy_get_next_buffer() to have set up
@@ -5186,7 +2287,7 @@ case YY_STATE_EOF(SLASHTERIX_COMMENT):
 	} /* end of action switch */
 		} /* end of scanning one token */
 	} /* end of user's declarations */
-} /* end of textFileFormatYylex */
+} /* end of yylex */
 
 /* yy_get_next_buffer - try to read in a new buffer
  *
@@ -5198,9 +2299,9 @@ case YY_STATE_EOF(SLASHTERIX_COMMENT):
 static int yy_get_next_buffer (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-	register char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
-	register char *source = yyg->yytext_ptr;
-	register int number_to_move, i;
+	char *dest = YY_CURRENT_BUFFER_LVALUE->yy_ch_buf;
+	char *source = yyg->yytext_ptr;
+	int number_to_move, i;
 	int ret_val;
 
 	if ( yyg->yy_c_buf_p > &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[yyg->yy_n_chars + 1] )
@@ -5229,7 +2330,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	/* Try to read more data. */
 
 	/* First move last chars to start of buffer. */
-	number_to_move = (int) (yyg->yy_c_buf_p - yyg->yytext_ptr) - 1;
+	number_to_move = (int) (yyg->yy_c_buf_p - yyg->yytext_ptr - 1);
 
 	for ( i = 0; i < number_to_move; ++i )
 		*(dest++) = *(source++);
@@ -5242,7 +2343,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 	else
 		{
-			yy_size_t num_to_read =
+			int num_to_read =
 			YY_CURRENT_BUFFER_LVALUE->yy_buf_size - number_to_move - 1;
 
 		while ( num_to_read <= 0 )
@@ -5256,7 +2357,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 			if ( b->yy_is_our_buffer )
 				{
-				yy_size_t new_size = b->yy_buf_size * 2;
+				int new_size = b->yy_buf_size * 2;
 
 				if ( new_size <= 0 )
 					b->yy_buf_size += b->yy_buf_size / 8;
@@ -5265,11 +2366,12 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 				b->yy_ch_buf = (char *)
 					/* Include room in for 2 EOB chars. */
-					textFileFormatYyrealloc((void *) b->yy_ch_buf,b->yy_buf_size + 2 ,yyscanner );
+					yyrealloc( (void *) b->yy_ch_buf,
+							 (yy_size_t) (b->yy_buf_size + 2) , yyscanner );
 				}
 			else
 				/* Can't grow it, we don't own it. */
-				b->yy_ch_buf = 0;
+				b->yy_ch_buf = NULL;
 
 			if ( ! b->yy_ch_buf )
 				YY_FATAL_ERROR(
@@ -5297,7 +2399,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		if ( number_to_move == YY_MORE_ADJ )
 			{
 			ret_val = EOB_ACT_END_OF_FILE;
-			textFileFormatYyrestart(yyin  ,yyscanner);
+			yyrestart( yyin  , yyscanner);
 			}
 
 		else
@@ -5311,12 +2413,15 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 	else
 		ret_val = EOB_ACT_CONTINUE_SCAN;
 
-	if ((yy_size_t) (yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
+	if ((yyg->yy_n_chars + number_to_move) > YY_CURRENT_BUFFER_LVALUE->yy_buf_size) {
 		/* Extend the array by 50%, plus the number we really need. */
-		yy_size_t new_size = yyg->yy_n_chars + number_to_move + (yyg->yy_n_chars >> 1);
-		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) textFileFormatYyrealloc((void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf,new_size ,yyscanner );
+		int new_size = yyg->yy_n_chars + number_to_move + (yyg->yy_n_chars >> 1);
+		YY_CURRENT_BUFFER_LVALUE->yy_ch_buf = (char *) yyrealloc(
+			(void *) YY_CURRENT_BUFFER_LVALUE->yy_ch_buf, (yy_size_t) new_size , yyscanner );
 		if ( ! YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
 			YY_FATAL_ERROR( "out of dynamic memory in yy_get_next_buffer()" );
+		/* "- 2" to take care of EOB's */
+		YY_CURRENT_BUFFER_LVALUE->yy_buf_size = (int) (new_size - 2);
 	}
 
 	yyg->yy_n_chars += number_to_move;
@@ -5332,20 +2437,27 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
     static yy_state_type yy_get_previous_state (yyscan_t yyscanner)
 {
-	register yy_state_type yy_current_state;
-	register char *yy_cp;
+	yy_state_type yy_current_state;
+	char *yy_cp;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	yy_current_state = yyg->yy_start;
 
 	for ( yy_cp = yyg->yytext_ptr + YY_MORE_ADJ; yy_cp < yyg->yy_c_buf_p; ++yy_cp )
 		{
-		yy_current_state = yy_nxt[yy_current_state][(*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1)];
+		YY_CHAR yy_c = (*yy_cp ? yy_ec[YY_SC_TO_UI(*yy_cp)] : 1);
 		if ( yy_accept[yy_current_state] )
 			{
 			yyg->yy_last_accepting_state = yy_current_state;
 			yyg->yy_last_accepting_cpos = yy_cp;
 			}
+		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
+			{
+			yy_current_state = (int) yy_def[yy_current_state];
+			if ( yy_current_state >= 432 )
+				yy_c = yy_meta[yy_c];
+			}
+		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 		}
 
 	return yy_current_state;
@@ -5358,25 +2470,32 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
  */
     static yy_state_type yy_try_NUL_trans  (yy_state_type yy_current_state , yyscan_t yyscanner)
 {
-	register int yy_is_jam;
+	int yy_is_jam;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner; /* This var may be unused depending upon options. */
-	register char *yy_cp = yyg->yy_c_buf_p;
+	char *yy_cp = yyg->yy_c_buf_p;
 
-	yy_current_state = yy_nxt[yy_current_state][1];
-	yy_is_jam = (yy_current_state <= 0);
-
-	if ( ! yy_is_jam )
+	YY_CHAR yy_c = 1;
+	if ( yy_accept[yy_current_state] )
 		{
-		if ( yy_accept[yy_current_state] )
-			{
-			yyg->yy_last_accepting_state = yy_current_state;
-			yyg->yy_last_accepting_cpos = yy_cp;
-			}
+		yyg->yy_last_accepting_state = yy_current_state;
+		yyg->yy_last_accepting_cpos = yy_cp;
 		}
+	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
+		{
+		yy_current_state = (int) yy_def[yy_current_state];
+		if ( yy_current_state >= 432 )
+			yy_c = yy_meta[yy_c];
+		}
+	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
+	yy_is_jam = (yy_current_state == 431);
 
 	(void)yyg;
 	return yy_is_jam ? 0 : yy_current_state;
 }
+
+#ifndef YY_NO_UNPUT
+
+#endif
 
 #ifndef YY_NO_INPUT
 #ifdef __cplusplus
@@ -5403,7 +2522,7 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 
 		else
 			{ /* need more input */
-			yy_size_t offset = yyg->yy_c_buf_p - yyg->yytext_ptr;
+			int offset = (int) (yyg->yy_c_buf_p - yyg->yytext_ptr);
 			++yyg->yy_c_buf_p;
 
 			switch ( yy_get_next_buffer( yyscanner ) )
@@ -5420,14 +2539,14 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 					 */
 
 					/* Reset buffer status. */
-					textFileFormatYyrestart(yyin ,yyscanner);
+					yyrestart( yyin , yyscanner);
 
 					/*FALLTHROUGH*/
 
 				case EOB_ACT_END_OF_FILE:
 					{
-					if ( textFileFormatYywrap(yyscanner ) )
-						return EOF;
+					if ( yywrap( yyscanner ) )
+						return 0;
 
 					if ( ! yyg->yy_did_buffer_switch_on_eof )
 						YY_NEW_FILE;
@@ -5458,34 +2577,34 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
  * @param yyscanner The scanner object.
  * @note This function does not reset the start condition to @c INITIAL .
  */
-    void textFileFormatYyrestart  (FILE * input_file , yyscan_t yyscanner)
+    void yyrestart  (FILE * input_file , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	if ( ! YY_CURRENT_BUFFER ){
-        textFileFormatYyensure_buffer_stack (yyscanner);
+        yyensure_buffer_stack (yyscanner);
 		YY_CURRENT_BUFFER_LVALUE =
-            textFileFormatYy_create_buffer(yyin,YY_BUF_SIZE ,yyscanner);
+            yy_create_buffer( yyin, YY_BUF_SIZE , yyscanner);
 	}
 
-	textFileFormatYy_init_buffer(YY_CURRENT_BUFFER,input_file ,yyscanner);
-	textFileFormatYy_load_buffer_state(yyscanner );
+	yy_init_buffer( YY_CURRENT_BUFFER, input_file , yyscanner);
+	yy_load_buffer_state( yyscanner );
 }
 
 /** Switch to a different input buffer.
  * @param new_buffer The new input buffer.
  * @param yyscanner The scanner object.
  */
-    void textFileFormatYy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer , yyscan_t yyscanner)
+    void yy_switch_to_buffer  (YY_BUFFER_STATE  new_buffer , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
 	/* TODO. We should be able to replace this entire function body
 	 * with
-	 *		textFileFormatYypop_buffer_state();
-	 *		textFileFormatYypush_buffer_state(new_buffer);
+	 *		yypop_buffer_state();
+	 *		yypush_buffer_state(new_buffer);
      */
-	textFileFormatYyensure_buffer_stack (yyscanner);
+	yyensure_buffer_stack (yyscanner);
 	if ( YY_CURRENT_BUFFER == new_buffer )
 		return;
 
@@ -5498,17 +2617,17 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 		}
 
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
-	textFileFormatYy_load_buffer_state(yyscanner );
+	yy_load_buffer_state( yyscanner );
 
 	/* We don't actually know whether we did this switch during
-	 * EOF (textFileFormatYywrap()) processing, but the only time this flag
-	 * is looked at is after textFileFormatYywrap() is called, so it's safe
+	 * EOF (yywrap()) processing, but the only time this flag
+	 * is looked at is after yywrap() is called, so it's safe
 	 * to go ahead and always set it.
 	 */
 	yyg->yy_did_buffer_switch_on_eof = 1;
 }
 
-static void textFileFormatYy_load_buffer_state  (yyscan_t yyscanner)
+static void yy_load_buffer_state  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 	yyg->yy_n_chars = YY_CURRENT_BUFFER_LVALUE->yy_n_chars;
@@ -5523,35 +2642,35 @@ static void textFileFormatYy_load_buffer_state  (yyscan_t yyscanner)
  * @param yyscanner The scanner object.
  * @return the allocated buffer state.
  */
-    YY_BUFFER_STATE textFileFormatYy_create_buffer  (FILE * file, int  size , yyscan_t yyscanner)
+    YY_BUFFER_STATE yy_create_buffer  (FILE * file, int  size , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
     
-	b = (YY_BUFFER_STATE) textFileFormatYyalloc(sizeof( struct yy_buffer_state ) ,yyscanner );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state ) , yyscanner );
 	if ( ! b )
-		YY_FATAL_ERROR( "out of dynamic memory in textFileFormatYy_create_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_buf_size = size;
 
 	/* yy_ch_buf has to be 2 characters longer than the size given because
 	 * we need to put in 2 end-of-buffer characters.
 	 */
-	b->yy_ch_buf = (char *) textFileFormatYyalloc(b->yy_buf_size + 2 ,yyscanner );
+	b->yy_ch_buf = (char *) yyalloc( (yy_size_t) (b->yy_buf_size + 2) , yyscanner );
 	if ( ! b->yy_ch_buf )
-		YY_FATAL_ERROR( "out of dynamic memory in textFileFormatYy_create_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_create_buffer()" );
 
 	b->yy_is_our_buffer = 1;
 
-	textFileFormatYy_init_buffer(b,file ,yyscanner);
+	yy_init_buffer( b, file , yyscanner);
 
 	return b;
 }
 
 /** Destroy the buffer.
- * @param b a buffer created with textFileFormatYy_create_buffer()
+ * @param b a buffer created with yy_create_buffer()
  * @param yyscanner The scanner object.
  */
-    void textFileFormatYy_delete_buffer (YY_BUFFER_STATE  b , yyscan_t yyscanner)
+    void yy_delete_buffer (YY_BUFFER_STATE  b , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
@@ -5562,28 +2681,28 @@ static void textFileFormatYy_load_buffer_state  (yyscan_t yyscanner)
 		YY_CURRENT_BUFFER_LVALUE = (YY_BUFFER_STATE) 0;
 
 	if ( b->yy_is_our_buffer )
-		textFileFormatYyfree((void *) b->yy_ch_buf ,yyscanner );
+		yyfree( (void *) b->yy_ch_buf , yyscanner );
 
-	textFileFormatYyfree((void *) b ,yyscanner );
+	yyfree( (void *) b , yyscanner );
 }
 
 /* Initializes or reinitializes a buffer.
  * This function is sometimes called more than once on the same buffer,
- * such as during a textFileFormatYyrestart() or at EOF.
+ * such as during a yyrestart() or at EOF.
  */
-    static void textFileFormatYy_init_buffer  (YY_BUFFER_STATE  b, FILE * file , yyscan_t yyscanner)
+    static void yy_init_buffer  (YY_BUFFER_STATE  b, FILE * file , yyscan_t yyscanner)
 
 {
 	int oerrno = errno;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
-	textFileFormatYy_flush_buffer(b ,yyscanner);
+	yy_flush_buffer( b , yyscanner);
 
 	b->yy_input_file = file;
 	b->yy_fill_buffer = 1;
 
-    /* If b is the current buffer, then textFileFormatYy_init_buffer was _probably_
-     * called from textFileFormatYyrestart() or through yy_get_next_buffer.
+    /* If b is the current buffer, then yy_init_buffer was _probably_
+     * called from yyrestart() or through yy_get_next_buffer.
      * In that case, we don't want to reset the lineno or column.
      */
     if (b != YY_CURRENT_BUFFER){
@@ -5600,7 +2719,7 @@ static void textFileFormatYy_load_buffer_state  (yyscan_t yyscanner)
  * @param b the buffer state to be flushed, usually @c YY_CURRENT_BUFFER.
  * @param yyscanner The scanner object.
  */
-    void textFileFormatYy_flush_buffer (YY_BUFFER_STATE  b , yyscan_t yyscanner)
+    void yy_flush_buffer (YY_BUFFER_STATE  b , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 	if ( ! b )
@@ -5621,7 +2740,7 @@ static void textFileFormatYy_load_buffer_state  (yyscan_t yyscanner)
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
 	if ( b == YY_CURRENT_BUFFER )
-		textFileFormatYy_load_buffer_state(yyscanner );
+		yy_load_buffer_state( yyscanner );
 }
 
 /** Pushes the new state onto the stack. The new state becomes
@@ -5630,15 +2749,15 @@ static void textFileFormatYy_load_buffer_state  (yyscan_t yyscanner)
  *  @param new_buffer The new state.
  *  @param yyscanner The scanner object.
  */
-void textFileFormatYypush_buffer_state (YY_BUFFER_STATE new_buffer , yyscan_t yyscanner)
+void yypush_buffer_state (YY_BUFFER_STATE new_buffer , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 	if (new_buffer == NULL)
 		return;
 
-	textFileFormatYyensure_buffer_stack(yyscanner);
+	yyensure_buffer_stack(yyscanner);
 
-	/* This block is copied from textFileFormatYy_switch_to_buffer. */
+	/* This block is copied from yy_switch_to_buffer. */
 	if ( YY_CURRENT_BUFFER )
 		{
 		/* Flush out information for old buffer. */
@@ -5652,8 +2771,8 @@ void textFileFormatYypush_buffer_state (YY_BUFFER_STATE new_buffer , yyscan_t yy
 		yyg->yy_buffer_stack_top++;
 	YY_CURRENT_BUFFER_LVALUE = new_buffer;
 
-	/* copied from textFileFormatYy_switch_to_buffer. */
-	textFileFormatYy_load_buffer_state(yyscanner );
+	/* copied from yy_switch_to_buffer. */
+	yy_load_buffer_state( yyscanner );
 	yyg->yy_did_buffer_switch_on_eof = 1;
 }
 
@@ -5661,19 +2780,19 @@ void textFileFormatYypush_buffer_state (YY_BUFFER_STATE new_buffer , yyscan_t yy
  *  The next element becomes the new top.
  *  @param yyscanner The scanner object.
  */
-void textFileFormatYypop_buffer_state (yyscan_t yyscanner)
+void yypop_buffer_state (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 	if (!YY_CURRENT_BUFFER)
 		return;
 
-	textFileFormatYy_delete_buffer(YY_CURRENT_BUFFER ,yyscanner);
+	yy_delete_buffer(YY_CURRENT_BUFFER , yyscanner);
 	YY_CURRENT_BUFFER_LVALUE = NULL;
 	if (yyg->yy_buffer_stack_top > 0)
 		--yyg->yy_buffer_stack_top;
 
 	if (YY_CURRENT_BUFFER) {
-		textFileFormatYy_load_buffer_state(yyscanner );
+		yy_load_buffer_state( yyscanner );
 		yyg->yy_did_buffer_switch_on_eof = 1;
 	}
 }
@@ -5681,7 +2800,7 @@ void textFileFormatYypop_buffer_state (yyscan_t yyscanner)
 /* Allocates the stack if it does not exist.
  *  Guarantees space for at least one push.
  */
-static void textFileFormatYyensure_buffer_stack (yyscan_t yyscanner)
+static void yyensure_buffer_stack (yyscan_t yyscanner)
 {
 	yy_size_t num_to_alloc;
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
@@ -5692,15 +2811,15 @@ static void textFileFormatYyensure_buffer_stack (yyscan_t yyscanner)
 		 * scanner will even need a stack. We use 2 instead of 1 to avoid an
 		 * immediate realloc on the next call.
          */
-		num_to_alloc = 1;
-		yyg->yy_buffer_stack = (struct yy_buffer_state**)textFileFormatYyalloc
+      num_to_alloc = 1; /* After all that talk, this was set to 1 anyways... */
+		yyg->yy_buffer_stack = (struct yy_buffer_state**)yyalloc
 								(num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
 		if ( ! yyg->yy_buffer_stack )
-			YY_FATAL_ERROR( "out of dynamic memory in textFileFormatYyensure_buffer_stack()" );
-								  
+			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
+
 		memset(yyg->yy_buffer_stack, 0, num_to_alloc * sizeof(struct yy_buffer_state*));
-				
+
 		yyg->yy_buffer_stack_max = num_to_alloc;
 		yyg->yy_buffer_stack_top = 0;
 		return;
@@ -5709,15 +2828,15 @@ static void textFileFormatYyensure_buffer_stack (yyscan_t yyscanner)
 	if (yyg->yy_buffer_stack_top >= (yyg->yy_buffer_stack_max) - 1){
 
 		/* Increase the buffer to prepare for a possible push. */
-		int grow_size = 8 /* arbitrary grow size */;
+		yy_size_t grow_size = 8 /* arbitrary grow size */;
 
 		num_to_alloc = yyg->yy_buffer_stack_max + grow_size;
-		yyg->yy_buffer_stack = (struct yy_buffer_state**)textFileFormatYyrealloc
+		yyg->yy_buffer_stack = (struct yy_buffer_state**)yyrealloc
 								(yyg->yy_buffer_stack,
 								num_to_alloc * sizeof(struct yy_buffer_state*)
 								, yyscanner);
 		if ( ! yyg->yy_buffer_stack )
-			YY_FATAL_ERROR( "out of dynamic memory in textFileFormatYyensure_buffer_stack()" );
+			YY_FATAL_ERROR( "out of dynamic memory in yyensure_buffer_stack()" );
 
 		/* zero only the new slots.*/
 		memset(yyg->yy_buffer_stack + yyg->yy_buffer_stack_max, 0, grow_size * sizeof(struct yy_buffer_state*));
@@ -5729,9 +2848,9 @@ static void textFileFormatYyensure_buffer_stack (yyscan_t yyscanner)
  * @param base the character buffer
  * @param size the size in bytes of the character buffer
  * @param yyscanner The scanner object.
- * @return the newly allocated buffer state object. 
+ * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE textFileFormatYy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscanner)
+YY_BUFFER_STATE yy_scan_buffer  (char * base, yy_size_t  size , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
     
@@ -5739,69 +2858,69 @@ YY_BUFFER_STATE textFileFormatYy_scan_buffer  (char * base, yy_size_t  size , yy
 	     base[size-2] != YY_END_OF_BUFFER_CHAR ||
 	     base[size-1] != YY_END_OF_BUFFER_CHAR )
 		/* They forgot to leave room for the EOB's. */
-		return 0;
+		return NULL;
 
-	b = (YY_BUFFER_STATE) textFileFormatYyalloc(sizeof( struct yy_buffer_state ) ,yyscanner );
+	b = (YY_BUFFER_STATE) yyalloc( sizeof( struct yy_buffer_state ) , yyscanner );
 	if ( ! b )
-		YY_FATAL_ERROR( "out of dynamic memory in textFileFormatYy_scan_buffer()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_buffer()" );
 
-	b->yy_buf_size = size - 2;	/* "- 2" to take care of EOB's */
+	b->yy_buf_size = (int) (size - 2);	/* "- 2" to take care of EOB's */
 	b->yy_buf_pos = b->yy_ch_buf = base;
 	b->yy_is_our_buffer = 0;
-	b->yy_input_file = 0;
+	b->yy_input_file = NULL;
 	b->yy_n_chars = b->yy_buf_size;
 	b->yy_is_interactive = 0;
 	b->yy_at_bol = 1;
 	b->yy_fill_buffer = 0;
 	b->yy_buffer_status = YY_BUFFER_NEW;
 
-	textFileFormatYy_switch_to_buffer(b ,yyscanner );
+	yy_switch_to_buffer( b , yyscanner );
 
 	return b;
 }
 
-/** Setup the input buffer state to scan a string. The next call to textFileFormatYylex() will
+/** Setup the input buffer state to scan a string. The next call to yylex() will
  * scan from a @e copy of @a str.
  * @param yystr a NUL-terminated string to scan
  * @param yyscanner The scanner object.
  * @return the newly allocated buffer state object.
  * @note If you want to scan bytes that may contain NUL values, then use
- *       textFileFormatYy_scan_bytes() instead.
+ *       yy_scan_bytes() instead.
  */
-YY_BUFFER_STATE textFileFormatYy_scan_string (yyconst char * yystr , yyscan_t yyscanner)
+YY_BUFFER_STATE yy_scan_string (const char * yystr , yyscan_t yyscanner)
 {
     
-	return textFileFormatYy_scan_bytes(yystr,strlen(yystr) ,yyscanner);
+	return yy_scan_bytes( yystr, (int) strlen(yystr) , yyscanner);
 }
 
-/** Setup the input buffer state to scan the given bytes. The next call to textFileFormatYylex() will
+/** Setup the input buffer state to scan the given bytes. The next call to yylex() will
  * scan from a @e copy of @a bytes.
  * @param yybytes the byte buffer to scan
  * @param _yybytes_len the number of bytes in the buffer pointed to by @a bytes.
  * @param yyscanner The scanner object.
  * @return the newly allocated buffer state object.
  */
-YY_BUFFER_STATE textFileFormatYy_scan_bytes  (yyconst char * yybytes, yy_size_t  _yybytes_len , yyscan_t yyscanner)
+YY_BUFFER_STATE yy_scan_bytes  (const char * yybytes, int  _yybytes_len , yyscan_t yyscanner)
 {
 	YY_BUFFER_STATE b;
 	char *buf;
 	yy_size_t n;
-	yy_size_t i;
+	int i;
     
 	/* Get memory for full buffer, including space for trailing EOB's. */
-	n = _yybytes_len + 2;
-	buf = (char *) textFileFormatYyalloc(n ,yyscanner );
+	n = (yy_size_t) (_yybytes_len + 2);
+	buf = (char *) yyalloc( n , yyscanner );
 	if ( ! buf )
-		YY_FATAL_ERROR( "out of dynamic memory in textFileFormatYy_scan_bytes()" );
+		YY_FATAL_ERROR( "out of dynamic memory in yy_scan_bytes()" );
 
 	for ( i = 0; i < _yybytes_len; ++i )
 		buf[i] = yybytes[i];
 
 	buf[_yybytes_len] = buf[_yybytes_len+1] = YY_END_OF_BUFFER_CHAR;
 
-	b = textFileFormatYy_scan_buffer(buf,n ,yyscanner);
+	b = yy_scan_buffer( buf, n , yyscanner);
 	if ( ! b )
-		YY_FATAL_ERROR( "bad buffer in textFileFormatYy_scan_bytes()" );
+		YY_FATAL_ERROR( "bad buffer in yy_scan_bytes()" );
 
 	/* It's okay to grow etc. this buffer, and we should throw it
 	 * away when we're done.
@@ -5815,9 +2934,11 @@ YY_BUFFER_STATE textFileFormatYy_scan_bytes  (yyconst char * yybytes, yy_size_t 
 #define YY_EXIT_FAILURE 2
 #endif
 
-static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
+static void yynoreturn yy_fatal_error (const char* msg , yyscan_t yyscanner)
 {
-    	(void) fprintf( stderr, "%s\n", msg );
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+	fprintf( stderr, "%s\n", msg );
 	exit( YY_EXIT_FAILURE );
 }
 
@@ -5843,7 +2964,7 @@ static void yy_fatal_error (yyconst char* msg , yyscan_t yyscanner)
 /** Get the user-defined data for this scanner.
  * @param yyscanner The scanner object.
  */
-YY_EXTRA_TYPE textFileFormatYyget_extra  (yyscan_t yyscanner)
+YY_EXTRA_TYPE yyget_extra  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yyextra;
@@ -5852,10 +2973,10 @@ YY_EXTRA_TYPE textFileFormatYyget_extra  (yyscan_t yyscanner)
 /** Get the current line number.
  * @param yyscanner The scanner object.
  */
-int textFileFormatYyget_lineno  (yyscan_t yyscanner)
+int yyget_lineno  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    
+
         if (! YY_CURRENT_BUFFER)
             return 0;
     
@@ -5865,10 +2986,10 @@ int textFileFormatYyget_lineno  (yyscan_t yyscanner)
 /** Get the current column number.
  * @param yyscanner The scanner object.
  */
-int textFileFormatYyget_column  (yyscan_t yyscanner)
+int yyget_column  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    
+
         if (! YY_CURRENT_BUFFER)
             return 0;
     
@@ -5878,7 +2999,7 @@ int textFileFormatYyget_column  (yyscan_t yyscanner)
 /** Get the input stream.
  * @param yyscanner The scanner object.
  */
-FILE *textFileFormatYyget_in  (yyscan_t yyscanner)
+FILE *yyget_in  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yyin;
@@ -5887,7 +3008,7 @@ FILE *textFileFormatYyget_in  (yyscan_t yyscanner)
 /** Get the output stream.
  * @param yyscanner The scanner object.
  */
-FILE *textFileFormatYyget_out  (yyscan_t yyscanner)
+FILE *yyget_out  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yyout;
@@ -5896,7 +3017,7 @@ FILE *textFileFormatYyget_out  (yyscan_t yyscanner)
 /** Get the length of the current token.
  * @param yyscanner The scanner object.
  */
-yy_size_t textFileFormatYyget_leng  (yyscan_t yyscanner)
+size_t yyget_leng  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yyleng;
@@ -5906,7 +3027,7 @@ yy_size_t textFileFormatYyget_leng  (yyscan_t yyscanner)
  * @param yyscanner The scanner object.
  */
 
-char *textFileFormatYyget_text  (yyscan_t yyscanner)
+char *yyget_text  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yytext;
@@ -5916,81 +3037,81 @@ char *textFileFormatYyget_text  (yyscan_t yyscanner)
  * @param user_defined The data to be associated with this scanner.
  * @param yyscanner The scanner object.
  */
-void textFileFormatYyset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)
+void yyset_extra (YY_EXTRA_TYPE  user_defined , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     yyextra = user_defined ;
 }
 
 /** Set the current line number.
- * @param line_number
+ * @param _line_number line number
  * @param yyscanner The scanner object.
  */
-void textFileFormatYyset_lineno (int  line_number , yyscan_t yyscanner)
+void yyset_lineno (int  _line_number , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
         /* lineno is only valid if an input buffer exists. */
         if (! YY_CURRENT_BUFFER )
-           YY_FATAL_ERROR( "textFileFormatYyset_lineno called with no buffer" );
+           YY_FATAL_ERROR( "yyset_lineno called with no buffer" );
     
-    yylineno = line_number;
+    yylineno = _line_number;
 }
 
 /** Set the current column.
- * @param line_number
+ * @param _column_no column number
  * @param yyscanner The scanner object.
  */
-void textFileFormatYyset_column (int  column_no , yyscan_t yyscanner)
+void yyset_column (int  _column_no , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
         /* column is only valid if an input buffer exists. */
         if (! YY_CURRENT_BUFFER )
-           YY_FATAL_ERROR( "textFileFormatYyset_column called with no buffer" );
+           YY_FATAL_ERROR( "yyset_column called with no buffer" );
     
-    yycolumn = column_no;
+    yycolumn = _column_no;
 }
 
 /** Set the input stream. This does not discard the current
  * input buffer.
- * @param in_str A readable stream.
+ * @param _in_str A readable stream.
  * @param yyscanner The scanner object.
- * @see textFileFormatYy_switch_to_buffer
+ * @see yy_switch_to_buffer
  */
-void textFileFormatYyset_in (FILE *  in_str , yyscan_t yyscanner)
+void yyset_in (FILE *  _in_str , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    yyin = in_str ;
+    yyin = _in_str ;
 }
 
-void textFileFormatYyset_out (FILE *  out_str , yyscan_t yyscanner)
+void yyset_out (FILE *  _out_str , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    yyout = out_str ;
+    yyout = _out_str ;
 }
 
-int textFileFormatYyget_debug  (yyscan_t yyscanner)
+int yyget_debug  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yy_flex_debug;
 }
 
-void textFileFormatYyset_debug (int  bdebug , yyscan_t yyscanner)
+void yyset_debug (int  _bdebug , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-    yy_flex_debug = bdebug ;
+    yy_flex_debug = _bdebug ;
 }
 
 /* Accessor methods for yylval and yylloc */
 
-YYSTYPE * textFileFormatYyget_lval  (yyscan_t yyscanner)
+YYSTYPE * yyget_lval  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     return yylval;
 }
 
-void textFileFormatYyset_lval (YYSTYPE *  yylval_param , yyscan_t yyscanner)
+void yyset_lval (YYSTYPE *  yylval_param , yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     yylval = yylval_param;
@@ -5998,20 +3119,18 @@ void textFileFormatYyset_lval (YYSTYPE *  yylval_param , yyscan_t yyscanner)
 
 /* User-visible API */
 
-/* textFileFormatYylex_init is special because it creates the scanner itself, so it is
+/* yylex_init is special because it creates the scanner itself, so it is
  * the ONLY reentrant function that doesn't take the scanner as the last argument.
  * That's why we explicitly handle the declaration, instead of using our macros.
  */
-
-int textFileFormatYylex_init(yyscan_t* ptr_yy_globals)
-
+int yylex_init(yyscan_t* ptr_yy_globals)
 {
     if (ptr_yy_globals == NULL){
         errno = EINVAL;
         return 1;
     }
 
-    *ptr_yy_globals = (yyscan_t) textFileFormatYyalloc ( sizeof( struct yyguts_t ), NULL );
+    *ptr_yy_globals = (yyscan_t) yyalloc ( sizeof( struct yyguts_t ), NULL );
 
     if (*ptr_yy_globals == NULL){
         errno = ENOMEM;
@@ -6024,39 +3143,37 @@ int textFileFormatYylex_init(yyscan_t* ptr_yy_globals)
     return yy_init_globals ( *ptr_yy_globals );
 }
 
-/* textFileFormatYylex_init_extra has the same functionality as textFileFormatYylex_init, but follows the
+/* yylex_init_extra has the same functionality as yylex_init, but follows the
  * convention of taking the scanner as the last argument. Note however, that
  * this is a *pointer* to a scanner, as it will be allocated by this call (and
  * is the reason, too, why this function also must handle its own declaration).
- * The user defined value in the first argument will be available to textFileFormatYyalloc in
+ * The user defined value in the first argument will be available to yyalloc in
  * the yyextra field.
  */
-
-int textFileFormatYylex_init_extra(YY_EXTRA_TYPE yy_user_defined,yyscan_t* ptr_yy_globals )
-
+int yylex_init_extra( YY_EXTRA_TYPE yy_user_defined, yyscan_t* ptr_yy_globals )
 {
     struct yyguts_t dummy_yyguts;
 
-    textFileFormatYyset_extra (yy_user_defined, &dummy_yyguts);
+    yyset_extra (yy_user_defined, &dummy_yyguts);
 
     if (ptr_yy_globals == NULL){
         errno = EINVAL;
         return 1;
     }
-	
-    *ptr_yy_globals = (yyscan_t) textFileFormatYyalloc ( sizeof( struct yyguts_t ), &dummy_yyguts );
-	
+
+    *ptr_yy_globals = (yyscan_t) yyalloc ( sizeof( struct yyguts_t ), &dummy_yyguts );
+
     if (*ptr_yy_globals == NULL){
         errno = ENOMEM;
         return 1;
     }
-    
+
     /* By setting to 0xAA, we expose bugs in
     yy_init_globals. Leave at 0x00 for releases. */
     memset(*ptr_yy_globals,0x00,sizeof(struct yyguts_t));
-    
-    textFileFormatYyset_extra (yy_user_defined, *ptr_yy_globals);
-    
+
+    yyset_extra (yy_user_defined, *ptr_yy_globals);
+
     return yy_init_globals ( *ptr_yy_globals );
 }
 
@@ -6064,13 +3181,13 @@ static int yy_init_globals (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
     /* Initialization is the same as for the non-reentrant scanner.
-     * This function is called from textFileFormatYylex_destroy(), so don't allocate here.
+     * This function is called from yylex_destroy(), so don't allocate here.
      */
 
-    yyg->yy_buffer_stack = 0;
+    yyg->yy_buffer_stack = NULL;
     yyg->yy_buffer_stack_top = 0;
     yyg->yy_buffer_stack_max = 0;
-    yyg->yy_c_buf_p = (char *) 0;
+    yyg->yy_c_buf_p = NULL;
     yyg->yy_init = 0;
     yyg->yy_start = 0;
 
@@ -6083,42 +3200,42 @@ static int yy_init_globals (yyscan_t yyscanner)
     yyin = stdin;
     yyout = stdout;
 #else
-    yyin = (FILE *) 0;
-    yyout = (FILE *) 0;
+    yyin = NULL;
+    yyout = NULL;
 #endif
 
     /* For future reference: Set errno on error, since we are called by
-     * textFileFormatYylex_init()
+     * yylex_init()
      */
     return 0;
 }
 
-/* textFileFormatYylex_destroy is for both reentrant and non-reentrant scanners. */
-int textFileFormatYylex_destroy  (yyscan_t yyscanner)
+/* yylex_destroy is for both reentrant and non-reentrant scanners. */
+int yylex_destroy  (yyscan_t yyscanner)
 {
     struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
 
     /* Pop the buffer stack, destroying each element. */
 	while(YY_CURRENT_BUFFER){
-		textFileFormatYy_delete_buffer(YY_CURRENT_BUFFER ,yyscanner );
+		yy_delete_buffer( YY_CURRENT_BUFFER , yyscanner );
 		YY_CURRENT_BUFFER_LVALUE = NULL;
-		textFileFormatYypop_buffer_state(yyscanner);
+		yypop_buffer_state(yyscanner);
 	}
 
 	/* Destroy the stack itself. */
-	textFileFormatYyfree(yyg->yy_buffer_stack ,yyscanner);
+	yyfree(yyg->yy_buffer_stack , yyscanner);
 	yyg->yy_buffer_stack = NULL;
 
     /* Destroy the start condition stack. */
-        textFileFormatYyfree(yyg->yy_start_stack ,yyscanner );
+        yyfree( yyg->yy_start_stack , yyscanner );
         yyg->yy_start_stack = NULL;
 
     /* Reset the globals. This is important in a non-reentrant scanner so the next time
-     * textFileFormatYylex() is called, initialization will occur. */
+     * yylex() is called, initialization will occur. */
     yy_init_globals( yyscanner);
 
     /* Destroy the main struct (reentrant only). */
-    textFileFormatYyfree ( yyscanner , yyscanner );
+    yyfree ( yyscanner , yyscanner );
     yyscanner = NULL;
     return 0;
 }
@@ -6128,18 +3245,21 @@ int textFileFormatYylex_destroy  (yyscan_t yyscanner)
  */
 
 #ifndef yytext_ptr
-static void yy_flex_strncpy (char* s1, yyconst char * s2, int n , yyscan_t yyscanner)
+static void yy_flex_strncpy (char* s1, const char * s2, int n , yyscan_t yyscanner)
 {
-	register int i;
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+
+	int i;
 	for ( i = 0; i < n; ++i )
 		s1[i] = s2[i];
 }
 #endif
 
 #ifdef YY_NEED_STRLEN
-static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
+static int yy_flex_strlen (const char * s , yyscan_t yyscanner)
 {
-	register int n;
+	int n;
 	for ( n = 0; s[n]; ++n )
 		;
 
@@ -6147,13 +3267,18 @@ static int yy_flex_strlen (yyconst char * s , yyscan_t yyscanner)
 }
 #endif
 
-void *textFileFormatYyalloc (yy_size_t  size , yyscan_t yyscanner)
+void *yyalloc (yy_size_t  size , yyscan_t yyscanner)
 {
-	return (void *) malloc( size );
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+	return malloc(size);
 }
 
-void *textFileFormatYyrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner)
+void *yyrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner)
 {
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+
 	/* The cast to (char *) in the following accommodates both
 	 * implementations that use char* generic pointers, and those
 	 * that use void* generic pointers.  It works with the latter
@@ -6161,17 +3286,18 @@ void *textFileFormatYyrealloc  (void * ptr, yy_size_t  size , yyscan_t yyscanner
 	 * any pointer type to void*, and deal with argument conversions
 	 * as though doing an assignment.
 	 */
-	return (void *) realloc( (char *) ptr, size );
+	return realloc(ptr, size);
 }
 
-void textFileFormatYyfree (void * ptr , yyscan_t yyscanner)
+void yyfree (void * ptr , yyscan_t yyscanner)
 {
-	free( (char *) ptr );	/* see textFileFormatYyrealloc() for (char *) cast */
+	struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
+	(void)yyg;
+	free( (char *) ptr );	/* see yyrealloc() for (char *) cast */
 }
 
 #define YYTABLES_NAME "yytables"
 
-#line 281 "pxr/usd/sdf/textFileFormat.ll"
-
+#line 331 "./USD/pxr/usd/sdf/textFileFormat.ll"
 
 

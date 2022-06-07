@@ -798,6 +798,10 @@ public:
     /// \name Valid path strings, prim and property names
     /// @{
 
+    /// Returns whether \p name is a legal prim name for any
+    /// path component.
+    SDF_API static bool IsValidPrimName(const std::string& name);
+
     /// Returns whether \p name is a legal identifier for any
     /// path component.
     SDF_API static bool IsValidIdentifier(const std::string &name);

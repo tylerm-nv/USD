@@ -81,6 +81,7 @@ pxr_library(tf
         type
         typeFunctions
         typeNotice
+        unicodeUtils
         warning
         weakBase
         weakPtr
@@ -172,6 +173,7 @@ pxr_library(tf
     CPPFILES
         initConfig.cpp
         preprocessorUtils.cpp
+        unicodeCharacterClasses.cpp
         pxrDoubleConversion/double-conversion.cc
         pxrDoubleConversion/bignum-dtoa.cc
         pxrDoubleConversion/bignum.cc
