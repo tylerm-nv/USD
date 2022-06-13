@@ -174,7 +174,7 @@ class TestSdfPath(unittest.TestCase):
             ["情報", "._جيد"]
         ]
 
-        if Tf.GetEnvSetting('ARCH_UTF8_IDENTIFIERS'):
+        if Tf.GetEnvSetting('TF_UTF8_IDENTIFIERS'):
             test_paths = list()
             for test_index in range(len(utf8_good_paths)):
                 self.assertEqual(utf8_good_paths[test_index], str(Sdf.Path(utf8_good_paths[test_index])))

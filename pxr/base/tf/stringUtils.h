@@ -50,7 +50,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 
 // environment setting for defaulting back to standard ASCII rules for identifiers and prim names
 // by default this value is true indicating that UTF8 rules will be used to validate
-TF_API extern TfEnvSetting<bool> ARCH_UTF8_IDENTIFIERS;
+TF_API extern TfEnvSetting<bool> TF_UTF8_IDENTIFIERS;
 
 class TfToken;
 
@@ -686,7 +686,7 @@ std::string TfStringCatPaths( const std::string &prefix,
 /// An identifier name is valid if it consists of any valid UTF-8 sequence that is at least one character long and
 /// fulfills the standard C/Python identifier convention for Unicode (XID_Start followed by 0 or more XID_Continue class
 /// characters).
-/// If the ARCH_UTF8_IDENTIFIERS environment setting is overridden to false, identifier validity is checked
+/// If the TF_UTF8_IDENTIFIERS environment setting is overridden to false, identifier validity is checked
 /// against legacy rules and follows the C/Python identifier convention for ASCII characters (i.e. at least one
 /// character long, must start with a letter or underscore, and must contain only letters, underscores, and numerals).
 /// WARNING: This method is for internal use only and performs no validation on begin / end.
@@ -694,7 +694,7 @@ std::string TfStringCatPaths( const std::string &prefix,
 inline bool
 _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator begin, std::string::const_iterator end)
 {
-    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
     {
         // use unicode utils to validate the identifier
         return TfUnicodeUtils::GetInstance().IsValidUTF8Identifier(identifier, begin, end);
@@ -734,7 +734,7 @@ _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator 
 /// Test whether the subsequence of \a primName given by begin and end is a valid prim name.
 ///
 /// A prim name is valid if it consists of any valid UTF-8 sequence that is at least one character long.
-/// If the ARCH_UTF8_IDENTIFIERS environment setting is overridden to false, prim name
+/// If the TF_UTF8_IDENTIFIERS environment setting is overridden to false, prim name
 /// validity is checked against legacy rules and follows the C/Python identifier convention for ASCII
 /// characters (i.e. at least one character long, must start with a letter or underscore, and must
 /// contain only letters, underscores, and numerals).  
@@ -743,7 +743,7 @@ _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator 
 inline bool
 _TfIsValidPrimName(const std::string& primName, std::string::const_iterator begin, std::string::const_iterator end)
 {
-    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
     {
         // use unicode utils to validate the identifier
         return TfUnicodeUtils::GetInstance().IsValidUTF8PrimName(primName, begin, end);

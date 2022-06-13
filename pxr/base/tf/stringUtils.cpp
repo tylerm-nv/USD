@@ -63,7 +63,7 @@ using std::vector;
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-TF_DEFINE_ENV_SETTING(ARCH_UTF8_IDENTIFIERS, true, "Allow UTF8 strings as identifiers and prim names");
+TF_DEFINE_ENV_SETTING(TF_UTF8_IDENTIFIERS, true, "Allow UTF8 strings as identifiers and prim names");
 
 string
 TfVStringPrintf(const std::string& fmt, va_list ap)
@@ -1155,7 +1155,7 @@ TfStringCatPaths( const string &prefix, const string &suffix )
 std::string
 TfMakeValidIdentifier(const std::string &in)
 {
-    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
     {
         return TfUnicodeUtils::GetInstance().MakeValidUTF8Identifier(in);
     }

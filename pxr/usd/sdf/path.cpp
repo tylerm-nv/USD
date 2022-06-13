@@ -1813,7 +1813,7 @@ SdfPath::IsValidNamespacedIdentifier(const std::string &name)
 {
     // valid namespaced identifiers are valid identifiers separated by SDF_PATH_NS_DELIMITER_CHAR
     // the individual identifiers are validated according to either UTF-8 or ASCII rules
-    // depending on the value of ARCH_UTF8_IDENTIFIERS
+    // depending on the value of TF_UTF8_IDENTIFIERS
     constexpr char delim = SDF_PATH_NS_DELIMITER_CHAR;
     std::string::const_iterator begin = name.begin();
     std::string::const_iterator end = name.end();

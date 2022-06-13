@@ -31,7 +31,7 @@ class TestLoadUtf8Content(unittest.TestCase):
     def test_LoadUTF8TextFile(self):
         """Tests whether UTF-8 content can be appropriately loaded from a usda file."""
         ################################################################################
-        if Tf.GetEnvSetting('ARCH_UTF8_IDENTIFIERS'):
+        if Tf.GetEnvSetting('TF_UTF8_IDENTIFIERS'):
             # loading the content should succeed under this test
             stage = Usd.Stage.Open("utf8_content.usda")
             
@@ -47,7 +47,7 @@ class TestLoadUtf8Content(unittest.TestCase):
     def test_LoadUTF8BinaryFile(self):
         """Tests whether UTF-8 content can be appropriately loaded from a usdc file."""
         ################################################################################
-        if Tf.GetEnvSetting('ARCH_UTF8_IDENTIFIERS'):
+        if Tf.GetEnvSetting('TF_UTF8_IDENTIFIERS'):
             # loading the content should succeed under this test
             stage = Usd.Stage.Open("utf8_content.usda")
 

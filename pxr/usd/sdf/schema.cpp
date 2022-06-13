@@ -1269,7 +1269,7 @@ SdfSchemaBase::IsValidNamespacedIdentifier(const std::string& identifier)
 SdfAllowed
 SdfSchemaBase::IsValidVariantIdentifier(const std::string& identifier)
 {
-    if (TfGetEnvSetting(ARCH_UTF8_IDENTIFIERS))
+    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
     {
         std::string::const_iterator begin = identifier.begin();
         std::string::const_iterator end = identifier.end();
