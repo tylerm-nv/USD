@@ -808,7 +808,13 @@ public:
 
     /// Returns whether \p name is a legal namespaced identifier.
     /// This returns \c true if IsValidIdentifier() does.
-    SDF_API static bool IsValidNamespacedIdentifier(const std::string &name);
+    SDF_API static bool IsValidNamespacedIdentifier(const std::string& name);
+
+    /// Returns whether \p name is a legal variant identitifer.
+    /// Variant identifiers are more permissive than prim names using
+    /// legacy ASCII rules.
+    /// 
+    SDF_API static bool IsValidVariantIdentifier(const std::string& name);
 
     /// Tokenizes \p name by the namespace delimiter.
     /// Returns the empty vector if \p name is not a valid namespaced

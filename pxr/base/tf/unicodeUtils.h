@@ -391,7 +391,6 @@ public:
             // 2-byte characters have a leading 110 sequence
             // 3-byte characters have a leading 1110 sequence
             // 4-byte characters have a leading 11110 sequence
-            std::iterator_traits<std::string::const_iterator>::difference_type encodingLength = 0;
             unsigned char x = static_cast<unsigned char>(*_it);
             if (x < 0x80)
             {
@@ -521,7 +520,7 @@ public:
                 // code point is constructed from the last 3 bits of byte 1
                 // and the last 6 bits of bytes 2, 3, and 4
                 codePoint = byte1;
-                codePoint = ((codePoint << 18) & 0x1fffff) + ((byte2 << 12) & 0x3ffff) + ((byte3 << 6) && 0xfff) + (byte4 & 0x3f);
+                codePoint = ((codePoint << 18) & 0x1fffff) + ((byte2 << 12) & 0x3ffff) + ((byte3 << 6) & 0xfff) + (byte4 & 0x3f);
 
                 return true;
             }

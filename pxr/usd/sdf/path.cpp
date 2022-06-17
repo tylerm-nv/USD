@@ -1842,6 +1842,71 @@ SdfPath::IsValidNamespacedIdentifier(const std::string &name)
     return _TfIsValidIdentifier(name, subsequenceStart, end);
 }
 
+// We use our own _IsAlpha and _IsAlnum here for two reasons.  One, we want to
+// ensure that they follow C/Python identifier rules and are not subject to
+// various locale differences.  And two, since we are not consulting a locale,
+// it is faster.
+static constexpr bool _IsAlpha(int x) {
+    return ('a' <= (x | 32)) && ((x | 32) <= 'z');
+}
+static constexpr bool _IsAlnum(int x) {
+    return _IsAlpha(x) || (('0' <= x) && (x <= '9'));
+}
+
+bool SdfPath::IsValidVariantIdentifier(const std::string& name)
+{
+    if (name.empty())
+    {
+        return false;
+    }
+
+    if (UseUTF8Identifiers())
+    {
+        std::string::const_iterator begin = name.begin();
+        std::string::const_iterator end = name.end();
+
+        // allow optional leading dot
+        if (begin != end && *begin == '.')
+        {
+            begin++;
+        }
+
+        TfUnicodeUtils::utf8_const_iterator iterator(begin, end);
+        for (; iterator != end; iterator++)
+        {
+            // valid variant identifier characters are '|' or '-'
+            // in addition to standard identifier characters
+            if (!(TfUnicodeUtils::GetInstance().IsUTF8CharXIDContinue(name, iterator.Wrapped()) || *(iterator.Wrapped()) == '|' || *(iterator.Wrapped()) == '-'))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+    else
+    {
+        // Allow [[:alnum:]_|\-]+ with an optional leading dot.
+
+        std::string::const_iterator first = name.begin();
+        std::string::const_iterator last = name.end();
+
+        // Allow optional leading dot.
+        if (first != last && *first == '.') {
+            ++first;
+        }
+
+        for (; first != last; ++first) {
+            char c = *first;
+            if (!(_IsAlnum(c) || (c == '_') || (c == '|') || (c == '-'))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
 std::vector<std::string>
 SdfPath::TokenizeIdentifier(const std::string &name)
 {

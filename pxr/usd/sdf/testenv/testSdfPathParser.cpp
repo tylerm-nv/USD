@@ -121,7 +121,6 @@ int main()
         "foo{a=x}.prop",
         "foo{a=x}.prop:bar:baz",
         "foo{a=1}",
-        "foo{1=x}",
         "foo{ a = x }",
         "foo{a=x}{b=y}",
         "foo {a=x} {b=y} ",
@@ -233,10 +232,25 @@ int main()
         NULL
     };
 
+    char const* goodUtf8[] = {
+        "foo{1=x}",
+        NULL
+    };
+
     testPaths(good, 0);
 
     printf("Testing bad paths: errors expected\n");
     testPaths(bad, 1);
+
+    printf("Testing path depending on TF_UTF8_IDENTIFIERS\n");
+    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
+    {
+        testPaths(goodUtf8, 0);
+    }
+    else
+    {
+        testPaths(goodUtf8, 1);
+    }
 
     printf("Done expecting errors\n");
 

@@ -1129,7 +1129,22 @@ YY_RULE_SETUP
     // it satisfies XID_Start XID_Continue*
     // otherwise it can only be a prim name
     std::string matchedString = std::string(yytext, yyleng);
-    return TfIsValidIdentifier(matchedString) ? TOK_IDENTIFIER : TOK_PRIM_NAME;
+    if (TfIsValidIdentifier(matchedString))
+	{
+		return TOK_IDENTIFIER;
+	}
+	else if (TfIsValidPrimName(matchedString))
+	{
+		return TOK_PRIM_NAME;
+	}
+    else if (SdfPath::IsValidVariantIdentifier(matchedString))
+    {
+        return TOK_VARIANT_NAME;
+    }
+	else
+	{
+		return -1;
+	}
 }
 	YY_BREAK
 /* Namespaced identifiers are identifiers separated by a ':' character
@@ -1138,7 +1153,7 @@ YY_RULE_SETUP
   */
 case 4:
 YY_RULE_SETUP
-#line 122 "./USD/pxr/usd/sdf/path.ll"
+#line 137 "./USD/pxr/usd/sdf/path.ll"
 {
     yylval_param->token = TfToken(yytext);
 
@@ -1180,7 +1195,7 @@ YY_RULE_SETUP
   */
 case 5:
 YY_RULE_SETUP
-#line 161 "./USD/pxr/usd/sdf/path.ll"
+#line 176 "./USD/pxr/usd/sdf/path.ll"
 {
     yylval_param->token = TfToken(yytext);
     return TOK_PRIM_NAME;
@@ -1189,14 +1204,15 @@ YY_RULE_SETUP
 /* In addition to allowing prim names, we allow variant names to have
   * both hyphens ('-') and bars ('|') and to start with those, digits, or underscores.
   * Again, permissive with additional validation underneath.
-  * NOTE: NEED DIFFERENT VALIDATION HERE THAN TfToken CONSTRUCTOR CAN PROVIDE
+  * Note that anything that didn't have a hyphen / bar in it explicitly will
+  * have already matched one of the previous rules and be either an identifier or prim name.
   * 
   * Altogether, variant names also have a '.' in front (optionally) which is 
   * handled by the parser, not the lexer rules.
   */
 case 6:
 YY_RULE_SETUP
-#line 174 "./USD/pxr/usd/sdf/path.ll"
+#line 190 "./USD/pxr/usd/sdf/path.ll"
 {
     yylval_param->token = TfToken(yytext);
     return TOK_VARIANT_NAME;
@@ -1204,31 +1220,31 @@ YY_RULE_SETUP
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 179 "./USD/pxr/usd/sdf/path.ll"
+#line 195 "./USD/pxr/usd/sdf/path.ll"
 {
     return TOK_DOTDOT;
 }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 183 "./USD/pxr/usd/sdf/path.ll"
+#line 199 "./USD/pxr/usd/sdf/path.ll"
 { 
     return TOK_WHITESPACE; 
 }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 187 "./USD/pxr/usd/sdf/path.ll"
+#line 203 "./USD/pxr/usd/sdf/path.ll"
 { 
     return yytext[0];
 }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 191 "./USD/pxr/usd/sdf/path.ll"
+#line 207 "./USD/pxr/usd/sdf/path.ll"
 ECHO;
 	YY_BREAK
-#line 1231 "./USD/pxr/usd/sdf/path.lex.cpp"
+#line 1247 "./USD/pxr/usd/sdf/path.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -2371,6 +2387,6 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 191 "./USD/pxr/usd/sdf/path.ll"
+#line 207 "./USD/pxr/usd/sdf/path.ll"
 
 

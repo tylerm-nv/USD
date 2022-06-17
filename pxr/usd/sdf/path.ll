@@ -111,7 +111,22 @@ UTF8UDB     {UTF8UD}|{BAR}
     // it satisfies XID_Start XID_Continue*
     // otherwise it can only be a prim name
     std::string matchedString = std::string(yytext, yyleng);
-    return TfIsValidIdentifier(matchedString) ? TOK_IDENTIFIER : TOK_PRIM_NAME;
+    if (TfIsValidIdentifier(matchedString))
+	{
+		return TOK_IDENTIFIER;
+	}
+	else if (TfIsValidPrimName(matchedString))
+	{
+		return TOK_PRIM_NAME;
+	}
+    else if (SdfPath::IsValidVariantIdentifier(matchedString))
+    {
+        return TOK_VARIANT_NAME;
+    }
+	else
+	{
+		return -1;
+	}
 }
 
  /* Namespaced identifiers are identifiers separated by a ':' character

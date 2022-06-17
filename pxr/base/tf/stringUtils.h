@@ -681,6 +681,11 @@ TF_API
 std::string TfStringCatPaths( const std::string &prefix, 
                               const std::string &suffix );
 
+/// Convenience method for retrieving the value of TF_UTF8_IDENTIFIERS.
+///
+/// Returns true if the setting for using UTF8 identifiers is on, false if not.
+TF_API bool UseUTF8Identifiers();
+
 /// Test whether the subsequence of \a identifier given by begin and end is a valid identifier name.
 ///
 /// An identifier name is valid if it consists of any valid UTF-8 sequence that is at least one character long and
@@ -694,7 +699,7 @@ std::string TfStringCatPaths( const std::string &prefix,
 inline bool
 _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator begin, std::string::const_iterator end)
 {
-    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
+    if (UseUTF8Identifiers())
     {
         // use unicode utils to validate the identifier
         return TfUnicodeUtils::GetInstance().IsValidUTF8Identifier(identifier, begin, end);
@@ -719,13 +724,17 @@ _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator 
             return false;
         }
 
-        do {
+        while (letter(x) || number(x) || under(x)) {
             begin++;
             if (begin != end)
             {
                 x = static_cast<unsigned char>(*begin);
             }
-        } while ((begin != end) && (letter(x) || number(x) || under(x)));
+            else
+            {
+                break;
+            }
+        }
 
         return begin == end;
     }
@@ -743,7 +752,7 @@ _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator 
 inline bool
 _TfIsValidPrimName(const std::string& primName, std::string::const_iterator begin, std::string::const_iterator end)
 {
-    if (TfGetEnvSetting(TF_UTF8_IDENTIFIERS))
+    if (UseUTF8Identifiers())
     {
         // use unicode utils to validate the identifier
         return TfUnicodeUtils::GetInstance().IsValidUTF8PrimName(primName, begin, end);
@@ -768,13 +777,17 @@ _TfIsValidPrimName(const std::string& primName, std::string::const_iterator begi
             return false;
         }
 
-        do {
+        while (letter(x) || number(x) || under(x)) {
             begin++;
             if (begin != end)
             {
                 x = static_cast<unsigned char>(*begin);
             }
-        } while ((begin != end) && (letter(x) || number(x) || under(x)));
+            else
+            {
+                break;
+            }
+        }
 
         return begin == end;
     }
