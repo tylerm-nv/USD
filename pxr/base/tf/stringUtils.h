@@ -702,7 +702,7 @@ _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator 
     if (UseUTF8Identifiers())
     {
         // use unicode utils to validate the identifier
-        return TfUnicodeUtils::GetInstance().IsValidUTF8Identifier(identifier, begin, end);
+        return TfUnicodeUtils::IsValidUTF8Identifier(identifier, begin, end);
     }
     else
     {
@@ -743,19 +743,19 @@ _TfIsValidIdentifier(const std::string& identifier, std::string::const_iterator 
 /// Test whether the subsequence of \a primName given by begin and end is a valid prim name.
 ///
 /// A prim name is valid if it consists of any valid UTF-8 sequence that is at least one character long.
-/// If the TF_UTF8_IDENTIFIERS environment setting is overridden to false, prim name
+/// If the TF_UTF8_IDENTIFIERS environment setting is false, prim name
 /// validity is checked against legacy rules and follows the C/Python identifier convention for ASCII
 /// characters (i.e. at least one character long, must start with a letter or underscore, and must
 /// contain only letters, underscores, and numerals).  
 /// WARNING: This method is for internal use only and performs no validation on begin / end.
 /// 
 inline bool
-_TfIsValidPrimName(const std::string& primName, std::string::const_iterator begin, std::string::const_iterator end)
+_TfIsValidPrimName(const std::string& primName, std::string::const_iterator begin, std::string::const_iterator end, bool utf8)
 {
-    if (UseUTF8Identifiers())
+    if (utf8)
     {
         // use unicode utils to validate the identifier
-        return TfUnicodeUtils::GetInstance().IsValidUTF8PrimName(primName, begin, end);
+        return TfUnicodeUtils::IsValidUTF8PrimName(primName, begin, end);
     }
     else
     {
@@ -801,7 +801,20 @@ _TfIsValidPrimName(const std::string& primName, std::string::const_iterator begi
 inline bool
 TfIsValidPrimName(const std::string& primName)
 {
-    return _TfIsValidPrimName(primName, primName.begin(), primName.end());
+    return _TfIsValidPrimName(primName, primName.begin(), primName.end(), UseUTF8Identifiers());
+}
+
+/// Tests whether \a primName is valid.
+///
+/// A prim name is valid if it's at least one character long and all characters
+/// are valid UTF-8 sequences.  This method ignores the value of TF_UTF8_IDENTIFIERS
+/// and instead uses either UTF-8 or ASCII rules for validation based on the value
+/// of \a utf8.
+///
+inline bool
+TfIsValidPrimName(const std::string& primName, bool utf8)
+{
+    return _TfIsValidPrimName(primName, primName.begin(), primName.end(), utf8);
 }
 
 /// Test whether \a identifier is valid.

@@ -1287,7 +1287,7 @@ SdfSchemaBase::IsValidVariantIdentifier(const std::string& identifier)
         {
             // valid variant identifier characters are '|' or '-'
             // in addition to standard identifier characters
-            if (!(TfUnicodeUtils::GetInstance().IsUTF8CharXIDContinue(identifier, iterator.Wrapped()) || *(iterator.Wrapped()) == '|' || *(iterator.Wrapped()) == '-'))
+            if (!(TfUnicodeUtils::IsUTF8CharXIDContinue(identifier, iterator.Wrapped()) || *(iterator.Wrapped()) == '|' || *(iterator.Wrapped()) == '-'))
             {
                 return SdfAllowed(TfStringPrintf(
                     "\"%s\" is not a valid variant "

@@ -1163,7 +1163,7 @@ TfMakeValidIdentifier(const std::string &in)
 {
     if (UseUTF8Identifiers())
     {
-        return TfUnicodeUtils::GetInstance().MakeValidUTF8Identifier(in);
+        return TfUnicodeUtils::MakeValidUTF8Identifier(in);
     }
     else
     {

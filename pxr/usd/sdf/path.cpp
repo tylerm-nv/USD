@@ -1797,6 +1797,12 @@ SdfPath::IsValidPrimName(const std::string& name)
     return TfIsValidPrimName(name);
 }
 
+bool 
+SdfPath::IsValidPrimName(const std::string& name, bool utf8)
+{
+    return TfIsValidPrimName(name, utf8);
+}
+
 static inline bool _IsValidIdentifier(TfToken const &name)
 {
     return TfIsValidIdentifier(name.GetString());
@@ -1876,7 +1882,7 @@ bool SdfPath::IsValidVariantIdentifier(const std::string& name)
         {
             // valid variant identifier characters are '|' or '-'
             // in addition to standard identifier characters
-            if (!(TfUnicodeUtils::GetInstance().IsUTF8CharXIDContinue(name, iterator.Wrapped()) || *(iterator.Wrapped()) == '|' || *(iterator.Wrapped()) == '-'))
+            if (!(TfUnicodeUtils::IsUTF8CharXIDContinue(name, iterator.Wrapped()) || *(iterator.Wrapped()) == '|' || *(iterator.Wrapped()) == '-'))
             {
                 return false;
             }

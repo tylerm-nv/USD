@@ -802,6 +802,12 @@ public:
     /// path component.
     SDF_API static bool IsValidPrimName(const std::string& name);
 
+    /// Returns whether \p name is a legal prim name for any
+    /// path component.  This method uses the value of \p utf8 
+    /// to determine which rules to use to validate, regardless
+    /// of the value of TF_UTF8_IDENTIFIERS.
+    SDF_API static bool IsValidPrimName(const std::string& name, bool utf8);
+
     /// Returns whether \p name is a legal identifier for any
     /// path component.
     SDF_API static bool IsValidIdentifier(const std::string &name);
